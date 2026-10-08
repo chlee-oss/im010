@@ -4,6 +4,7 @@ import { post } from '../lib/api'
 import { useMe } from '../lib/me'
 import { useNotify } from '../lib/notice'
 import { NewPassword } from '../pages/Login'
+import { MyNotifyForm } from '../pages/settings/Notify'
 import { Modal } from './ui'
 
 /** 공통 레이아웃: 좌측 메뉴(권한 있는 프로그램만) · 상단 처리 건수 · 관리자 메뉴 */
@@ -13,6 +14,7 @@ export default function Layout({ children, onLogout }: { children: ReactNode; on
   const notify = useNotify()
   const [menuOpen, setMenuOpen] = useState(false)
   const [pwOpen, setPwOpen] = useState(false)
+  const [notifyOpen, setNotifyOpen] = useState(false)
   const [busy, setBusy] = useState(false)
 
   const logout = async () => {
@@ -64,6 +66,14 @@ export default function Layout({ children, onLogout }: { children: ReactNode; on
                   >
                     비밀번호 변경
                   </button>
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false)
+                      setNotifyOpen(true)
+                    }}
+                  >
+                    내 알림 설정
+                  </button>
                   <button onClick={logout}>로그아웃</button>
                 </div>
               )}
@@ -89,6 +99,11 @@ export default function Layout({ children, onLogout }: { children: ReactNode; on
       {pwOpen && (
         <Modal title="비밀번호 변경" onClose={() => setPwOpen(false)}>
           <NewPassword withCurrent busy={busy} onSubmit={changePassword} />
+        </Modal>
+      )}
+      {notifyOpen && (
+        <Modal title="내 알림 설정" onClose={() => setNotifyOpen(false)}>
+          <MyNotifyForm onClose={() => setNotifyOpen(false)} />
         </Modal>
       )}
     </div>

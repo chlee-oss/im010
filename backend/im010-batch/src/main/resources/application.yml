@@ -3,6 +3,10 @@ spring:
     name: im010-batch
   main:
     web-application-type: none
+  task:
+    scheduling:
+      pool:
+        size: 4          # 수집(수 분)이 도는 동안에도 알림 발송 · 예약 게시가 돌게
   datasource:
     url: ${IM010_DB_URL:jdbc:postgresql://localhost:5432/im010}
     username: ${IM010_DB_USER:im010}
@@ -20,3 +24,8 @@ im010:
     request-delay: 3s
     timeout: 20s
     zone: Asia/Seoul
+    mail-from: ${IM010_MAIL_FROM:im010 <noreply@im010.co.kr>}
+
+# 알림 메일 서버는 표준 환경 변수로만 준다 (없으면 메일 발송 건은 실패로 기록, 메신저는 그대로 발송)
+#   SPRING_MAIL_HOST · SPRING_MAIL_PORT · SPRING_MAIL_USERNAME · SPRING_MAIL_PASSWORD
+#   SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=true

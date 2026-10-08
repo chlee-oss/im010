@@ -154,3 +154,6 @@ export function addDays(date: string, days: number): string {
   d.setUTCDate(d.getUTCDate() + days)
   return d.toISOString().slice(0, 10)
 }
+
+export const CHANNEL_KIND: Record<string, string> = { SLACK: 'Slack · Mattermost', TEAMS: 'Microsoft Teams', JANDI: '잔디', WEBHOOK: '일반 웹훅' }
+export const NOTIFY_STATUS: Record<string, string> = { PENDING: '발송 대기', SENT: '발송 완료', PARTIAL: '일부 실패', FAILED: '실패', NO_TARGET: '받을 곳 없음' }

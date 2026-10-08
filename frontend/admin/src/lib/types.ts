@@ -364,3 +364,40 @@ export interface CalendarRow {
   publishedAt: string | null
   publishedBy: string | null
 }
+
+// ---------- 알림 ----------
+
+export interface AlertTypeInfo {
+  code: string
+  label: string
+  messengerDefault: boolean
+}
+
+export interface NotifyChannel {
+  id: number
+  name: string
+  kind: 'SLACK' | 'TEAMS' | 'JANDI' | 'WEBHOOK'
+  webhookUrl: string
+  alertTypes: string[]
+  enabled: boolean
+  updatedBy: string | null
+  updatedAt: string
+}
+
+export interface NotificationRow {
+  id: number
+  alertType: string
+  level: 'INFO' | 'WARN' | 'URGENT'
+  title: string
+  body: string | null
+  status: 'PENDING' | 'SENT' | 'PARTIAL' | 'FAILED' | 'NO_TARGET'
+  createdAt: string
+  sentAt: string | null
+  deliveries: string | null
+}
+
+export interface MyNotify {
+  email: string | null
+  mailAlerts: string[]
+  types: AlertTypeInfo[]
+}

@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.im010.core.mapper.NotifyMapper">
+
+    <insert id="insertNotification">
+        INSERT INTO notification (alert_type, level, title, body, dedupe_key)
+        SELECT #{alertType}, #{level}, #{title}, #{body}, #{dedupeKey}
+        WHERE #{dedupeKey}::text IS NULL
+           OR NOT EXISTS (SELECT 1 FROM notification
+                          WHERE dedupe_key = #{dedupeKey} AND created_at &gt; now() - interval '24 hours')
+    </insert>
+
+    <sql id="notificationColumns">
+        n.id, n.alert_type, n.level, n.title, n.body, n.status, n.created_at, n.sent_at,
+        (SELECT string_agg(d.target || ':' || d.status, '|' ORDER BY d.id)
+         FROM notification_delivery d WHERE d.notification_id = n.id) AS deliveries
+    </sql>
+
+    <select id="findPending" resultType="kr.co.im010.core.row.NotificationRow">
+        SELECT <include refid="notificationColumns"/>
+        FROM notification n
+        WHERE n.status = 'PENDING'
+          AND NOT EXISTS (SELECT 1 FROM notification_delivery d WHERE d.notification_id = n.id)
+        ORDER BY n.id
+        LIMIT #{limit}
+    </select>
+
+    <sql id="channelColumns">
+        id, name, kind, webhook_url, array_to_string(alert_types, '|') AS alert_types, enabled, updated_by, updated_at
+    </sql>
+
+    <select id="findChannelsFor" resultType="kr.co.im010.core.row.ChannelRow">
+        SELECT <include refid="channelColumns"/> FROM notify_channel
+        WHERE enabled AND #{alertType} = ANY (alert_types)
+        ORDER BY id
+    </select>
+
+    <select id="findMailRecipientsFor" resultType="kr.co.im010.core.row.MailRecipientRow">
+        SELECT id, login_id, name, email, array_to_string(mail_alerts, '|') AS mail_alerts
+        FROM admin_user
+        WHERE status = 'ACTIVE' AND email IS NOT NULL AND email &lt;&gt; '' AND #{alertType} = ANY (mail_alerts)
+        ORDER BY id
+    </select>
+
+    <insert id="insertDelivery">
+        INSERT INTO notification_delivery (notification_id, channel_id, target)
+        VALUES (#{notificationId}, #{channelId}, #{target})
+    </insert>
+
+    <update id="setNotificationStatus">
+        UPDATE notification SET status = #{status},
+               sent_at = CASE WHEN #{status} IN ('SENT', 'PARTIAL', 'FAILED', 'NO_TARGET') THEN now() ELSE sent_at END
+        WHERE id = #{id}
+    </update>
+
+    <!-- 채널 발송이면 channel_id 가 있고, 메일이면 target 이 메일 주소 -->
+    <select id="findDueDeliveries" resultType="kr.co.im010.core.row.DeliveryRow">
+        SELECT d.id, d.notification_id, d.target, d.attempts, c.kind AS channel_kind, c.webhook_url,
+               n.alert_type, n.level, n.title, n.body
+        FROM notification_delivery d
+        JOIN notification n ON n.id = d.notification_id
+        LEFT JOIN notify_channel c ON c.id = d.channel_id
+        WHERE d.status = 'PENDING' AND d.next_try_at &lt;= now()
+        ORDER BY d.id
+        LIMIT #{limit}
+    </select>
+
+    <update id="markDelivered">
+        UPDATE notification_delivery SET status = 'SENT', attempts = attempts + 1, sent_at = now(), last_error = NULL
+        WHERE id = #{id}
+    </update>
+
+    <update id="markDeliveryFailed">
+        UPDATE notification_delivery SET attempts = #{attempts}, last_error = left(#{error}, 500),
+               status = CASE WHEN #{giveUp} THEN 'FAILED' ELSE 'PENDING' END,
+               next_try_at = now() + make_interval(mins => #{retryMinutes})
+        WHERE id = #{id}
+    </update>
+
+    <update id="settleNotifications">
+        UPDATE notification n SET
+            status = CASE WHEN s.failed = 0 THEN 'SENT' WHEN s.sent = 0 THEN 'FAILED' ELSE 'PARTIAL' END,
+            sent_at = now()
+        FROM (SELECT notification_id,
+                     count(*) FILTER (WHERE status = 'SENT') AS sent,
+                     count(*) FILTER (WHERE status = 'FAILED') AS failed,
+                     count(*) FILTER (WHERE status = 'PENDING') AS pending
+              FROM notification_delivery GROUP BY notification_id) s
+        WHERE s.notification_id = n.id AND n.status = 'PENDING' AND s.pending = 0
+    </update>
+
+    <delete id="deleteOlderThan">
+        DELETE FROM notification WHERE created_at &lt; #{before}
+    </delete>
+
+    <select id="countDelayedItems" resultType="kr.co.im010.core.row.CountRow">
+        SELECT status AS key, status AS label, count(*) AS count
+        FROM crawl_item
+        WHERE (status = 'REVIEW_PENDING' AND created_at &lt; #{before})
+           OR (status = 'APPROVAL_REQUESTED' AND reviewed_at &lt; #{before})
+        GROUP BY status
+    </select>
+
+    <select id="findLastCollectedByPartner" resultType="kr.co.im010.core.row.StaleDataRow">
+        SELECT p.partner_code, pt.name AS partner_name, max(p.last_collected_on) AS last_collected_on
+        FROM plan p JOIN partner pt ON pt.code = p.partner_code
+        WHERE p.status = 'PUBLISHED' AND pt.exposed
+        GROUP BY p.partner_code, pt.name, pt.sort_order
+        ORDER BY pt.sort_order
+    </select>
+
+    <select id="findRunSummary" resultType="kr.co.im010.core.row.RunSummaryRow">
+        SELECT pt.name AS partner_name, r.url_type, r.result, r.collected_count, r.new_count, r.changed_count, r.ended_count
+        FROM crawl_run r JOIN partner pt ON pt.code = r.partner_code
+        WHERE r.run_on = #{runOn}
+          AND r.id = (SELECT max(x.id) FROM crawl_run x
+                      WHERE x.partner_code = r.partner_code AND x.url_type = r.url_type AND x.run_on = r.run_on)
+        ORDER BY pt.sort_order, CASE r.url_type WHEN 'POSTPAID' THEN 1 WHEN 'PREPAID' THEN 2 ELSE 3 END
+    </select>
+
+    <select id="findChannels" resultType="kr.co.im010.core.row.ChannelRow">
+        SELECT <include refid="channelColumns"/> FROM notify_channel ORDER BY id
+    </select>
+
+    <select id="findChannel" resultType="kr.co.im010.core.row.ChannelRow">
+        SELECT <include refid="channelColumns"/> FROM notify_channel WHERE id = #{id}
+    </select>
+
+    <select id="insertChannel" resultType="long" flushCache="true" useCache="false">
+        INSERT INTO notify_channel (name, kind, webhook_url, alert_types, enabled, updated_by)
+        VALUES (#{name}, #{kind}, #{webhookUrl}, #{alertTypes,typeHandler=org.apache.ibatis.type.ArrayTypeHandler},
+                #{enabled}, #{by})
+        RETURNING id
+    </select>
+
+    <update id="updateChannel">
+        UPDATE notify_channel SET name = #{name}, kind = #{kind}, webhook_url = #{webhookUrl},
+               alert_types = #{alertTypes,typeHandler=org.apache.ibatis.type.ArrayTypeHandler}, enabled = #{enabled},
+               updated_by = #{by}, updated_at = now()
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteChannel">
+        DELETE FROM notify_channel WHERE id = #{id}
+    </delete>
+
+    <select id="findMailSetting" resultType="kr.co.im010.core.row.MailRecipientRow">
+        SELECT id, login_id, name, email, array_to_string(mail_alerts, '|') AS mail_alerts
+        FROM admin_user WHERE id = #{adminId}
+    </select>
+
+    <update id="updateMailSetting">
+        UPDATE admin_user SET email = #{email},
+               mail_alerts = #{mailAlerts,typeHandler=org.apache.ibatis.type.ArrayTypeHandler}, updated_at = now()
+        WHERE id = #{adminId}
+    </update>
+
+    <sql id="notificationFilter">
+        WHERE n.created_at &gt;= #{from} AND n.created_at &lt; #{to}
+        <if test="alertType != null">AND n.alert_type = #{alertType}</if>
+        <if test="status != null">AND n.status = #{status}</if>
+    </sql>
+
+    <select id="findNotifications" resultType="kr.co.im010.core.row.NotificationRow">
+        SELECT <include refid="notificationColumns"/>
+        FROM notification n <include refid="notificationFilter"/>
+        ORDER BY n.id DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countNotifications" resultType="int">
+        SELECT count(*) FROM notification n <include refid="notificationFilter"/>
+    </select>
+
+</mapper>
