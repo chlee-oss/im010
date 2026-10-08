@@ -29,11 +29,17 @@ im010/
 
 준비물: JDK 21, Node.js 20+, PostgreSQL 16+ (로컬 서비스)
 
-1. **DB 만들기 (한 번만)** — PostgreSQL 관리자 비밀번호가 필요하다.
-   ```
-   "C:\Program Files\PostgreSQL\16\bin\psql.exe" -U postgres -f backend\db\init-local.sql
-   ```
-   로컬 전용 계정 `im010` / `im010_local` 과 DB `im010` 이 만들어진다.
+1. **로컬 DB** — 설치된 PostgreSQL 16 프로그램으로 D 드라이브에 별도 클러스터를 만들어 쓴다 (기존 5432 서비스와 별개).
+   - 위치 `D:\pgdata\im010`, 포트 **5433**, localhost 전용, 한국어 정렬(ICU ko-KR)
+   - 관리자(postgres) 비밀번호: `D:\pgdata\postgres-superuser.txt` (저장소에 올리지 않음)
+   - 로컬 전용 계정 `im010` / `im010_local`, DB `im010`
+   - PC를 다시 켜면 서버를 직접 켠다 (윈도우 서비스로 등록하지 않음). 끌 때는 `start` 대신 `stop`
+     ```
+     "C:\Program Files\PostgreSQL\16\bin\pg_ctl.exe" -D D:\pgdata\im010 -l D:\pgdata\im010-server.log start
+     ```
+   - 처음부터 다시 만들 때: `initdb -D D:\pgdata\im010 -U postgres --pwfile=D:\pgdata\postgres-superuser.txt -E UTF8 --locale-provider=icu --icu-locale=ko-KR --locale=C --auth=scram-sha-256`
+     → `postgresql.conf`에 `port = 5433`, `listen_addresses = 'localhost'` 추가 → 서버 시작
+     → `psql -h localhost -p 5433 -U postgres -f backend\db\init-local.sql`
 
 2. **API 서버** — 처음 실행할 때 Flyway가 테이블과 예시 데이터를 만든다.
    ```
