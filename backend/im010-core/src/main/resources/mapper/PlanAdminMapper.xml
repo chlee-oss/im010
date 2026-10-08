@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.im010.core.mapper.PlanAdminMapper">
+
+    <sql id="planSelect">
+        SELECT p.id, p.partner_code, pt.name AS partner_name, p.plan_type, p.partner_plan_code, p.status, p.activation_url,
+               p.published_version_id, d.id AS draft_version_id,
+               COALESCE(d.name, pv.name) AS name,
+               CASE WHEN d.id IS NOT NULL THEN COALESCE(d.monthly_price, d.charge_price)
+                    ELSE COALESCE(pv.monthly_price, pv.charge_price) END AS price,
+               COALESCE(d.network, pv.network) AS network,
+               pv.published_at, d.publish_at, p.last_collected_on, p.ended_on
+        FROM plan p
+        JOIN partner pt ON pt.code = p.partner_code
+        LEFT JOIN plan_version pv ON pv.id = p.published_version_id
+        LEFT JOIN LATERAL (
+            SELECT * FROM plan_version x
+            WHERE x.plan_id = p.id AND x.published_at IS NULL AND x.discarded_at IS NULL
+            ORDER BY x.version_no DESC LIMIT 1
+        ) d ON TRUE
+    </sql>
+
+    <sql id="planFilter">
+        WHERE p.plan_type = #{planType}
+        <if test="partnerCode != null">AND p.partner_code = #{partnerCode}</if>
+        <if test="network != null">AND COALESCE(d.network, pv.network) = #{network}</if>
+        <if test="q != null">AND COALESCE(d.name, pv.name) ILIKE '%' || #{q} || '%'</if>
+        <choose>
+            <when test="state == 'PUBLISHED'">AND p.status = 'PUBLISHED' AND d.id IS NULL</when>
+            <when test="state == 'DRAFT'">AND p.status NOT IN ('ENDED', 'HIDDEN') AND d.id IS NOT NULL AND d.publish_at IS NULL</when>
+            <when test="state == 'SCHEDULED'">AND p.status NOT IN ('ENDED', 'HIDDEN') AND d.publish_at IS NOT NULL</when>
+            <when test="state == 'ENDED'">AND p.status = 'ENDED'</when>
+            <when test="state == 'HIDDEN'">AND p.status = 'HIDDEN'</when>
+        </choose>
+    </sql>
+
+    <select id="findPlans" resultType="kr.co.im010.core.row.PlanAdminRow">
+        <include refid="planSelect"/>
+        <include refid="planFilter"/>
+        ORDER BY pt.sort_order, p.status = 'ENDED', name, p.id
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countPlans" resultType="int">
+        SELECT count(*) FROM (<include refid="planSelect"/> <include refid="planFilter"/>) t
+    </select>
+
+    <select id="findPlan" resultType="kr.co.im010.core.row.PlanAdminRow">
+        <include refid="planSelect"/>
+        WHERE p.id = #{id}
+    </select>
+
+    <select id="findPlansByIds" resultType="kr.co.im010.core.row.PlanAdminRow">
+        <include refid="planSelect"/>
+        WHERE p.id IN <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+        ORDER BY p.id
+    </select>
+
+    <select id="findPlanIdByCode" resultType="java.lang.Long">
+        SELECT id FROM plan WHERE partner_code = #{partnerCode} AND plan_type = #{planType} AND partner_plan_code = #{code}
+    </select>
+
+    <select id="findLivePlanIdByCode" resultType="java.lang.Long">
+        SELECT id FROM plan WHERE partner_code = #{partnerCode} AND partner_plan_code = #{code} AND status &lt;&gt; 'ENDED'
+        ORDER BY id LIMIT 1
+    </select>
+
+    <select id="insertPlan" resultType="long" flushCache="true" useCache="false">
+        INSERT INTO plan (partner_code, plan_type, partner_plan_code, status, activation_url)
+        VALUES (#{partnerCode}, #{planType}, #{code}, 'PENDING', #{activationUrl})
+        RETURNING id
+    </select>
+
+    <sql id="versionColumns">
+        id, plan_id, version_no, name, data_text, data_gb, qos_text, voice_text, sms_text, network, generation,
+        monthly_price, charge_price, valid_days, discount_months, price_after_discount,
+        array_to_string(tags, '|') AS tags, array_to_string(supplemented_fields, '|') AS supplemented_fields,
+        array_to_string(changed_fields, '|') AS changed_fields, collected_on, publish_at, published_at, published_by,
+        reviewer, approver, approved_at, discarded_at, crawl_item_id, source_hash
+    </sql>
+
+    <select id="findVersion" resultType="kr.co.im010.core.row.PlanVersionRow">
+        SELECT <include refid="versionColumns"/> FROM plan_version WHERE id = #{id}
+    </select>
+
+    <select id="findLatestVersion" resultType="kr.co.im010.core.row.PlanVersionRow">
+        SELECT <include refid="versionColumns"/> FROM plan_version
+        WHERE plan_id = #{planId} AND discarded_at IS NULL
+        ORDER BY version_no DESC LIMIT 1
+    </select>
+
+    <select id="findDraft" resultType="kr.co.im010.core.row.PlanVersionRow">
+        SELECT <include refid="versionColumns"/> FROM plan_version
+        WHERE plan_id = #{planId} AND published_at IS NULL AND discarded_at IS NULL
+        ORDER BY version_no DESC LIMIT 1
+    </select>
+
+    <select id="findVersions" resultType="kr.co.im010.core.row.PlanVersionRow">
+        SELECT <include refid="versionColumns"/> FROM plan_version WHERE plan_id = #{planId} ORDER BY version_no DESC
+    </select>
+
+    <select id="nextVersionNo" resultType="int">
+        SELECT COALESCE(max(version_no), 0) + 1 FROM plan_version WHERE plan_id = #{planId}
+    </select>
+
+    <select id="insertVersion" resultType="long" flushCache="true" useCache="false">
+        INSERT INTO plan_version (plan_id, version_no, name, data_text, data_gb, qos_text, voice_text, sms_text,
+                                  network, generation, monthly_price, charge_price, valid_days, discount_months,
+                                  price_after_discount, tags, supplemented_fields, changed_fields, collected_on,
+                                  reviewer, approver, approved_at, crawl_item_id, source_hash)
+        VALUES (#{planId}, #{versionNo}, #{name}, #{dataText}, #{dataGb}, #{qosText}, #{voiceText}, #{smsText},
+                #{network}, #{generation}, #{monthlyPrice}, #{chargePrice}, #{validDays}, #{discountMonths},
+                #{priceAfterDiscount},
+                #{tags,typeHandler=org.apache.ibatis.type.ArrayTypeHandler},
+                #{supplementedFields,typeHandler=org.apache.ibatis.type.ArrayTypeHandler},
+                #{changedFields,typeHandler=org.apache.ibatis.type.ArrayTypeHandler},
+                #{collectedOn}, #{reviewer}, #{approver}, now(), #{crawlItemId}, #{sourceHash})
+        RETURNING id
+    </select>
+
+    <select id="countScheduledDrafts" resultType="int">
+        SELECT count(*) FROM plan_version
+        WHERE plan_id = #{planId} AND published_at IS NULL AND discarded_at IS NULL AND publish_at IS NOT NULL
+    </select>
+
+    <update id="discardDrafts">
+        UPDATE plan_version SET discarded_at = now()
+        WHERE plan_id = #{planId} AND published_at IS NULL AND discarded_at IS NULL
+    </update>
+
+    <update id="updateDraftValues">
+        UPDATE plan_version SET
+            name = #{v.name}, data_text = #{v.dataText}, data_gb = #{v.dataGb}, qos_text = #{v.qosText},
+            voice_text = #{v.voiceText}, sms_text = #{v.smsText}, network = #{v.network}, generation = #{v.generation},
+            monthly_price = #{monthlyPrice}, charge_price = #{chargePrice}, valid_days = #{validDays},
+            discount_months = #{v.discountMonths}, price_after_discount = #{v.priceAfterDiscount},
+            tags = #{tags,typeHandler=org.apache.ibatis.type.ArrayTypeHandler},
+            supplemented_fields = #{supplemented,typeHandler=org.apache.ibatis.type.ArrayTypeHandler}
+        WHERE id = #{id} AND published_at IS NULL AND discarded_at IS NULL
+    </update>
+
+    <update id="setStatus">
+        UPDATE plan SET status = #{status}, updated_at = now() WHERE id = #{planId}
+    </update>
+
+    <update id="restoreStatus">
+        UPDATE plan SET status = CASE WHEN published_version_id IS NOT NULL THEN 'PUBLISHED' ELSE 'PENDING' END,
+                        ended_on = NULL, updated_at = now()
+        WHERE id = #{planId}
+    </update>
+
+    <update id="setActivationUrlIfEmpty">
+        UPDATE plan SET activation_url = #{url} WHERE id = #{planId} AND (activation_url IS NULL OR activation_url = '')
+    </update>
+
+    <update id="updateActivationUrl">
+        UPDATE plan SET activation_url = #{url}, updated_at = now() WHERE id = #{planId}
+    </update>
+
+    <update id="scheduleVersion">
+        UPDATE plan_version SET publish_at = #{publishAt}
+        WHERE id = #{versionId} AND published_at IS NULL AND discarded_at IS NULL
+    </update>
+
+    <update id="cancelSchedule">
+        UPDATE plan_version SET publish_at = NULL
+        WHERE id = #{versionId} AND published_at IS NULL
+    </update>
+
+    <update id="markVersionPublished">
+        UPDATE plan_version SET published_at = now(), published_by = #{by}, publish_at = COALESCE(publish_at, now())
+        WHERE id = #{versionId} AND published_at IS NULL AND discarded_at IS NULL
+    </update>
+
+    <update id="pointToVersion">
+        UPDATE plan SET published_version_id = #{versionId},
+                        status = CASE WHEN status = 'HIDDEN' THEN 'HIDDEN' ELSE 'PUBLISHED' END,
+                        ended_on = NULL, updated_at = now()
+        WHERE id = #{planId}
+    </update>
+
+    <select id="findDueVersions" resultType="kr.co.im010.core.row.PlanVersionRow">
+        SELECT <include refid="versionColumns"/> FROM plan_version
+        WHERE publish_at &lt;= now() AND published_at IS NULL AND discarded_at IS NULL
+        ORDER BY publish_at, id
+    </select>
+
+    <update id="discardVersion">
+        UPDATE plan_version SET discarded_at = now() WHERE id = #{versionId}
+    </update>
+
+    <select id="findPreviousPublished" resultType="kr.co.im010.core.row.PlanVersionRow">
+        SELECT <include refid="versionColumns"/> FROM plan_version
+        WHERE plan_id = #{planId} AND published_at IS NOT NULL AND discarded_at IS NULL AND id &lt;&gt; #{beforeVersionId}
+          AND version_no &lt; (SELECT version_no FROM plan_version WHERE id = #{beforeVersionId})
+        ORDER BY version_no DESC LIMIT 1
+    </select>
+
+    <select id="countScheduledOn" resultType="int">
+        SELECT count(*) FROM plan_version
+        WHERE publish_at &gt;= #{from} AND publish_at &lt; #{to} AND published_at IS NULL AND discarded_at IS NULL
+    </select>
+
+    <select id="existsExposedPick" resultType="boolean">
+        SELECT EXISTS (SELECT 1 FROM monthly_pick WHERE plan_id = #{planId} AND exposed)
+    </select>
+
+    <insert id="insertMonthlyPick">
+        INSERT INTO monthly_pick (partner_code, plan_id, site_order, partner_plan_code, crawl_item_id, collected_on)
+        VALUES (#{partnerCode}, #{planId}, #{siteOrder}, #{code}, #{itemId}, #{collectedOn})
+    </insert>
+
+    <update id="hidePublished">
+        UPDATE plan SET status = 'HIDDEN', updated_at = now()
+        WHERE partner_code = #{partnerCode} AND plan_type = #{planType} AND status = 'PUBLISHED'
+    </update>
+
+</mapper>

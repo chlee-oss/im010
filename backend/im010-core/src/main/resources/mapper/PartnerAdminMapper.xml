@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.im010.core.mapper.PartnerAdminMapper">
+
+    <sql id="partnerSelect">
+        SELECT pt.code, pt.name, pt.chip_bg, pt.chip_fg, pt.homepage_url, pt.exposed, pt.sort_order,
+               (SELECT count(*) FROM collect_url c WHERE c.partner_code = pt.code AND c.url_type = 'POSTPAID') AS postpaid_urls,
+               (SELECT count(*) FROM collect_url c WHERE c.partner_code = pt.code AND c.url_type = 'PREPAID')  AS prepaid_urls,
+               (SELECT count(*) FROM collect_url c WHERE c.partner_code = pt.code AND c.url_type = 'MONTHLY')  AS monthly_urls,
+               (SELECT count(*) FROM partner_tab t WHERE t.partner_code = pt.code AND t.status = 'NEW')         AS new_tabs,
+               s.enabled AS schedule_enabled, s.days AS schedule_days, s.run_time AS schedule_time,
+               r.finished_at AS last_run_at, r.result AS last_run_result,
+               EXISTS (SELECT 1 FROM crawl_job j WHERE j.partner_code = pt.code AND j.status IN ('QUEUED', 'RUNNING')
+                       AND j.due_at &lt;= now() + interval '1 hour') AS job_waiting
+        FROM partner pt
+        LEFT JOIN crawl_schedule s ON s.partner_code = pt.code
+        LEFT JOIN LATERAL (
+            -- 가장 최근 작업의 유형별 실행을 합쳐 한 줄로 (하나라도 실패면 실패)
+            SELECT max(finished_at) AS finished_at,
+                   CASE WHEN bool_or(result = 'FAILED') THEN 'FAILED'
+                        WHEN bool_or(result = 'ABNORMAL') THEN 'ABNORMAL' ELSE 'SUCCESS' END AS result
+            FROM crawl_run
+            WHERE job_id = (SELECT max(job_id) FROM crawl_run WHERE partner_code = pt.code)
+            HAVING count(*) > 0
+        ) r ON TRUE
+    </sql>
+
+    <select id="findPartners" resultType="kr.co.im010.core.row.PartnerAdminRow">
+        <include refid="partnerSelect"/>
+        ORDER BY pt.sort_order, pt.code
+    </select>
+
+    <select id="findPartner" resultType="kr.co.im010.core.row.PartnerAdminRow">
+        <include refid="partnerSelect"/>
+        WHERE pt.code = #{code}
+    </select>
+
+    <insert id="insertPartner">
+        INSERT INTO partner (code, name, chip_bg, chip_fg, homepage_url, exposed, sort_order)
+        VALUES (#{code}, #{name}, #{chipBg}, #{chipFg}, #{homepageUrl}, #{exposed}, #{sortOrder})
+    </insert>
+
+    <update id="updatePartner">
+        UPDATE partner SET name = #{name}, chip_bg = #{chipBg}, chip_fg = #{chipFg}, homepage_url = #{homepageUrl},
+                           exposed = #{exposed}, sort_order = #{sortOrder}, updated_at = now()
+        WHERE code = #{code}
+    </update>
+
+    <select id="findUrls" resultType="kr.co.im010.core.row.CollectUrlRow">
+        SELECT id, partner_code, url_type, url, label, sort_order
+        FROM collect_url WHERE partner_code = #{partnerCode}
+        ORDER BY CASE url_type WHEN 'POSTPAID' THEN 1 WHEN 'PREPAID' THEN 2 ELSE 3 END, sort_order, id
+    </select>
+
+    <select id="findUrl" resultType="kr.co.im010.core.row.CollectUrlRow">
+        SELECT id, partner_code, url_type, url, label, sort_order FROM collect_url WHERE id = #{id}
+    </select>
+
+    <select id="findConflictingUrl" resultType="kr.co.im010.core.row.CollectUrlRow">
+        SELECT id, partner_code, url_type, url, label, sort_order
+        FROM collect_url
+        WHERE url = #{url}
+          <if test="excludeId != null">AND id &lt;&gt; #{excludeId}</if>
+          AND (url_type = #{urlType}
+               <if test="urlType != 'MONTHLY'">OR url_type IN ('POSTPAID', 'PREPAID')</if>)
+        LIMIT 1
+    </select>
+
+    <insert id="insertUrl">
+        INSERT INTO collect_url (partner_code, url_type, url, label, sort_order)
+        VALUES (#{partnerCode}, #{urlType}, #{url}, #{label}, #{sortOrder})
+    </insert>
+
+    <update id="updateUrl">
+        UPDATE collect_url SET url_type = #{urlType}, url = #{url}, label = #{label}, sort_order = #{sortOrder},
+                               updated_at = now()
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteUrl">
+        DELETE FROM collect_url WHERE id = #{id}
+    </delete>
+
+    <select id="countUrls" resultType="int">
+        SELECT count(*) FROM collect_url WHERE partner_code = #{partnerCode} AND url_type = #{urlType}
+    </select>
+
+    <select id="findTabs" resultType="kr.co.im010.core.row.PartnerTabRow">
+        SELECT id, partner_code, url, label, status FROM partner_tab
+        WHERE partner_code = #{partnerCode}
+        ORDER BY status, first_seen_on DESC, id
+    </select>
+
+    <select id="findTab" resultType="kr.co.im010.core.row.PartnerTabRow">
+        SELECT id, partner_code, url, label, status FROM partner_tab WHERE id = #{id}
+    </select>
+
+    <update id="updateTabStatus">
+        UPDATE partner_tab SET status = #{status} WHERE id = #{id}
+    </update>
+
+    <delete id="deleteTabByUrl">
+        DELETE FROM partner_tab WHERE partner_code = #{partnerCode} AND url = #{url}
+    </delete>
+
+    <insert id="upsertSchedule">
+        INSERT INTO crawl_schedule (partner_code, enabled, days, run_time)
+        VALUES (#{partnerCode}, #{enabled}, #{days}, #{runTime})
+        ON CONFLICT (partner_code) DO UPDATE
+            SET enabled = EXCLUDED.enabled, days = EXCLUDED.days, run_time = EXCLUDED.run_time, updated_at = now()
+    </insert>
+
+    <select id="existsWaitingJob" resultType="boolean">
+        SELECT EXISTS (SELECT 1 FROM crawl_job WHERE partner_code = #{partnerCode} AND status IN ('QUEUED', 'RUNNING')
+                       AND due_at &lt;= now() + interval '1 hour')
+    </select>
+
+    <insert id="insertManualJob">
+        INSERT INTO crawl_job (partner_code, trigger, run_on, requested_by)
+        VALUES (#{partnerCode}, 'MANUAL', #{runOn}, #{requestedBy})
+    </insert>
+
+    <select id="findRuns" resultType="kr.co.im010.core.row.CrawlRunAdminRow">
+        SELECT r.id, r.job_id, j.trigger, j.attempt, r.partner_code, pt.name AS partner_name, r.url_type, r.run_on,
+               r.result, r.url_count, r.collected_count, r.new_count, r.changed_count, r.ended_count, r.message,
+               r.started_at, r.finished_at
+        FROM crawl_run r
+        JOIN crawl_job j ON j.id = r.job_id
+        JOIN partner pt ON pt.code = r.partner_code
+        WHERE r.run_on BETWEEN #{from} AND #{to}
+          <if test="partnerCode != null">AND r.partner_code = #{partnerCode}</if>
+          <if test="urlType != null">AND r.url_type = #{urlType}</if>
+          <if test="result != null">AND r.result = #{result}</if>
+        ORDER BY r.finished_at DESC, r.id DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>

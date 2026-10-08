@@ -18,10 +18,11 @@ im010/
 ├─ backend/                Gradle 멀티 모듈
 │  ├─ im010-core           공통: MyBatis 매퍼 · SQL · DB 마이그레이션(db/migration) · 로컬 예시 데이터(db/seed)
 │  ├─ im010-api            고객용 REST API + /go 포워딩 (8080)
-│  ├─ im010-admin          백오피스 API (8081) — 다음 단계
+│  ├─ im010-admin          백오피스 API (8081) — 관리자 로그인(OTP) · 권한 · PA-01 · PR-01 · BA-01~03
 │  ├─ im010-batch          수집 배치 — 제휴사 요금제 크롤링(Jsoup) · 변경 감지 · 판매 종료
 │  └─ db/init-local.sql    로컬 DB 계정 · DB 생성
 ├─ frontend/web            고객 화면 (React) — 목업을 컴포넌트로 옮김
+├─ frontend/admin          백오피스 화면 (React, PC 전용)
 └─ deploy/                 nginx · systemd · 환경 변수 예시
 ```
 
@@ -63,7 +64,20 @@ im010/
    실제 제휴사 사이트에 요청한다 (같은 사이트 요청 사이 3초). 예시 데이터 요금제는 제휴사 요금제 코드가 없어 수집하면 판매 종료로 바뀐다 —
    예시 화면을 유지하려면 별도 DB(`--spring.datasource.url=...`)로 실행한다.
 
-테스트: `cd backend && gradlew.bat test` (DB 없이 실행되는 서비스 · 컨트롤러 · 파서 · 변경 감지 테스트)
+5. **백오피스** — API(8081)와 화면(5174). API 서버(1번)를 먼저 한 번 실행해 테이블이 만들어져 있어야 한다.
+   ```
+   cd backend
+   gradlew.bat :im010-admin:bootRun --args="--spring.profiles.active=local"
+   ```
+   ```
+   cd frontend\admin
+   npm install
+   npm run dev
+   ```
+   http://localhost:5174 — 관리자가 없으면 로컬 초기 계정 `admin`이 만들어진다 (초기 비밀번호는 `backend/im010-admin/src/main/resources/application-local.yml`).
+   첫 로그인 때 OTP 앱(Google Authenticator 등) 등록과 비밀번호 변경을 거친다.
+
+테스트: `cd backend && gradlew.bat test` (DB 없이 실행되는 서비스 · 컨트롤러 · 파서 · 변경 감지 · OTP · 권한 테스트)
 
 ## 고객용 API (im010-api)
 
@@ -96,13 +110,35 @@ im010/
 | 알림 | `Notifier` — 사내 메신저 연동 전까지 로그(`im010.alert`) |
 | 보관 | 처리 끝난 수집 건은 30일 뒤 삭제 (매일 03:30) |
 
+| 예약 게시 | 1분마다 게시 예약 시각이 지난 버전을 게시 (게시 중 버전 교체), 실패하면 알림 |
+
+## 백오피스 (im010-admin · frontend/admin)
+
+| 화면 | 내용 |
+|---|---|
+| CM-01 로그인 | 아이디 · 비밀번호 → OTP(TOTP, 처음이면 QR 등록) → 최초 로그인 비밀번호 변경. 5회 실패 30분 잠금, 30분 미사용 로그아웃 |
+| 권한 | 권한 그룹 × 프로그램(ST-01) × 동작(조회 · 등록·수정 · 삭제 · 점검 · 승인 · 다운로드). 기본 그룹: 최고관리자 · 콘텐츠 운영자 · 접수 담당 · 조회 전용 |
+| BA-02 요금제배치관리 | 점검 대기 · 승인 요청 · 변경 없음 · 판매 종료 · 제외. 수집값 수정, 점검 완료(→ 승인 요청), 제외(사유), 판매 재개 요청 |
+| BA-03 승인관리 | 승인 = 요금제 · 버전 생성 후 PR-01 "게시 대기" (선택: 게시 예약 함께), 반려(사유) |
+| PR-01 요금제관리 | 보완 입력 · 개통 URL · 게시 예약(10분 단위) · 즉시 게시 · 예약 취소 · 비노출 · 롤백(7일) · 버전 이력 |
+| PA-01 제휴사관리 | 제휴사 정보 · 수집 URL(유형별 탭마다) 등록 · [테스트] · 사이트 탭 확인(미확인 · 수집 안 함) |
+| BA-01 스케줄관리 | 제휴사별 주기 · 시각 · 사용, 즉시 실행, 실행 이력 |
+| ST-05 이력 | 로그인 · 점검 · 승인 · 게시 · URL 변경을 `admin_audit`에 기록 (화면은 3-2단계) |
+
+- 세션 쿠키(HttpOnly · SameSite=Strict · 운영 Secure) + CSRF(쿠키 → `X-XSRF-TOKEN` 헤더)
+- 승인한 수집값의 지문을 버전에 남겨, 운영자가 값을 고쳐 게시해도 같은 수집값이 다시 들어오면 변경 없음으로 본다
+
 ## 운영 서버 (Rocky Linux 9.7) 메모
 
 - PostgreSQL은 OS 기본 저장소 대신 **PGDG 공식 저장소**에서 설치 (17 이상 권장)
 - Java 21: `dnf install java-21-openjdk-headless`
 - **SELinux**: nginx → 8080 프록시 허용 `setsebool -P httpd_can_network_connect 1`
 - **firewalld**: 80/443만 외부 공개, 8080 · 8081 · 5432는 내부만
-- 배포 파일: [`deploy/nginx/im010.conf`](deploy/nginx/im010.conf), [`deploy/systemd/im010-api.service`](deploy/systemd/im010-api.service), [`deploy/api.env.example`](deploy/api.env.example)
+- 배포 파일
+  - nginx: [`im010.conf`](deploy/nginx/im010.conf)(고객) · [`im010-admin.conf`](deploy/nginx/im010-admin.conf)(백오피스, 별도 주소 · 사내 IP 제한 선택) · [`im010-proxy.inc`](deploy/nginx/im010-proxy.inc)
+  - systemd: [`im010-api`](deploy/systemd/im010-api.service) · [`im010-admin`](deploy/systemd/im010-admin.service) · [`im010-batch`](deploy/systemd/im010-batch.service) (배치는 한 대에서만)
+  - 환경 변수 예시: [`api.env`](deploy/api.env.example) · [`admin.env`](deploy/admin.env.example) · [`batch.env`](deploy/batch.env.example)
+- 백오피스 첫 계정: `IM010_ADMIN_BOOTSTRAP_PASSWORD`를 넣고 시작 → 첫 로그인(OTP · 비밀번호 변경) 후 값을 지운다
 - 운영 DB에는 `db/seed`(예시 데이터)가 실행되지 않는다 — `local` 프로필에서만 포함
 
 ## 검색 노출 (React SPA)
@@ -115,7 +151,6 @@ im010/
 
 1. ~~제휴사 요금제 페이지 구조 확인~~ → Jsoup 확정 (서버 렌더링 HTML, 7개사 같은 플랫폼)
 2. ~~im010-batch: 수집 · 변경 감지 · 판매 종료(보호 조건) · 스케줄~~
-3. im010-admin + 백오피스 화면: 로그인(OTP) · 권한 · PA-01 · BA-01~03 · PR-01 · RC · ST — 승인 시 요금제 · 버전 생성, 게시 예약 실행
-4. 테이블 추가: 승인 · 관리자 · 권한 · Footer · FAQ
+3. ~~3-1 백오피스 핵심: 로그인(OTP) · 권한 · PA-01 · BA-01~03 · PR-01 · 예약 게시~~
+4. 3-2 백오피스: ST-01~07(프로그램 · 관리자 · 권한 · 약관 · 접속이력 · Footer · FAQ), RC-01 · RC-02 접수관리, PR-02 인터넷관리 · PA-01 [인터넷], 게시 일정 달력, 엑셀 다운로드, 사내 IP 제한
 5. 알림: 사내 메신저 연동 (`Notifier` 구현 추가)
-6. 운영 배포: `deploy/systemd`에 im010-batch 서비스 추가

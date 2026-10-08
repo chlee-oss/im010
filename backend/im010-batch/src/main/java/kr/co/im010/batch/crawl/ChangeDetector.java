@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import kr.co.im010.batch.parse.ParsedPlan;
+import kr.co.im010.core.parse.ParsedPlan;
 import kr.co.im010.core.row.HandledHashRow;
 import kr.co.im010.core.row.OpenItemRow;
 import kr.co.im010.core.row.PlanBaselineRow;
@@ -28,7 +28,7 @@ import kr.co.im010.core.row.PlanBaselineRow;
  * 사라짐     판매 종료가 아닌 요금제가 결과에 없음  → 자동 판매 종료
  * </pre>
  * 같은 요금제의 점검 건은 하나만 열어 둔다: 같은 값이면 기록만, 다른 값이면 이전 건을 대체(SUPERSEDED)한다.
- * 이미 승인된 값과 같으면 변경 없음, 제외된 값과 같으면 다시 점검 대기에 올리지 않고 표시만 한다.
+ * 승인 때 수집값(plan_version.source_hash)과 같으면 변경 없음 — 운영자가 고친 값은 다시 점검하지 않는다. 제외된 값과 같으면 다시 점검 대기에 올리지 않고 표시만 한다.
  */
 public final class ChangeDetector {
 
@@ -110,8 +110,9 @@ public final class ChangeDetector {
                 if (changed.contains(F_PRICE) && jumped(b.price(), p.price(), priceJumpRatio)) {
                     warnings.add("PRICE_JUMP");
                 }
-                if (change == Change.CHANGED && !resumed && approved.contains(key + "|" + hash)) {
-                    // 운영자가 값을 고쳐 승인한 요금제: 같은 수집값이 다시 들어와도 변경이 아니다
+                if (change == Change.CHANGED && !resumed
+                        && (hash.equals(b.sourceHash()) || approved.contains(key + "|" + hash))) {
+                    // 운영자가 값을 고쳐 승인 · 보완한 요금제: 승인 때와 같은 수집값이 다시 들어와도 변경이 아니다
                     change = Change.UNCHANGED;
                     changed = List.of();
                 }
@@ -181,6 +182,8 @@ public final class ChangeDetector {
         }
         if (p.dataText() == null || (p.dataGb() == null && !p.dataText().contains("무제한"))) {
             w.add("MISSING_DATA");
+        } else if (p.dataGb() != null && p.dataGb().signum() == 0 && p.dataText().contains("매일")) {
+            w.add("MISSING_DATA");   // "0GB + 매일 5GB": 계산기 비교용 기본 제공량을 운영자가 정한다
         }
         return w;
     }

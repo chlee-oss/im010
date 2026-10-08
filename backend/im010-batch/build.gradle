@@ -5,5 +5,4 @@ plugins {
 // 수집 배치 — 제휴사 페이지가 서버 렌더링 HTML 이라 Jsoup 으로 충분 (Playwright 불필요)
 dependencies {
     implementation project(':im010-core')
-    implementation 'org.jsoup:jsoup:1.23.2'
 }

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.im010.core.mapper.ReviewMapper">
+
+    <sql id="itemColumns">
+        i.id, i.run_id, i.partner_code, pt.name AS partner_name, i.url_type, i.item_key, i.partner_plan_code, i.plan_id,
+        i.change_type, i.status, i.name, i.data_text, i.data_gb, i.qos_text, i.voice_text, i.sms_text, i.network,
+        i.generation, i.price, i.discount_months, i.price_after_discount, i.detail_url, i.source_url, i.site_order,
+        array_to_string(i.changed_fields, '|') AS changed_fields,
+        array_to_string(i.warnings, '|') AS warnings,
+        array_to_string(i.edited_fields, '|') AS edited_fields,
+        i.value_hash, i.reviewer, i.reason, i.memo, i.collected_on, i.reviewed_at, i.approver, i.approved_at
+    </sql>
+
+    <sql id="viewFilter">
+        <choose>
+            <when test="view == 'PENDING'">AND i.status = 'REVIEW_PENDING'</when>
+            <when test="view == 'REQUESTED'">AND i.status = 'APPROVAL_REQUESTED'</when>
+            <when test="view == 'UNCHANGED'">AND i.change_type = 'UNCHANGED' AND i.collected_on = #{collectedOn}</when>
+            <when test="view == 'ENDED'">AND i.change_type = 'ENDED' AND i.collected_on = #{collectedOn}</when>
+            <when test="view == 'EXCLUDED'">AND i.status = 'EXCLUDED' AND i.collected_on = #{collectedOn}</when>
+            <otherwise>AND i.collected_on = #{collectedOn}</otherwise>
+        </choose>
+        <if test="partnerCode != null">AND i.partner_code = #{partnerCode}</if>
+        <if test="urlType != null">AND i.url_type = #{urlType}</if>
+    </sql>
+
+    <select id="findItems" resultType="kr.co.im010.core.row.ReviewItemRow">
+        SELECT <include refid="itemColumns"/>
+        FROM crawl_item i JOIN partner pt ON pt.code = i.partner_code
+        WHERE TRUE <include refid="viewFilter"/>
+        ORDER BY pt.sort_order, i.url_type, i.site_order NULLS LAST, i.id
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countItems" resultType="int">
+        SELECT count(*) FROM crawl_item i WHERE TRUE <include refid="viewFilter"/>
+    </select>
+
+    <select id="countSummary" resultType="map">
+        SELECT
+            count(*) FILTER (WHERE status = 'REVIEW_PENDING')                            AS pending,
+            count(*) FILTER (WHERE status = 'REVIEW_PENDING' AND change_type = 'NEW')     AS pending_new,
+            count(*) FILTER (WHERE status = 'REVIEW_PENDING' AND change_type = 'CHANGED') AS pending_changed,
+            count(*) FILTER (WHERE status = 'APPROVAL_REQUESTED')                        AS requested,
+            count(*) FILTER (WHERE change_type = 'UNCHANGED' AND collected_on = #{collectedOn}) AS unchanged,
+            count(*) FILTER (WHERE change_type = 'ENDED' AND collected_on = #{collectedOn})     AS ended,
+            count(*) FILTER (WHERE status = 'EXCLUDED' AND collected_on = #{collectedOn})       AS excluded
+        FROM crawl_item
+    </select>
+
+    <select id="findLatestCollectedOn" resultType="java.time.LocalDate">
+        SELECT max(collected_on) FROM crawl_item
+    </select>
+
+    <select id="findItem" resultType="kr.co.im010.core.row.ReviewItemRow">
+        SELECT <include refid="itemColumns"/>
+        FROM crawl_item i JOIN partner pt ON pt.code = i.partner_code
+        WHERE i.id = #{id}
+    </select>
+
+    <select id="findItemsByIds" resultType="kr.co.im010.core.row.ReviewItemRow">
+        SELECT <include refid="itemColumns"/>
+        FROM crawl_item i JOIN partner pt ON pt.code = i.partner_code
+        WHERE i.id IN <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+        ORDER BY i.id
+    </select>
+
+    <update id="updateValues">
+        UPDATE crawl_item SET
+            name = #{v.name}, data_text = #{v.dataText}, data_gb = #{v.dataGb}, qos_text = #{v.qosText},
+            voice_text = #{v.voiceText}, sms_text = #{v.smsText}, network = #{v.network}, generation = #{v.generation},
+            price = #{v.price}, discount_months = #{v.discountMonths}, price_after_discount = #{v.priceAfterDiscount},
+            edited_fields = #{editedFields,typeHandler=org.apache.ibatis.type.ArrayTypeHandler},
+            memo = #{memo}, updated_at = now()
+        WHERE id = #{id} AND status = 'REVIEW_PENDING'
+    </update>
+
+    <update id="markReviewed">
+        UPDATE crawl_item SET status = 'APPROVAL_REQUESTED', reviewer = #{reviewer}, reviewed_at = now(), reason = NULL, updated_at = now()
+        WHERE status = 'REVIEW_PENDING'
+          AND id IN <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </update>
+
+    <update id="markExcluded">
+        UPDATE crawl_item SET status = 'EXCLUDED', reviewer = #{reviewer}, reviewed_at = now(), reason = #{reason}, updated_at = now()
+        WHERE status IN ('REVIEW_PENDING', 'APPROVAL_REQUESTED')
+          AND id IN <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </update>
+
+    <update id="markRejected">
+        UPDATE crawl_item SET
+            status = CASE WHEN change_type = 'ENDED' THEN 'AUTO_APPLIED' ELSE 'REVIEW_PENDING' END,  -- 판매 재개 반려 = 종료 유지
+            approver = #{approver}, reason = #{reason}, updated_at = now()
+        WHERE status = 'APPROVAL_REQUESTED'
+          AND id IN <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </update>
+
+    <update id="markApproved">
+        UPDATE crawl_item SET status = 'APPROVED', approver = #{approver}, approved_at = now(), updated_at = now()
+        WHERE id = #{id} AND status = 'APPROVAL_REQUESTED'
+    </update>
+
+    <update id="requestResume">
+        UPDATE crawl_item SET status = 'APPROVAL_REQUESTED', reviewer = #{reviewer}, reviewed_at = now(), updated_at = now()
+        WHERE id = #{id} AND change_type = 'ENDED' AND status = 'AUTO_APPLIED' AND url_type &lt;&gt; 'MONTHLY'
+    </update>
+
+    <select id="countByStatus" resultType="long">
+        SELECT count(*) FROM crawl_item WHERE status = #{status}
+    </select>
+
+</mapper>

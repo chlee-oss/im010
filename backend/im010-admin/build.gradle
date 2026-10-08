@@ -2,9 +2,14 @@ plugins {
     id 'org.springframework.boot'
 }
 
-// 백오피스 API — 화면(React) · 인증(OTP) · 권한은 다음 단계에서 구현
+// 백오피스 API (8081) — 관리자 로그인(비밀번호 + OTP) · 권한 · PA-01 · PR-01 · BA-01~03
 dependencies {
     implementation project(':im010-core')
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
 }

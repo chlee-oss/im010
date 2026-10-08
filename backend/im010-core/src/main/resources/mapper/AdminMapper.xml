@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.im010.core.mapper.AdminMapper">
+
+    <sql id="userColumns">
+        u.id, u.login_id, u.name, g.id AS group_id, g.code AS group_code, g.name AS group_name, g.system AS group_system,
+        u.status, u.password_hash, u.must_change_password, u.otp_secret, u.otp_enabled, u.otp_last_step,
+        u.failed_count, u.locked_until
+    </sql>
+
+    <select id="findUserByLoginId" resultType="kr.co.im010.core.row.AdminUserRow">
+        SELECT <include refid="userColumns"/>
+        FROM admin_user u JOIN admin_group g ON g.id = u.group_id
+        WHERE u.login_id = #{loginId}
+    </select>
+
+    <select id="findUserById" resultType="kr.co.im010.core.row.AdminUserRow">
+        SELECT <include refid="userColumns"/>
+        FROM admin_user u JOIN admin_group g ON g.id = u.group_id
+        WHERE u.id = #{id}
+    </select>
+
+    <select id="countUsers" resultType="int">
+        SELECT count(*) FROM admin_user
+    </select>
+
+    <insert id="insertUser">
+        INSERT INTO admin_user (login_id, name, group_id, password_hash)
+        SELECT #{loginId}, #{name}, id, #{passwordHash} FROM admin_group WHERE code = #{groupCode}
+    </insert>
+
+    <update id="updateLoginFailure">
+        UPDATE admin_user SET failed_count = #{failedCount}, locked_until = #{lockedUntil}, updated_at = now()
+        WHERE id = #{id}
+    </update>
+
+    <update id="recordLoginSuccess">
+        UPDATE admin_user SET failed_count = 0, locked_until = NULL, last_login_at = now(), updated_at = now()
+        WHERE id = #{id}
+    </update>
+
+    <update id="enableOtp">
+        UPDATE admin_user SET otp_secret = #{secret}, otp_enabled = TRUE, otp_last_step = #{step}, updated_at = now()
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateOtpStep">
+        UPDATE admin_user SET otp_last_step = #{step} WHERE id = #{id}
+    </update>
+
+    <update id="updatePassword">
+        UPDATE admin_user SET password_hash = #{passwordHash}, must_change_password = FALSE, updated_at = now()
+        WHERE id = #{id}
+    </update>
+
+    <select id="findPermissions" resultType="kr.co.im010.core.row.PermissionRow">
+        SELECT program_id, array_to_string(actions, '|') AS actions
+        FROM group_permission
+        WHERE group_id = #{groupId}
+    </select>
+
+    <select id="findPrograms" resultType="kr.co.im010.core.row.ProgramRow">
+        SELECT id, menu_group, name, path, sort_order, enabled, array_to_string(actions, '|') AS actions
+        FROM program
+        ORDER BY sort_order, id
+    </select>
+
+    <insert id="insertAudit">
+        INSERT INTO admin_audit (admin_id, login_id, kind, program_id, action, target, detail, ip)
+        VALUES (#{adminId}, #{loginId}, #{kind}, #{programId}, #{action}, #{target}, #{detail}, #{ip})
+    </insert>
+
+</mapper>

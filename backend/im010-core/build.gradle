@@ -5,5 +5,6 @@ plugins {
 dependencies {
     api platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
     api "org.mybatis.spring.boot:mybatis-spring-boot-starter:${mybatisStarterVersion}"
+    api 'org.jsoup:jsoup:1.23.2'   // 제휴사 요금제 페이지 파서 (배치 수집 · 백오피스 [테스트])
     runtimeOnly 'org.postgresql:postgresql'
 }
