@@ -3,6 +3,7 @@ package kr.co.im010.batch;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import kr.co.im010.core.notify.WebhookSender;
 import kr.co.im010.core.parse.JsoupPageFetcher;
 import kr.co.im010.core.parse.PageFetcher;
 import kr.co.im010.core.parse.RatePlanParser;
@@ -18,5 +19,10 @@ public class CrawlConfig {
     @Bean
     public RatePlanParser ratePlanParser() {
         return new RatePlanParser();
+    }
+
+    @Bean
+    public WebhookSender webhookSender() {
+        return new WebhookSender();
     }
 }
