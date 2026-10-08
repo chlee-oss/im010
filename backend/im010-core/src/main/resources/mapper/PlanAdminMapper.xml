@@ -210,6 +210,22 @@
         VALUES (#{partnerCode}, #{planId}, #{siteOrder}, #{code}, #{itemId}, #{collectedOn})
     </insert>
 
+    <select id="findCalendar" resultType="kr.co.im010.core.row.CalendarRow">
+        SELECT v.id AS version_id, v.plan_id, v.version_no, pt.name AS partner_name, p.plan_type, v.name,
+               v.publish_at, v.published_at, v.published_by
+        FROM plan_version v
+        JOIN plan p ON p.id = v.plan_id
+        JOIN partner pt ON pt.code = p.partner_code
+        WHERE v.discarded_at IS NULL
+          AND ((v.published_at IS NULL AND v.publish_at &gt;= #{from} AND v.publish_at &lt; #{to})
+               OR (v.published_at &gt;= #{from} AND v.published_at &lt; #{to}))
+        ORDER BY COALESCE(v.published_at, v.publish_at), v.id
+    </select>
+
+    <update id="updatePartnerPlanCode">
+        UPDATE plan SET partner_plan_code = #{code}, updated_at = now() WHERE id = #{planId}
+    </update>
+
     <update id="hidePublished">
         UPDATE plan SET status = 'HIDDEN', updated_at = now()
         WHERE partner_code = #{partnerCode} AND plan_type = #{planType} AND status = 'PUBLISHED'

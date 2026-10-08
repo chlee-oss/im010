@@ -39,7 +39,7 @@ class ForwardServiceTest {
 
     @Test
     void publishedPlanForwardsToActivationUrl() {
-        when(planMapper.findForwardTarget(7)).thenReturn(new PlanForwardTarget(7, "mv", "POSTPAID", "PUBLISHED", "https://partner.test/plan"));
+        when(planMapper.findForwardTarget(7)).thenReturn(new PlanForwardTarget(7, "mv", "POSTPAID", "PUBLISHED", "https://partner.test/plan", 70L));
 
         assertThat(service.forwardPlan(7, "S2")).hasToString("https://partner.test/plan");
 
@@ -52,7 +52,7 @@ class ForwardServiceTest {
 
     @Test
     void endedPlanGoesBackToDetailWithNotice() {
-        when(planMapper.findForwardTarget(3)).thenReturn(new PlanForwardTarget(3, "nt", "POSTPAID", "ENDED", "https://partner.test/plan"));
+        when(planMapper.findForwardTarget(3)).thenReturn(new PlanForwardTarget(3, "nt", "POSTPAID", "ENDED", "https://partner.test/plan", 70L));
 
         assertThat(service.forwardPlan(3, "S2")).hasToString("https://www.im010.test/plans/3?ended=1");
         assertThat(loggedEntry().result()).isEqualTo("ENDED");
@@ -60,7 +60,7 @@ class ForwardServiceTest {
 
     @Test
     void publishedPlanWithoutUrlIsRecordedAsNoUrl() {
-        when(planMapper.findForwardTarget(5)).thenReturn(new PlanForwardTarget(5, "im", "POSTPAID", "PUBLISHED", " "));
+        when(planMapper.findForwardTarget(5)).thenReturn(new PlanForwardTarget(5, "im", "POSTPAID", "PUBLISHED", " ", 70L));
 
         assertThat(service.forwardPlan(5, null)).hasToString("https://www.im010.test/plans/5?forward=unavailable");
         ForwardLog entry = loggedEntry();
@@ -70,7 +70,7 @@ class ForwardServiceTest {
 
     @Test
     void hiddenOrPendingPlanGoesHome() {
-        when(planMapper.findForwardTarget(9)).thenReturn(new PlanForwardTarget(9, "nt", "POSTPAID", "PENDING", "https://partner.test/plan"));
+        when(planMapper.findForwardTarget(9)).thenReturn(new PlanForwardTarget(9, "nt", "POSTPAID", "PENDING", "https://partner.test/plan", 70L));
 
         assertThat(service.forwardPlan(9, "S2")).hasToString("https://www.im010.test/");
         assertThat(loggedEntry().result()).isEqualTo("HIDDEN");
@@ -109,7 +109,7 @@ class ForwardServiceTest {
 
     @Test
     void neverForwardsToUrlFromRequest() {
-        when(planMapper.findForwardTarget(7)).thenReturn(new PlanForwardTarget(7, "mv", "POSTPAID", "PUBLISHED", "https://partner.test/plan"));
+        when(planMapper.findForwardTarget(7)).thenReturn(new PlanForwardTarget(7, "mv", "POSTPAID", "PUBLISHED", "https://partner.test/plan", 70L));
         // from 파라미터에 URL을 넣어도 DB의 URL로만 이동
         assertThat(service.forwardPlan(7, "https://evil.test")).hasToString("https://partner.test/plan");
         verify(writer).write(any());

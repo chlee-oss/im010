@@ -20,6 +20,7 @@ import jakarta.validation.constraints.Size;
 import kr.co.im010.admin.auth.Action;
 import kr.co.im010.admin.auth.RequiresPermission;
 import kr.co.im010.core.row.ItemValues;
+import kr.co.im010.core.row.PlanAdminRow;
 
 /** BA-02 요금제배치관리 */
 @RestController
@@ -73,6 +74,21 @@ public class ReviewController {
     @RequiresPermission(program = ReviewService.PROGRAM, action = Action.REVIEW)
     public ReviewService.BulkResult exclude(@Valid @RequestBody ExcludeRequest body) {
         return reviewService.exclude(body.ids(), body.reason());
+    }
+
+    @GetMapping("/{id}/link-candidates")
+    @RequiresPermission(program = ReviewService.PROGRAM, action = Action.VIEW)
+    public List<PlanAdminRow> linkCandidates(@PathVariable long id) {
+        return reviewService.linkCandidates(id);
+    }
+
+    public record LinkRequest(@NotNull Long planId) {
+    }
+
+    @PostMapping("/{id}/link")
+    @RequiresPermission(program = ReviewService.PROGRAM, action = Action.EDIT)
+    public ItemDto link(@PathVariable long id, @Valid @RequestBody LinkRequest body) {
+        return reviewService.linkToPlan(id, body.planId());
     }
 
     @PostMapping("/{id}/resume")

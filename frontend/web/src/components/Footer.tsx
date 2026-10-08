@@ -1,10 +1,14 @@
+import { Link } from 'react-router-dom'
+import { api } from '../api/client'
 import { usePartners } from '../lib/partners'
 import { useToast } from '../lib/toast'
+import { useApi } from '../lib/useApi'
 
-// 사업자 정보는 백오피스 ST-06 Footer관리에서 관리할 예정 (지금은 자리표시 값)
+// 사업자 정보 · 고객센터 · 고지 문구는 백오피스 ST-06 Footer관리, 약관은 ST-04 약관관리에서 관리한다.
 export default function Footer() {
   const toast = useToast()
   const partners = [...usePartners().values()].filter((p) => p.homepageUrl)
+  const { data: f } = useApi((signal) => api.footer(signal), [])
   const pending = (what: string) => (e: React.MouseEvent) => {
     e.preventDefault()
     toast(`${what} 페이지는 준비 중이에요`)
@@ -33,11 +37,9 @@ export default function Footer() {
           </div>
           <div className="footer-col">
             <h5>고객지원</h5>
-            <a href="#" onClick={pending('자주 묻는 질문')}>
-              자주 묻는 질문
-            </a>
-            <span>고객센터 1600-0000</span>
-            <span>help@im010.co.kr</span>
+            <Link to="/faq">자주 묻는 질문</Link>
+            {f && <span>고객센터 {f.csPhone}</span>}
+            {f?.email && <span>{f.email}</span>}
           </div>
           <div className="footer-col">
             <h5>제휴사</h5>
@@ -50,20 +52,23 @@ export default function Footer() {
         </div>
         <div className="footer-bottom">
           <div className="footer-links">
-            <a href="#" onClick={pending('이용약관')}>
-              이용약관
-            </a>
-            <a href="#" className="strong" onClick={pending('개인정보처리방침')}>
+            <Link to="/terms/service">이용약관</Link>
+            <Link to="/terms/privacy" className="strong">
               개인정보처리방침
-            </a>
+            </Link>
           </div>
-          상호 : (주)아임공일공 &nbsp;|&nbsp; 대표 : 홍길동 &nbsp;|&nbsp; 사업자등록번호 : 000-00-00000 &nbsp;|&nbsp; 통신판매업신고 : 제
-          0000-서울-00000호
-          <br />
-          주소 : 서울특별시 OO구 OO로 00 &nbsp;|&nbsp; 고객센터 : 1600-0000 (평일 10:00–18:00) &nbsp;|&nbsp; 이메일 : help@im010.co.kr
-          <br />
-          요금 · 혜택 정보는 각 제휴사 공시 내용이며, 실제 개통 조건은 제휴사 정책에 따라 달라질 수 있습니다. 본 사이트는 알뜰폰 요금제 정보를
-          제공하는 통합 비교 플랫폼이며, 요금제 개통과 인터넷 신청은 각 제휴사 · 제휴업체에서 진행됩니다. © im010. All rights reserved.
+          {f && (
+            <>
+              상호 : {f.companyName} &nbsp;|&nbsp; 대표 : {f.ceo} &nbsp;|&nbsp; 사업자등록번호 : {f.businessNo}
+              {f.mailOrderNo && <> &nbsp;|&nbsp; 통신판매업신고 : {f.mailOrderNo}</>}
+              <br />
+              주소 : {f.address} &nbsp;|&nbsp; 고객센터 : {f.csPhone}
+              {f.csHours && ` (${f.csHours})`}
+              {f.email && <> &nbsp;|&nbsp; 이메일 : {f.email}</>}
+              <br />
+              {f.notice} © im010. All rights reserved.
+            </>
+          )}
         </div>
       </div>
     </footer>

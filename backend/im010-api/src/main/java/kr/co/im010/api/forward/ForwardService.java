@@ -57,7 +57,7 @@ public class ForwardService {
             target = props.frontBaseUrl() + "/";
         }
         logWriter.write(new ForwardLog("PLAN", planId, t.partnerCode(), t.planType(),
-                "FORWARDED".equals(result) ? target : null, sanitizeFrom(from), result));
+                "FORWARDED".equals(result) ? target : null, sanitizeFrom(from), result, t.publishedVersionId()));
         return URI.create(target);
     }
 
@@ -80,7 +80,7 @@ public class ForwardService {
         }
         String partnerRef = t.internetPartnerId() == null ? null : String.valueOf(t.internetPartnerId());
         logWriter.write(new ForwardLog("INTERNET", productId, partnerRef, null,
-                "FORWARDED".equals(result) ? target : null, sanitizeFrom(from), result));
+                "FORWARDED".equals(result) ? target : null, sanitizeFrom(from), result, null));
         return URI.create(target);
     }
 

@@ -1,8 +1,10 @@
 package kr.co.im010.admin.plan;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,6 +21,7 @@ import jakarta.validation.constraints.Size;
 import kr.co.im010.admin.auth.Action;
 import kr.co.im010.admin.auth.RequiresPermission;
 import kr.co.im010.admin.review.ReviewService;
+import kr.co.im010.core.row.CalendarRow;
 import kr.co.im010.core.row.ItemValues;
 
 /** PR-01 요금제관리 */
@@ -53,6 +56,14 @@ public class PlanAdminController {
                                       @RequestParam(required = false) String q,
                                       @RequestParam(defaultValue = "1") int page) {
         return planService.list(type, partner, state, network, q, page);
+    }
+
+    /** [게시 일정]: 기간 안에 예약됐거나 게시된 버전 (주간 · 월간 달력) */
+    @GetMapping("/calendar")
+    @RequiresPermission(program = PlanAdminService.PROGRAM, action = Action.VIEW)
+    public List<CalendarRow> calendar(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+                                      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        return planService.calendar(from, to);
     }
 
     @GetMapping("/{id}")

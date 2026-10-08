@@ -8,6 +8,7 @@ import { bulkText, useRun } from '../lib/notice'
 import type { BulkResult, PlanRow, PlanState } from '../lib/types'
 import { useLoad } from '../lib/useLoad'
 import { usePartnerOptions } from '../lib/usePartnerOptions'
+import PlanCalendar from './PlanCalendar'
 
 interface ListItem {
   plan: PlanRow
@@ -29,8 +30,25 @@ export const STATE_TONE: Record<string, 'green' | 'coral' | 'amber' | 'red' | 'g
   HIDDEN: 'gray',
 }
 
-/** PR-01 요금제관리 [후불] [선불]: 보완 입력 · 게시 예약 · 즉시 게시 */
+const TYPE_TABS: [string, string][] = [['POSTPAID', '후불'], ['PREPAID', '선불'], ['CALENDAR', '게시 일정']]
+
+/** PR-01 요금제관리 [후불] [선불] [게시 일정] */
 export default function Plans() {
+  const [params, setParams] = useSearchParams()
+  if (params.get('type') !== 'CALENDAR') return <PlanList />
+  return (
+    <>
+      <PageHead title="요금제관리" />
+      <div className="filters">
+        <Tabs value="CALENDAR" onChange={(v) => setParams(v === 'POSTPAID' ? {} : { type: v })} tabs={TYPE_TABS} />
+      </div>
+      <PlanCalendar />
+    </>
+  )
+}
+
+/** [후불] · [선불]: 보완 입력 · 게시 예약 · 즉시 게시 */
+function PlanList() {
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const { can, reload: reloadMe } = useMe()
@@ -94,7 +112,7 @@ export default function Plans() {
       </PageHead>
 
       <div className="filters">
-        <Tabs value={type} onChange={(v) => set('type', v === 'POSTPAID' ? '' : v)} tabs={[['POSTPAID', '후불'], ['PREPAID', '선불']]} />
+        <Tabs value={type} onChange={(v) => (v === 'CALENDAR' ? setParams({ type: v }) : set('type', v === 'POSTPAID' ? '' : v))} tabs={TYPE_TABS} />
         <div className="filter-row">
           <label>
             상태{' '}

@@ -48,5 +48,8 @@ public interface ReviewMapper {
     /** 자동 판매 종료 건의 [판매 재개] → 승인 요청 */
     int requestResume(@Param("id") long id, @Param("reviewer") String reviewer);
 
+    /** [기존 요금제와 연결]: 신규 건을 이름만 바뀐 기존 요금제의 변경 건으로 (승인하면 그 요금제의 새 버전) */
+    int linkToPlan(@Param("id") long id, @Param("planId") long planId);
+
     long countByStatus(@Param("status") String status);
 }

@@ -3,8 +3,8 @@
 <mapper namespace="kr.co.im010.core.mapper.ForwardLogMapper">
 
     <insert id="insert">
-        INSERT INTO forward_log (kind, target_id, partner_ref, plan_type, target_url, from_page, result)
-        VALUES (#{kind}, #{targetId}, #{partnerRef}, #{planType}, #{targetUrl}, #{fromPage}, #{result})
+        INSERT INTO forward_log (kind, target_id, partner_ref, plan_type, target_url, from_page, result, plan_version_id)
+        VALUES (#{kind}, #{targetId}, #{partnerRef}, #{planType}, #{targetUrl}, #{fromPage}, #{result}, #{planVersionId})
     </insert>
 
 </mapper>

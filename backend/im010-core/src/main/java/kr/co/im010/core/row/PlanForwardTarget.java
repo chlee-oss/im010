@@ -6,6 +6,7 @@ public record PlanForwardTarget(
         String partnerCode,
         String planType,
         String status,
-        String activationUrl
+        String activationUrl,
+        Long publishedVersionId
 ) {
 }

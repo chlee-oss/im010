@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import kr.co.im010.core.row.CalendarRow;
 import kr.co.im010.core.row.ItemValues;
 import kr.co.im010.core.row.NewPlanVersion;
 import kr.co.im010.core.row.PlanAdminRow;
@@ -99,6 +100,12 @@ public interface PlanAdminMapper {
     void insertMonthlyPick(@Param("partnerCode") String partnerCode, @Param("planId") long planId,
                            @Param("siteOrder") int siteOrder, @Param("code") String code,
                            @Param("itemId") long itemId, @Param("collectedOn") LocalDate collectedOn);
+
+    /** 게시 일정 (PR-01 [게시 일정]): 기간 안에 예약됐거나 게시된 버전 */
+    List<CalendarRow> findCalendar(@Param("from") OffsetDateTime from, @Param("to") OffsetDateTime to);
+
+    /** [기존 요금제와 연결]로 승인할 때 제휴사 요금제 코드가 바뀌었으면 따라 바꾼다 */
+    void updatePartnerPlanCode(@Param("planId") long planId, @Param("code") String code);
 
     /** 수집 URL 유형을 모두 지울 때: 그 유형의 게시 중 요금제를 비노출로. */
     int hidePublished(@Param("partnerCode") String partnerCode, @Param("planType") String planType);

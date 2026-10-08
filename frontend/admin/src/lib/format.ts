@@ -113,3 +113,44 @@ export function itemValueText(field: string, v: Record<string, unknown> | null |
   if (field === 'network') return NETWORK[raw as string] ?? String(raw)
   return String(raw)
 }
+
+export const ACTION: Record<string, string> = {
+  VIEW: '조회',
+  EDIT: '등록·수정',
+  DELETE: '삭제',
+  REVIEW: '점검',
+  APPROVE: '승인',
+  DOWNLOAD: '다운로드',
+  PRIVACY: '개인정보 열람',
+}
+
+export const TERMS_TYPE: Record<string, string> = {
+  SERVICE: '이용약관',
+  PRIVACY: '개인정보처리방침',
+  COLLECT: '개인정보 수집 · 이용 동의',
+  THIRD_PARTY: '제3자 제공 동의',
+  MARKETING: '마케팅 수신 동의',
+}
+
+export const RECEIPT_RESULT: Record<string, string> = { FORWARDED: '이동 완료', ENDED: '판매 종료', NO_URL: 'URL 없음', HIDDEN: '비노출' }
+export const RECEIPT_CATEGORY: Record<string, string> = { POSTPAID: '후불', PREPAID: '선불', SINGLE: '단독', BUNDLE: '결합' }
+export const AUDIT_KIND: Record<string, string> = { LOGIN: '로그인', ACCESS: '화면 접속', ACTION: '처리' }
+
+/** 2026-10-08T05:02:00Z → 2026-10-08 14:02 (서울) */
+export function fullDateTime(iso: string | null | undefined): string {
+  if (!iso) return '–'
+  const d = new Date(iso)
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
+      .formatToParts(d)
+      .map((x) => [x.type, x.value]),
+  )
+  return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}`
+}
+
+/** yyyy-MM-dd 에 일수 더하기 */
+export function addDays(date: string, days: number): string {
+  const d = new Date(date + 'T00:00:00Z')
+  d.setUTCDate(d.getUTCDate() + days)
+  return d.toISOString().slice(0, 10)
+}

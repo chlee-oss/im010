@@ -8,6 +8,7 @@ public record ForwardLog(
         String planType,
         String targetUrl,
         String fromPage,
-        String result       // FORWARDED | ENDED | NO_URL | HIDDEN
+        String result,      // FORWARDED | ENDED | NO_URL | HIDDEN
+        Long planVersionId  // PLAN: 접수 당시 게시 중 버전
 ) {
 }

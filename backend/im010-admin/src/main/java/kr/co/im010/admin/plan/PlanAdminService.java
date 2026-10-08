@@ -1,6 +1,8 @@
 package kr.co.im010.admin.plan;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -17,6 +19,7 @@ import kr.co.im010.admin.review.ReviewService;
 import kr.co.im010.admin.web.ApiException;
 import kr.co.im010.admin.web.Texts;
 import kr.co.im010.core.mapper.PlanAdminMapper;
+import kr.co.im010.core.row.CalendarRow;
 import kr.co.im010.core.row.ItemValues;
 import kr.co.im010.core.row.NewPlanVersion;
 import kr.co.im010.core.row.PlanAdminRow;
@@ -231,6 +234,15 @@ public class PlanAdminService {
         planMapper.pointToVersion(id, target.id());
         audit.action(PROGRAM, "ROLLBACK", "plan " + id, "v" + current + " -> v" + target.id());
         return detail(id);
+    }
+
+    /** 게시 일정 달력: 최대 62일 */
+    public List<CalendarRow> calendar(LocalDate from, LocalDate to) {
+        if (from.isAfter(to) || from.plusDays(62).isBefore(to)) {
+            throw ApiException.badRequest("기간은 62일 이내로 지정해 주세요");
+        }
+        ZoneId kst = ZoneId.of("Asia/Seoul");
+        return planMapper.findCalendar(from.atStartOfDay(kst).toOffsetDateTime(), to.plusDays(1).atStartOfDay(kst).toOffsetDateTime());
     }
 
     /** 승인과 함께 예약할 때: 필수 항목이 비면 예약하지 않고 사유를 돌려준다 (승인은 그대로 진행). */

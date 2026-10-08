@@ -15,6 +15,7 @@ export interface Me {
   loginId: string
   name: string
   groupName: string
+  superAdmin: boolean
   menus: { group: string; items: MenuItem[] }[]
   badges: { reviewPending: number; approvalRequested: number; scheduledToday: number }
 }
@@ -187,4 +188,179 @@ export interface Run {
   message: string | null
   startedAt: string
   finishedAt: string
+}
+
+// ---------- 3-2: 환경설정 · 접수 · 인터넷 ----------
+
+export interface Program {
+  id: string
+  menuGroup: string
+  name: string
+  path: string
+  sortOrder: number
+  enabled: boolean
+  actions: Action[]
+}
+
+export interface AdminUser {
+  id: number
+  loginId: string
+  name: string
+  dept: string | null
+  phone: string | null
+  groupId: number
+  groupName: string
+  groupSystem: boolean
+  status: 'ACTIVE' | 'RETIRED'
+  otpEnabled: boolean
+  mustChangePassword: boolean
+  lockedUntil: string | null
+  lastLoginAt: string | null
+  createdAt: string
+}
+
+export interface AdminResult {
+  admin: AdminUser
+  tempPassword: string | null
+}
+
+export interface IpSetting {
+  enabled: boolean
+  allowlist: string
+  yourIp: string
+}
+
+export interface Group {
+  id: number
+  code: string
+  name: string
+  system: boolean
+  adminCount: number
+}
+
+export interface GroupDetail {
+  group: Group
+  permissions: { programId: string; programName: string; menuGroup: string; enabled: boolean; allowed: Action[]; granted: Action[] }[]
+}
+
+export interface AuditRow {
+  id: number
+  adminId: number | null
+  loginId: string | null
+  kind: 'LOGIN' | 'ACCESS' | 'ACTION'
+  programId: string | null
+  action: string
+  target: string | null
+  detail: string | null
+  ip: string | null
+  createdAt: string
+}
+
+export type TermsType = 'SERVICE' | 'PRIVACY' | 'COLLECT' | 'THIRD_PARTY' | 'MARKETING'
+
+export interface TermsRow {
+  id: number
+  termsType: TermsType
+  version: string
+  body: string
+  effectiveOn: string
+  status: 'DRAFT' | 'PUBLISHED'
+  createdBy: string | null
+  createdAt: string
+  publishedBy: string | null
+  publishedAt: string | null
+}
+
+export interface FooterRow {
+  id: number
+  companyName: string
+  ceo: string
+  businessNo: string
+  mailOrderNo: string | null
+  address: string
+  csPhone: string
+  csHours: string | null
+  email: string | null
+  notice: string | null
+  createdBy: string | null
+  createdAt: string
+}
+
+export interface FaqRow {
+  id: number
+  category: string
+  question: string
+  answer: string
+  sortOrder: number
+  exposed: boolean
+  updatedBy: string | null
+  updatedAt: string
+}
+
+export interface Receipt {
+  id: number
+  createdAt: string
+  kind: 'PLAN' | 'INTERNET'
+  targetId: number
+  partnerRef: string | null
+  partnerName: string | null
+  targetName: string | null
+  versionNo: number | null
+  category: string | null
+  carrier: string | null
+  targetUrl: string | null
+  fromPage: string | null
+  result: 'FORWARDED' | 'ENDED' | 'NO_URL' | 'HIDDEN'
+}
+
+export interface ReceiptPage {
+  today: number
+  periodTotal: number
+  byPartner: { key: string | null; label: string; count: number }[]
+  total: number
+  page: number
+  items: Receipt[]
+}
+
+export interface InternetPartner {
+  id: number
+  name: string
+  carrier: string
+  applyUrl: string | null
+  status: 'ACTIVE' | 'ENDED'
+  businessNo: string | null
+  contactName: string | null
+  contactPhone: string | null
+  contractStart: string | null
+  contractEnd: string | null
+  memo: string | null
+  productCount: number
+}
+
+export interface InternetProduct {
+  id: number
+  carrier: string
+  productType: 'SINGLE' | 'BUNDLE'
+  name: string
+  monthlyPrice: number
+  benefits: string
+  internetPartnerId: number | null
+  partnerName: string | null
+  partnerStatus: string | null
+  applyUrl: string | null
+  partnerApplyUrl: string | null
+  sortOrder: number
+  exposed: boolean
+}
+
+export interface CalendarRow {
+  versionId: number
+  planId: number
+  versionNo: number
+  partnerName: string
+  planType: 'POSTPAID' | 'PREPAID'
+  name: string
+  publishAt: string | null
+  publishedAt: string | null
+  publishedBy: string | null
 }

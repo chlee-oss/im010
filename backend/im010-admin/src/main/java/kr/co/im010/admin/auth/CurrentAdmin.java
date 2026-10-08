@@ -20,6 +20,13 @@ public final class CurrentAdmin {
         throw new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHENTICATED", "로그인이 필요합니다");
     }
 
+    /** 최고관리자만 (잠금 해제 · 비밀번호 초기화 · 최고관리자 그룹 변경 · IP 제한) */
+    public static void requireSuper() {
+        if (!get().superAdmin()) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN", "최고관리자만 할 수 있습니다");
+        }
+    }
+
     public static void require(String program, Action action) {
         if (!get().can(program, action)) {
             throw new ApiException(HttpStatus.FORBIDDEN, "FORBIDDEN",

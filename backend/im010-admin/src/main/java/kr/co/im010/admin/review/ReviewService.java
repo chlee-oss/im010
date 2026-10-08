@@ -164,6 +164,43 @@ public class ReviewService {
         return ItemDto.of(find(id));
     }
 
+    /** [기존 요금제와 연결] 후보: 같은 제휴사 · 같은 유형의 요금제 (판매 종료 포함, 판매 종료가 앞) */
+    public List<PlanAdminRow> linkCandidates(long id) {
+        ReviewItemRow row = find(id);
+        if (row.urlType().equals("MONTHLY")) {
+            return List.of();
+        }
+        List<PlanAdminRow> ended = planMapper.findPlans(row.urlType(), row.partnerCode(), "ENDED", null, null, 200, 0);
+        List<PlanAdminRow> all = planMapper.findPlans(row.urlType(), row.partnerCode(), null, null, null, 300, 0);
+        List<PlanAdminRow> out = new ArrayList<>(ended);
+        all.stream().filter(p -> !p.status().equals("ENDED")).forEach(out::add);
+        return out;
+    }
+
+    /**
+     * 이름(코드)만 바뀐 요금제: 신규 건을 기존 요금제의 변경 건으로 바꾼다. 승인하면 기존 요금제의 새 버전이 되고,
+     * 판매 종료로 잡혔던 기존 요금제는 되살아나며, 제휴사 요금제 코드도 새 코드로 바뀐다.
+     */
+    @Transactional
+    public ItemDto linkToPlan(long id, long planId) {
+        ReviewItemRow row = find(id);
+        PlanAdminRow plan = planMapper.findPlan(planId);
+        if (plan == null || !plan.partnerCode().equals(row.partnerCode()) || !plan.planType().equals(row.urlType())) {
+            throw ApiException.badRequest("같은 제휴사 · 같은 유형의 요금제만 연결할 수 있습니다");
+        }
+        if (row.partnerPlanCode() != null && !row.partnerPlanCode().equals(plan.partnerPlanCode())) {
+            Long other = planMapper.findPlanIdByCode(row.partnerCode(), row.urlType(), row.partnerPlanCode());
+            if (other != null && other != planId) {
+                throw ApiException.conflict("이 제휴사 요금제 코드는 이미 요금제 #" + other + "에 쓰이고 있습니다");
+            }
+        }
+        if (reviewMapper.linkToPlan(id, planId) == 0) {
+            throw ApiException.conflict("점검 대기 중인 신규 건만 연결할 수 있습니다");
+        }
+        audit.action(PROGRAM, "LINK_PLAN", "crawl_item " + id, "plan " + planId);
+        return ItemDto.of(find(id));
+    }
+
     private ReviewItemRow find(long id) {
         ReviewItemRow row = reviewMapper.findItem(id);
         if (row == null) {

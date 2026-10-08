@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.im010.core.mapper.ReceiptMapper">
+
+    <sql id="receiptSelect">
+        SELECT f.id, f.created_at, f.kind, f.target_id, f.partner_ref,
+               CASE f.kind WHEN 'PLAN' THEN pt.name ELSE ip.name END AS partner_name,
+               CASE f.kind WHEN 'PLAN' THEN COALESCE(v.name, cur.name) ELSE x.name END AS target_name,
+               v.version_no,
+               CASE f.kind WHEN 'PLAN' THEN f.plan_type ELSE x.product_type END AS category,
+               x.carrier, f.target_url, f.from_page, f.result
+        FROM forward_log f
+        LEFT JOIN partner pt ON f.kind = 'PLAN' AND pt.code = f.partner_ref
+        LEFT JOIN plan_version v ON f.kind = 'PLAN' AND v.id = f.plan_version_id
+        LEFT JOIN plan p ON f.kind = 'PLAN' AND p.id = f.target_id
+        LEFT JOIN plan_version cur ON cur.id = p.published_version_id
+        LEFT JOIN internet_product x ON f.kind = 'INTERNET' AND x.id = f.target_id
+        LEFT JOIN internet_partner ip ON f.kind = 'INTERNET' AND ip.id::text = f.partner_ref
+    </sql>
+
+    <sql id="receiptFilter">
+        WHERE f.kind = #{kind} AND f.created_at &gt;= #{from} AND f.created_at &lt; #{to}
+        <if test="partner != null">AND f.partner_ref = #{partner}</if>
+        <if test="category != null and kind == 'PLAN'">AND f.plan_type = #{category}</if>
+        <if test="category != null and kind == 'INTERNET'">AND x.product_type = #{category}</if>
+        <if test="fromPage != null">AND f.from_page = #{fromPage}</if>
+        <if test="result != null">AND f.result = #{result}</if>
+    </sql>
+
+    <select id="findReceipts" resultType="kr.co.im010.core.row.ReceiptRow">
+        <include refid="receiptSelect"/>
+        <include refid="receiptFilter"/>
+        ORDER BY f.created_at DESC, f.id DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countReceipts" resultType="int">
+        SELECT count(*)
+        FROM forward_log f
+        LEFT JOIN internet_product x ON f.kind = 'INTERNET' AND x.id = f.target_id
+        <include refid="receiptFilter"/>
+    </select>
+
+    <select id="countByPartner" resultType="kr.co.im010.core.row.CountRow">
+        SELECT f.partner_ref AS key,
+               COALESCE(CASE f.kind WHEN 'PLAN' THEN pt.name ELSE ip.name END, '(없음)') AS label,
+               count(*) AS count
+        FROM forward_log f
+        LEFT JOIN partner pt ON f.kind = 'PLAN' AND pt.code = f.partner_ref
+        LEFT JOIN internet_partner ip ON f.kind = 'INTERNET' AND ip.id::text = f.partner_ref
+        WHERE f.kind = #{kind} AND f.created_at &gt;= #{from} AND f.created_at &lt; #{to}
+        GROUP BY 1, 2
+        ORDER BY 3 DESC
+    </select>
+
+    <select id="countSince" resultType="long">
+        SELECT count(*) FROM forward_log WHERE kind = #{kind} AND created_at &gt;= #{since}
+    </select>
+
+</mapper>

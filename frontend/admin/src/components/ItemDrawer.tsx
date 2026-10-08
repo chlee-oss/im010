@@ -5,7 +5,7 @@ import { useMe } from '../lib/me'
 import { useRun } from '../lib/notice'
 import type { Item, ItemValues, PlanRow, Version } from '../lib/types'
 import { useLoad } from '../lib/useLoad'
-import { Badge, Drawer, Loading } from './ui'
+import { Badge, Drawer, Loading, Modal } from './ui'
 
 interface Detail {
   item: Item
@@ -42,6 +42,7 @@ export default function ItemDrawer({ id, mode, onClose, onChanged }: { id: numbe
   const [editing, setEditing] = useState<ItemValues | null>(null)
   const [memo, setMemo] = useState('')
   const [reason, setReason] = useState('')
+  const [linking, setLinking] = useState(false)
 
   if (!data) return <Drawer title="수집 건" onClose={onClose}><Loading error={error} /></Drawer>
   const { item, current } = data
@@ -171,6 +172,7 @@ export default function ItemDrawer({ id, mode, onClose, onChanged }: { id: numbe
       {mode === 'review' && pending && !editing && (
         <div className="actions">
           {!monthly && can('BA-02', 'EDIT') && <button onClick={() => setEditing({ ...item.values })}>값 수정</button>}
+          {!monthly && item.changeType === 'NEW' && can('BA-02', 'EDIT') && <button onClick={() => setLinking(true)}>기존 요금제와 연결</button>}
           {can('BA-02', 'REVIEW') && (
             <>
               <input placeholder="제외 사유" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={500} />
@@ -205,7 +207,48 @@ export default function ItemDrawer({ id, mode, onClose, onChanged }: { id: numbe
           </button>
         </div>
       )}
+      {linking && (
+        <LinkModal
+          itemId={id}
+          onClose={() => setLinking(false)}
+          onLinked={() => {
+            setLinking(false)
+            void done()
+          }}
+        />
+      )}
     </Drawer>
+  )
+}
+
+/** [기존 요금제와 연결]: 이름(코드)만 바뀐 요금제를 신규가 아닌 기존 요금제의 변경으로 */
+function LinkModal({ itemId, onClose, onLinked }: { itemId: number; onClose: () => void; onLinked: () => void }) {
+  const { run, busy } = useRun()
+  const { data, error } = useLoad(() => get<PlanRow[]>(`/batch-items/${itemId}/link-candidates`), [itemId])
+  const [q, setQ] = useState('')
+  const list = (data ?? []).filter((p) => !q.trim() || p.name.includes(q.trim()))
+  return (
+    <Modal title="기존 요금제와 연결" onClose={onClose}>
+      <p className="hint">제휴사가 요금제 이름이나 코드만 바꾼 경우 연결하면, 승인할 때 기존 요금제의 새 버전이 되고 판매 종료로 잡힌 요금제는 되살아납니다.</p>
+      <input placeholder="요금제명 검색" value={q} onChange={(e) => setQ(e.target.value)} style={{ width: '100%', margin: '8px 0' }} />
+      {!data ? (
+        <Loading error={error} />
+      ) : (
+        <div className="pick-list">
+          {list.length === 0 && <p className="muted">연결할 수 있는 요금제가 없습니다.</p>}
+          {list.map((p) => (
+            <button key={p.id} disabled={busy} onClick={() => run(() => post(`/batch-items/${itemId}/link`, { planId: p.id }), () => `요금제 #${p.id}에 연결했습니다`).then((r) => r && onLinked())}>
+              <span>
+                #{p.id} {p.name}
+              </span>
+              <span className="muted">
+                {p.status === 'ENDED' ? `판매 종료 ${p.endedOn ?? ''}` : p.status} · 코드 {p.partnerPlanCode ?? '–'}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </Modal>
   )
 }
 
