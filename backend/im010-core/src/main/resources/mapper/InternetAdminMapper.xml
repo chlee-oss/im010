@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.im010.core.mapper.InternetAdminMapper">
+
+    <sql id="partnerSelect">
+        SELECT ip.id, ip.name, ip.carrier, ip.apply_url, ip.status, ip.business_no, ip.contact_name, ip.contact_phone,
+               ip.contract_start, ip.contract_end, ip.memo,
+               (SELECT count(*) FROM internet_product x WHERE x.internet_partner_id = ip.id) AS product_count
+        FROM internet_partner ip
+    </sql>
+
+    <select id="findPartners" resultType="kr.co.im010.core.row.InternetPartnerRow">
+        <include refid="partnerSelect"/>
+        ORDER BY ip.status, ip.carrier, ip.name
+    </select>
+
+    <select id="findPartner" resultType="kr.co.im010.core.row.InternetPartnerRow">
+        <include refid="partnerSelect"/>
+        WHERE ip.id = #{id}
+    </select>
+
+    <select id="insertPartner" resultType="long" flushCache="true" useCache="false">
+        INSERT INTO internet_partner (name, carrier, apply_url, status, business_no, contact_name, contact_phone,
+                                      contract_start, contract_end, memo)
+        VALUES (#{p.name}, #{p.carrier}, #{p.applyUrl}, #{p.status}, #{p.businessNo}, #{p.contactName}, #{p.contactPhone},
+                #{p.contractStart}, #{p.contractEnd}, #{p.memo})
+        RETURNING id
+    </select>
+
+    <update id="updatePartner">
+        UPDATE internet_partner SET name = #{p.name}, carrier = #{p.carrier}, apply_url = #{p.applyUrl}, status = #{p.status},
+                                    business_no = #{p.businessNo}, contact_name = #{p.contactName},
+                                    contact_phone = #{p.contactPhone}, contract_start = #{p.contractStart},
+                                    contract_end = #{p.contractEnd}, memo = #{p.memo}, updated_at = now()
+        WHERE id = #{p.id}
+    </update>
+
+    <sql id="productSelect">
+        SELECT x.id, x.carrier, x.product_type, x.name, x.monthly_price, array_to_string(x.benefits, '|') AS benefits,
+               x.internet_partner_id, ip.name AS partner_name, ip.status AS partner_status, x.apply_url,
+               ip.apply_url AS partner_apply_url, x.sort_order, x.exposed
+        FROM internet_product x
+        LEFT JOIN internet_partner ip ON ip.id = x.internet_partner_id
+    </sql>
+
+    <select id="findProducts" resultType="kr.co.im010.core.row.InternetProductAdminRow">
+        <include refid="productSelect"/>
+        <if test="productType != null">WHERE x.product_type = #{productType}</if>
+        ORDER BY x.product_type, x.sort_order, x.id
+    </select>
+
+    <select id="findProduct" resultType="kr.co.im010.core.row.InternetProductAdminRow">
+        <include refid="productSelect"/>
+        WHERE x.id = #{id}
+    </select>
+
+    <select id="insertProduct" resultType="long" flushCache="true" useCache="false">
+        INSERT INTO internet_product (carrier, product_type, name, monthly_price, benefits, internet_partner_id, apply_url,
+                                      sort_order, exposed)
+        VALUES (#{carrier}, #{productType}, #{name}, #{monthlyPrice},
+                #{benefits,typeHandler=org.apache.ibatis.type.ArrayTypeHandler}, #{partnerId}, #{applyUrl},
+                #{sortOrder}, #{exposed})
+        RETURNING id
+    </select>
+
+    <update id="updateProduct">
+        UPDATE internet_product SET carrier = #{carrier}, product_type = #{productType}, name = #{name},
+               monthly_price = #{monthlyPrice}, benefits = #{benefits,typeHandler=org.apache.ibatis.type.ArrayTypeHandler},
+               internet_partner_id = #{partnerId}, apply_url = #{applyUrl}, sort_order = #{sortOrder},
+               exposed = #{exposed}, updated_at = now()
+        WHERE id = #{id}
+    </update>
+
+    <select id="countExposedProductsOfEndedPartner" resultType="int">
+        SELECT count(*) FROM internet_product x JOIN internet_partner ip ON ip.id = x.internet_partner_id
+        WHERE ip.id = #{partnerId} AND ip.status = 'ENDED' AND x.exposed
+    </select>
+
+    <update id="endExpiredPartners">
+        UPDATE internet_partner SET status = 'ENDED', updated_at = now()
+        WHERE status = 'ACTIVE' AND contract_end IS NOT NULL AND contract_end &lt; #{today}
+    </update>
+
+</mapper>

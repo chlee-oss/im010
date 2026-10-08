@@ -128,6 +128,14 @@ public class ApprovalService {
             planId = planMapper.insertPlan(row.partnerCode(), type, row.partnerPlanCode(), activationUrl);
         }
         PlanAdminRow plan = planMapper.findPlan(planId);
+        if (row.partnerPlanCode() != null && !row.partnerPlanCode().equals(plan.partnerPlanCode())) {
+            // [기존 요금제와 연결]: 제휴사 요금제 코드가 바뀐 경우 다음 수집부터 새 코드로 맞춘다
+            Long other = planMapper.findPlanIdByCode(row.partnerCode(), type, row.partnerPlanCode());
+            if (other != null && !other.equals(planId)) {
+                throw ApiException.conflict("제휴사 요금제 코드가 요금제 #" + other + "와 겹칩니다");
+            }
+            planMapper.updatePartnerPlanCode(planId, row.partnerPlanCode());
+        }
         PlanVersionRow prev = planMapper.findLatestVersion(planId);
         boolean replaced = planMapper.countScheduledDrafts(planId) > 0;
         planMapper.discardDrafts(planId);

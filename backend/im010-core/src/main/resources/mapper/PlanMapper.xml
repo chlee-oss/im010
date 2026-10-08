@@ -108,7 +108,7 @@
     </select>
 
     <select id="findForwardTarget" resultType="kr.co.im010.core.row.PlanForwardTarget">
-        SELECT p.id, p.partner_code, p.plan_type, p.status, p.activation_url
+        SELECT p.id, p.partner_code, p.plan_type, p.status, p.activation_url, p.published_version_id
         FROM plan p
         WHERE p.id = #{id}
     </select>

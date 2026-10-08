@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.im010.core.mapper.SettingsMapper">
+
+    <update id="updateProgram">
+        UPDATE program SET name = #{name}, sort_order = #{sortOrder}, enabled = #{enabled} WHERE id = #{id}
+    </update>
+
+    <sql id="adminColumns">
+        u.id, u.login_id, u.name, u.dept, u.phone, g.id AS group_id, g.name AS group_name, g.system AS group_system,
+        u.status, u.otp_enabled, u.must_change_password, u.locked_until, u.last_login_at, u.created_at
+    </sql>
+
+    <select id="findAdmins" resultType="kr.co.im010.core.row.AdminListRow">
+        SELECT <include refid="adminColumns"/>
+        FROM admin_user u JOIN admin_group g ON g.id = u.group_id
+        ORDER BY u.status, u.login_id
+    </select>
+
+    <select id="findAdmin" resultType="kr.co.im010.core.row.AdminListRow">
+        SELECT <include refid="adminColumns"/>
+        FROM admin_user u JOIN admin_group g ON g.id = u.group_id
+        WHERE u.id = #{id}
+    </select>
+
+    <select id="existsLoginId" resultType="boolean">
+        SELECT EXISTS (SELECT 1 FROM admin_user WHERE lower(login_id) = lower(#{loginId}))
+    </select>
+
+    <select id="insertAdmin" resultType="long" flushCache="true" useCache="false">
+        INSERT INTO admin_user (login_id, name, dept, phone, group_id, password_hash)
+        VALUES (#{loginId}, #{name}, #{dept}, #{phone}, #{groupId}, #{passwordHash})
+        RETURNING id
+    </select>
+
+    <update id="updateAdmin">
+        UPDATE admin_user SET name = #{name}, dept = #{dept}, phone = #{phone}, group_id = #{groupId},
+                              status = #{status}, updated_at = now()
+        WHERE id = #{id}
+    </update>
+
+    <update id="unlock">
+        UPDATE admin_user SET failed_count = 0, locked_until = NULL, updated_at = now() WHERE id = #{id}
+    </update>
+
+    <update id="resetPassword">
+        UPDATE admin_user SET password_hash = #{passwordHash}, must_change_password = TRUE, failed_count = 0,
+                              locked_until = NULL, updated_at = now()
+        WHERE id = #{id}
+    </update>
+
+    <update id="resetOtp">
+        UPDATE admin_user SET otp_secret = NULL, otp_enabled = FALSE, otp_last_step = NULL, updated_at = now()
+        WHERE id = #{id}
+    </update>
+
+    <select id="countActiveSuperAdmins" resultType="int">
+        SELECT count(*) FROM admin_user u JOIN admin_group g ON g.id = u.group_id
+        WHERE g.system AND u.status = 'ACTIVE'
+    </select>
+
+    <select id="findSetting" resultType="string">
+        SELECT value FROM admin_setting WHERE key = #{key}
+    </select>
+
+    <update id="updateSetting">
+        INSERT INTO admin_setting (key, value, updated_by) VALUES (#{key}, #{value}, #{by})
+        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_by = EXCLUDED.updated_by, updated_at = now()
+    </update>
+
+    <select id="findGroups" resultType="kr.co.im010.core.row.GroupRow">
+        SELECT g.id, g.code, g.name, g.system, (SELECT count(*) FROM admin_user u WHERE u.group_id = g.id) AS admin_count
+        FROM admin_group g
+        ORDER BY g.system DESC, g.id
+    </select>
+
+    <select id="findGroup" resultType="kr.co.im010.core.row.GroupRow">
+        SELECT g.id, g.code, g.name, g.system, (SELECT count(*) FROM admin_user u WHERE u.group_id = g.id) AS admin_count
+        FROM admin_group g WHERE g.id = #{id}
+    </select>
+
+    <select id="insertGroup" resultType="long" flushCache="true" useCache="false">
+        INSERT INTO admin_group (code, name) VALUES (#{code}, #{name}) RETURNING id
+    </select>
+
+    <update id="updateGroupName">
+        UPDATE admin_group SET name = #{name} WHERE id = #{id} AND NOT system
+    </update>
+
+    <delete id="deleteGroup">
+        DELETE FROM admin_group WHERE id = #{id} AND NOT system
+    </delete>
+
+    <delete id="deletePermissions">
+        DELETE FROM group_permission WHERE group_id = #{groupId}
+    </delete>
+
+    <insert id="insertPermission">
+        INSERT INTO group_permission (group_id, program_id, actions)
+        VALUES (#{groupId}, #{programId}, #{actions,typeHandler=org.apache.ibatis.type.ArrayTypeHandler})
+    </insert>
+
+    <sql id="auditFilter">
+        WHERE created_at &gt;= #{from} AND created_at &lt; #{to}
+        <if test="kind != null">AND kind = #{kind}</if>
+        <if test="loginId != null">AND login_id = #{loginId}</if>
+        <if test="action != null">AND action = #{action}</if>
+    </sql>
+
+    <select id="findAudits" resultType="kr.co.im010.core.row.AuditListRow">
+        SELECT id, admin_id, login_id, kind, program_id, action, target, detail, ip, created_at
+        FROM admin_audit <include refid="auditFilter"/>
+        ORDER BY created_at DESC, id DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countAudits" resultType="int">
+        SELECT count(*) FROM admin_audit <include refid="auditFilter"/>
+    </select>
+
+</mapper>

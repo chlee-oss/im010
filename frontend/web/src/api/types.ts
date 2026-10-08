@@ -56,3 +56,32 @@ export interface InternetProduct {
 export interface StatsSummary {
   comparablePlanCount: number
 }
+
+export type TermsType = 'SERVICE' | 'PRIVACY' | 'COLLECT' | 'THIRD_PARTY' | 'MARKETING'
+
+export interface Terms {
+  type: TermsType
+  version: string
+  effectiveOn: string
+  body: string
+  versions: { id: number; version: string; effectiveOn: string; current: boolean }[]
+}
+
+export interface FooterInfo {
+  companyName: string
+  ceo: string
+  businessNo: string
+  mailOrderNo: string | null
+  address: string
+  csPhone: string
+  csHours: string | null
+  email: string | null
+  notice: string | null
+}
+
+export interface Faq {
+  id: number
+  category: string
+  question: string
+  answer: string
+}

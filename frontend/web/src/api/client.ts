@@ -1,4 +1,16 @@
-import type { InternetProduct, NetworkCode, Partner, PlanDetail, PlanSummary, PlanType, StatsSummary } from './types'
+import type {
+  Faq,
+  FooterInfo,
+  InternetProduct,
+  NetworkCode,
+  Partner,
+  PlanDetail,
+  PlanSummary,
+  PlanType,
+  StatsSummary,
+  Terms,
+  TermsType,
+} from './types'
 
 export class ApiError extends Error {
   readonly status: number
@@ -43,4 +55,11 @@ export const api = {
     getJson<InternetProduct[]>(`/api/internet-products${qs({ type })}`, signal),
 
   statsSummary: (signal?: AbortSignal) => getJson<StatsSummary>('/api/stats/summary', signal),
+
+  /** 약관: id 가 없으면 시행 중인 버전 */
+  terms: (type: TermsType, id?: number, signal?: AbortSignal) => getJson<Terms>(`/api/terms/${type}${qs({ id })}`, signal),
+
+  footer: (signal?: AbortSignal) => getJson<FooterInfo>('/api/footer', signal),
+
+  faqs: (signal?: AbortSignal) => getJson<Faq[]>('/api/faqs', signal),
 }

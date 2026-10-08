@@ -48,3 +48,26 @@
   .spec-grid { grid-template-columns: repeat(2, 1fr); }
   .similar-grid { grid-template-columns: 1fr; }
 }
+
+/* ---------- 약관 · FAQ (백오피스 ST-04 · ST-07) ---------- */
+.doc-page { padding: 48px 0 80px; }
+.wrap.narrow { max-width: 860px; }
+.doc-page h1 { font-size: 28px; font-weight: 800; margin-bottom: 18px; }
+.doc-meta { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; color: var(--gray-700); font-size: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--gray-200); margin-bottom: 20px; }
+.doc-meta select { font: inherit; padding: 6px 10px; border: 1px solid var(--gray-200); border-radius: 8px; background: var(--white); }
+.doc-body { white-space: pre-wrap; line-height: 1.8; font-size: 15px; color: var(--navy); background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; padding: 28px; }
+.faq-cats { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+.faq-cats button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 16px; border-radius: 999px; border: 1px solid var(--gray-200); background: var(--white); color: var(--gray-700); cursor: pointer; }
+.faq-cats button.on { background: var(--navy); border-color: var(--navy); color: var(--white); }
+.faq-list { display: flex; flex-direction: column; gap: 10px; }
+.faq-item { background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; }
+.faq-item summary { cursor: pointer; padding: 18px 20px; font-weight: 700; font-size: 15px; list-style: none; }
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::before { content: 'Q'; color: var(--coral); font-weight: 800; margin-right: 10px; }
+.faq-item[open] summary { border-bottom: 1px solid var(--gray-200); }
+.faq-cat { font-size: 12px; font-weight: 700; color: var(--coral-dark); background: var(--coral-tint); padding: 2px 8px; border-radius: 6px; margin-right: 6px; }
+.faq-answer { padding: 18px 20px 20px 44px; white-space: pre-wrap; line-height: 1.7; color: var(--gray-700); font-size: 14px; }
+@media (max-width: 640px) {
+  .doc-page { padding: 28px 0 60px; }
+  .doc-body { padding: 18px; font-size: 14px; }
+}

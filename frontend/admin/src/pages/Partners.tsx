@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Badge, Loading, Modal, PageHead } from '../components/ui'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Badge, Loading, Modal, PageHead, Tabs } from '../components/ui'
 import { get, post } from '../lib/api'
 import { DAYS, RUN_RESULT, dateTime } from '../lib/format'
 import { useMe } from '../lib/me'
 import { useRun } from '../lib/notice'
 import type { Partner } from '../lib/types'
 import { useLoad } from '../lib/useLoad'
+import InternetPartners from './InternetPartners'
 
 export function scheduleText(p: Partner): string {
   if (!p.scheduleEnabled) return 'OFF'
@@ -26,18 +27,22 @@ export default function Partners() {
   const { data, error } = useLoad(() => get<Partner[]>('/partners'), [])
   const [creating, setCreating] = useState(false)
   const [form, setForm] = useState({ code: '', name: '', chipBg: '#FFF1EE', chipFg: '#D9432F', homepageUrl: 'https://', exposed: false, sortOrder: 99 })
+  const [params, setParams] = useSearchParams()
+  const tab = params.get('tab') === 'internet' ? 'INTERNET' : 'MOBILE'
 
   return (
     <>
       <PageHead title="제휴사관리">
-        {can('PA-01', 'EDIT') && (
+        {tab === 'MOBILE' && can('PA-01', 'EDIT') && (
           <button className="primary" onClick={() => setCreating(true)}>
             + 제휴사 추가
           </button>
         )}
       </PageHead>
-      <p className="note">[알뜰폰] 탭 · 인터넷 제휴업체([인터넷] 탭)는 다음 단계(3-2)에서 만듭니다.</p>
-      {!data ? (
+      <Tabs value={tab} onChange={(v) => setParams(v === 'INTERNET' ? { tab: 'internet' } : {})} tabs={[['MOBILE', '알뜰폰'], ['INTERNET', '인터넷']]} />
+      {tab === 'INTERNET' ? (
+        <InternetPartners />
+      ) : !data ? (
         <Loading error={error} />
       ) : (
         <table className="grid">

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.im010.core.mapper.ContentMapper">
+
+    <sql id="termsColumns">
+        id, terms_type, version, body, effective_on, status, created_by, created_at, published_by, published_at
+    </sql>
+
+    <select id="findTerms" resultType="kr.co.im010.core.row.TermsRow">
+        SELECT <include refid="termsColumns"/> FROM terms
+        WHERE terms_type = #{termsType}
+        ORDER BY effective_on DESC, id DESC
+    </select>
+
+    <select id="findTerm" resultType="kr.co.im010.core.row.TermsRow">
+        SELECT <include refid="termsColumns"/> FROM terms WHERE id = #{id}
+    </select>
+
+    <select id="findCurrentTerm" resultType="kr.co.im010.core.row.TermsRow">
+        SELECT <include refid="termsColumns"/> FROM terms
+        WHERE terms_type = #{termsType} AND status = 'PUBLISHED' AND effective_on &lt;= #{today}
+        ORDER BY effective_on DESC, id DESC LIMIT 1
+    </select>
+
+    <select id="findPublishedTerms" resultType="kr.co.im010.core.row.TermsRow">
+        SELECT <include refid="termsColumns"/> FROM terms
+        WHERE terms_type = #{termsType} AND status = 'PUBLISHED'
+        ORDER BY effective_on DESC, id DESC
+    </select>
+
+    <select id="existsTermsVersion" resultType="boolean">
+        SELECT EXISTS (SELECT 1 FROM terms WHERE terms_type = #{termsType} AND version = #{version}
+                       <if test="excludeId != null">AND id &lt;&gt; #{excludeId}</if>)
+    </select>
+
+    <select id="insertTerm" resultType="long" flushCache="true" useCache="false">
+        INSERT INTO terms (terms_type, version, body, effective_on, created_by)
+        VALUES (#{termsType}, #{version}, #{body}, #{effectiveOn}, #{by})
+        RETURNING id
+    </select>
+
+    <update id="updateDraftTerm">
+        UPDATE terms SET version = #{version}, body = #{body}, effective_on = #{effectiveOn}
+        WHERE id = #{id} AND status = 'DRAFT'
+    </update>
+
+    <delete id="deleteDraftTerm">
+        DELETE FROM terms WHERE id = #{id} AND status = 'DRAFT'
+    </delete>
+
+    <update id="publishTerm">
+        UPDATE terms SET status = 'PUBLISHED', published_by = #{by}, published_at = now()
+        WHERE id = #{id} AND status = 'DRAFT'
+    </update>
+
+    <sql id="footerColumns">
+        id, company_name, ceo, business_no, mail_order_no, address, cs_phone, cs_hours, email, notice, created_by, created_at
+    </sql>
+
+    <select id="findLatestFooter" resultType="kr.co.im010.core.row.FooterRow">
+        SELECT <include refid="footerColumns"/> FROM footer_version ORDER BY id DESC LIMIT 1
+    </select>
+
+    <select id="findFooterHistory" resultType="kr.co.im010.core.row.FooterRow">
+        SELECT <include refid="footerColumns"/> FROM footer_version ORDER BY id DESC LIMIT #{limit}
+    </select>
+
+    <insert id="insertFooter">
+        INSERT INTO footer_version (company_name, ceo, business_no, mail_order_no, address, cs_phone, cs_hours, email,
+                                    notice, created_by)
+        VALUES (#{companyName}, #{ceo}, #{businessNo}, #{mailOrderNo}, #{address}, #{csPhone}, #{csHours}, #{email},
+                #{notice}, #{createdBy})
+    </insert>
+
+    <sql id="faqColumns">
+        id, category, question, answer, sort_order, exposed, updated_by, updated_at
+    </sql>
+
+    <select id="findFaqs" resultType="kr.co.im010.core.row.FaqRow">
+        SELECT <include refid="faqColumns"/> FROM faq
+        <if test="exposedOnly">WHERE exposed</if>
+        ORDER BY category, sort_order, id
+    </select>
+
+    <select id="findFaq" resultType="kr.co.im010.core.row.FaqRow">
+        SELECT <include refid="faqColumns"/> FROM faq WHERE id = #{id}
+    </select>
+
+    <select id="insertFaq" resultType="long" flushCache="true" useCache="false">
+        INSERT INTO faq (category, question, answer, sort_order, exposed, updated_by)
+        VALUES (#{category}, #{question}, #{answer}, #{sortOrder}, #{exposed}, #{by})
+        RETURNING id
+    </select>
+
+    <update id="updateFaq">
+        UPDATE faq SET category = #{category}, question = #{question}, answer = #{answer}, sort_order = #{sortOrder},
+                       exposed = #{exposed}, updated_by = #{by}, updated_at = now()
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteFaq">
+        DELETE FROM faq WHERE id = #{id}
+    </delete>
+
+</mapper>

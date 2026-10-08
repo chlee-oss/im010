@@ -190,3 +190,46 @@ label.inline { flex-direction: row !important; align-items: center; gap: 5px !im
 .notice { padding: 11px 15px; border-radius: 10px; font-size: 13px; font-weight: 600; box-shadow: 0 10px 24px rgba(31, 36, 48, 0.14); line-height: 1.5; }
 .notice.ok { background: var(--navy); color: var(--white); }
 .notice.error { background: var(--red); color: var(--white); }
+
+/* ---------- 3-2: 환경설정 · 접수 · 게시 일정 ---------- */
+.small { font-size: 11px; }
+.center { text-align: center !important; }
+.grid td.wrap-cell { max-width: 320px; word-break: break-all; }
+.grid.matrix td, .grid.matrix th { text-align: center; }
+.grid.matrix td:first-child, .grid.matrix th:first-child { text-align: left; }
+.grid tr.disabled td { color: var(--gray-500); }
+textarea { font: inherit; font-size: 13px; padding: 8px 10px; border: 1px solid var(--gray-300); border-radius: 7px; width: 100%; resize: vertical; line-height: 1.6; }
+textarea.code-area { font-family: ui-monospace, Consolas, monospace; margin-top: 8px; }
+.temp-password { text-align: center; margin: 14px 0; }
+.temp-password code { font-size: 20px; letter-spacing: 1px; background: var(--gray-100); padding: 8px 14px; border-radius: 8px; user-select: all; }
+.doc-preview { white-space: pre-wrap; line-height: 1.7; font-size: 13px; max-height: 55vh; overflow-y: auto; background: var(--gray-100); border-radius: 8px; padding: 14px; }
+
+.split { display: grid; grid-template-columns: 240px 1fr; gap: 16px; align-items: start; }
+.split-list { background: var(--white); border: 1px solid var(--gray-200); border-radius: 12px; padding: 6px; display: flex; flex-direction: column; }
+.list-item { border: none; justify-content: space-between; width: 100%; padding: 10px 12px; border-radius: 8px; }
+.list-item.on { background: var(--coral-tint); color: var(--coral-dark); }
+
+.summary-row { display: flex; gap: 12px; margin-bottom: 14px; }
+.stat { background: var(--white); border: 1px solid var(--gray-200); border-radius: 10px; padding: 10px 16px; display: flex; flex-direction: column; gap: 4px; min-width: 120px; }
+.stat span { font-size: 12px; color: var(--gray-500); font-weight: 600; }
+.stat b { font-size: 18px; }
+.stat.wide { flex: 1; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.mini { font-size: 12px; background: var(--gray-100); border-radius: 6px; padding: 3px 8px; }
+
+.pick-list { display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow-y: auto; }
+.pick-list button { justify-content: space-between; width: 100%; text-align: left; }
+
+.calendar { display: grid; grid-template-columns: repeat(7, 1fr); border: 1px solid var(--gray-200); border-radius: 10px; overflow: hidden; background: var(--white); }
+.cal-head { background: var(--gray-100); font-size: 12px; font-weight: 700; color: var(--gray-700); padding: 8px; text-align: center; border-bottom: 1px solid var(--gray-200); }
+.cal-day { border-right: 1px solid var(--gray-200); border-bottom: 1px solid var(--gray-200); padding: 6px; min-height: 110px; display: flex; flex-direction: column; gap: 4px; }
+.calendar.week .cal-day { min-height: 280px; }
+.cal-day:nth-child(7n) { border-right: none; }
+.cal-day.today { background: #fffaf8; }
+.cal-day.today .cal-date { color: var(--coral-dark); font-weight: 800; }
+.cal-day.other { background: var(--gray-100); }
+.cal-day.other .cal-date { color: var(--gray-500); }
+.cal-date { font-size: 12px; font-weight: 700; }
+.cal-item { font-size: 11px; font-weight: 500; padding: 3px 6px; border-radius: 6px; text-align: left; justify-content: flex-start; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; width: 100%; }
+.cal-item.done { background: var(--green-tint); border-color: transparent; color: var(--green); }
+.cal-item.scheduled { background: var(--amber-tint); border-color: transparent; color: var(--amber); }

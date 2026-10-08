@@ -33,7 +33,7 @@ public class MeController {
     public record Badges(long reviewPending, long approvalRequested, int scheduledToday) {
     }
 
-    public record Me(String loginId, String name, String groupName, List<MenuGroup> menus, Badges badges) {
+    public record Me(String loginId, String name, String groupName, boolean superAdmin, List<MenuGroup> menus, Badges badges) {
     }
 
     private final AdminMapper adminMapper;
@@ -63,6 +63,6 @@ public class MeController {
                 reviewMapper.countByStatus("APPROVAL_REQUESTED"),
                 planMapper.countScheduledOn(today.atStartOfDay(KST).toOffsetDateTime(),
                         today.plusDays(1).atStartOfDay(KST).toOffsetDateTime()));
-        return new Me(admin.loginId(), admin.name(), admin.groupName(), menus, badges);
+        return new Me(admin.loginId(), admin.name(), admin.groupName(), admin.superAdmin(), menus, badges);
     }
 }

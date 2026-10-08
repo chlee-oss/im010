@@ -31,6 +31,7 @@ import kr.co.im010.admin.auth.AdminPrincipal;
 import kr.co.im010.admin.config.SecurityConfig;
 import kr.co.im010.admin.review.ReviewController;
 import kr.co.im010.admin.review.ReviewService;
+import kr.co.im010.core.mapper.SettingsMapper;
 
 /** 로그인 필요(401) · 프로그램 × 동작 권한(403) · CSRF 확인 */
 @WebMvcTest(ReviewController.class)
@@ -42,6 +43,9 @@ class SecuritySliceTest {
 
     @MockitoBean
     ReviewService reviewService;
+
+    @MockitoBean
+    SettingsMapper settingsMapper;   // IpRestrictionFilter (설정 없음 = IP 제한 꺼짐)
 
     private static UsernamePasswordAuthenticationToken admin(Map<String, Set<Action>> perms) {
         AdminPrincipal p = new AdminPrincipal(1, "kim", "김운영", "콘텐츠 운영자", false, perms);

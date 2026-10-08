@@ -7,13 +7,22 @@ import { MeProvider } from './lib/me'
 import type { Stage } from './lib/types'
 import Approvals from './pages/Approvals'
 import BatchItems from './pages/BatchItems'
+import InternetProducts from './pages/InternetProducts'
 import Login from './pages/Login'
 import NotReady from './pages/NotReady'
 import PartnerDetail from './pages/PartnerDetail'
 import Partners from './pages/Partners'
 import PlanDetail from './pages/PlanDetail'
 import Plans from './pages/Plans'
+import Receipts from './pages/Receipts'
 import Schedules from './pages/Schedules'
+import Admins from './pages/settings/Admins'
+import Audit from './pages/settings/Audit'
+import Faq from './pages/settings/Faq'
+import Footer from './pages/settings/Footer'
+import Groups from './pages/settings/Groups'
+import Programs from './pages/settings/Programs'
+import Terms from './pages/settings/Terms'
 
 export default function App() {
   const [stage, setStage] = useState<Stage | 'LOADING'>('LOADING')
@@ -49,6 +58,16 @@ export default function App() {
           <Route path="/partners" element={<Partners />} />
           <Route path="/partners/:code" element={<PartnerDetail />} />
           <Route path="/schedules" element={<Schedules />} />
+          <Route path="/internet" element={<InternetProducts />} />
+          <Route path="/receipts/plans" element={<Receipts key="plans" kind="plans" />} />
+          <Route path="/receipts/internet" element={<Receipts key="internet" kind="internet" />} />
+          <Route path="/settings/programs" element={<Programs />} />
+          <Route path="/settings/admins" element={<Admins />} />
+          <Route path="/settings/groups" element={<Groups />} />
+          <Route path="/settings/terms" element={<Terms />} />
+          <Route path="/settings/audit" element={<Audit />} />
+          <Route path="/settings/footer" element={<Footer />} />
+          <Route path="/settings/inquiries" element={<Faq />} />
           <Route path="*" element={<NotReady />} />
         </Routes>
       </Layout>
