@@ -11,7 +11,7 @@ import kr.co.im010.batch.crawl.ChangeDetector.Change;
 import kr.co.im010.batch.crawl.ChangeDetector.Item;
 import kr.co.im010.batch.crawl.ChangeDetector.Result;
 import kr.co.im010.batch.crawl.ChangeDetector.Status;
-import kr.co.im010.batch.parse.ParsedPlan;
+import kr.co.im010.core.parse.ParsedPlan;
 import kr.co.im010.core.row.HandledHashRow;
 import kr.co.im010.core.row.OpenItemRow;
 import kr.co.im010.core.row.PlanBaselineRow;
@@ -25,7 +25,7 @@ class ChangeDetectorTest {
 
     private static PlanBaselineRow baseline(long id, String code, String status, String name, Integer price, String supplemented) {
         return new PlanBaselineRow(id, code, status, name, "데이터 7GB", new BigDecimal("7.00"), "1Mbps", "무제한", "무제한",
-                "LGU", "LTE", price, null, null, supplemented);
+                "LGU", "LTE", price, null, null, supplemented, null);
     }
 
     private static Result detect(List<ParsedPlan> collected, List<PlanBaselineRow> baselines) {
@@ -61,6 +61,17 @@ class ChangeDetectorTest {
         assertThat(ended.status()).isEqualTo(Status.AUTO_APPLIED);
         assertThat(r.endedPlanIds()).containsExactly(13L);              // 이미 판매 종료된 14 는 그대로
         assertThat(r.touchedPlanIds()).containsExactlyInAnyOrder(11L, 12L);
+    }
+
+    @Test
+    void 일_데이터만_있는_요금제는_기본_제공량_경고() {
+        ParsedPlan daily = new ParsedPlan("7", "매일 5GB", "LGU", "LTE", "데이터 0GB + 매일 5GB", BigDecimal.ZERO, "5Mbps",
+                "기본 제공", "기본 제공", 26400, null, null, null, null, 1);
+        ParsedPlan unlimited = new ParsedPlan("8", "무제한", "LGU", "5G", "데이터 무제한", null, null,
+                "기본 제공", "기본 제공", 49000, null, null, null, null, 2);
+
+        assertThat(ChangeDetector.warnings(daily)).contains("MISSING_DATA");
+        assertThat(ChangeDetector.warnings(unlimited)).doesNotContain("MISSING_DATA");
     }
 
     @Test
@@ -113,6 +124,18 @@ class ChangeDetectorTest {
                 List.of(new HandledHashRow("3", hash, "EXCLUDED")), 0.3);
         assertThat(item(excluded, "3").status()).isEqualTo(Status.RECORDED);
         assertThat(item(excluded, "3").warnings()).contains("SAME_AS_EXCLUDED");
+    }
+
+    @Test
+    void 승인_때와_같은_수집값이면_운영자가_고친_값과_달라도_변경_없음() {
+        ParsedPlan p = plan("3", "C", 9900);
+        PlanBaselineRow edited = new PlanBaselineRow(12, "3", "PUBLISHED", "C (운영자 수정)", "데이터 7GB", new BigDecimal("7"),
+                "1Mbps", "무제한", "무제한", "LGU", "LTE", 9900, null, null, "name", ChangeDetector.hash(p));
+
+        Result r = detect(List.of(p), List.of(edited));
+
+        assertThat(item(r, "3").change()).isEqualTo(Change.UNCHANGED);
+        assertThat(item(r, "3").status()).isEqualTo(Status.RECORDED);
     }
 
     @Test

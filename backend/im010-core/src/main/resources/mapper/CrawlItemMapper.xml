@@ -6,10 +6,10 @@
         SELECT p.id AS plan_id, p.partner_plan_code, p.status,
                v.name, v.data_text, v.data_gb, v.qos_text, v.voice_text, v.sms_text, v.network, v.generation,
                COALESCE(v.monthly_price, v.charge_price) AS price, v.discount_months, v.price_after_discount,
-               array_to_string(v.supplemented_fields, '|') AS supplemented_fields
+               array_to_string(v.supplemented_fields, '|') AS supplemented_fields, v.source_hash
         FROM plan p
         LEFT JOIN LATERAL (
-            SELECT * FROM plan_version pv WHERE pv.plan_id = p.id ORDER BY pv.version_no DESC LIMIT 1
+            SELECT * FROM plan_version pv WHERE pv.plan_id = p.id AND pv.discarded_at IS NULL ORDER BY pv.version_no DESC LIMIT 1
         ) v ON TRUE
         WHERE p.partner_code = #{partnerCode} AND p.plan_type = #{planType}
         ORDER BY p.id

@@ -1,0 +1,26 @@
+# /etc/systemd/system/im010-admin.service
+# 배포: backend/im010-admin/build/libs/im010-admin-*.jar → /opt/im010/admin/im010-admin.jar
+# 환경 변수(DB 비밀번호 등)는 /etc/im010/admin.env (권한 600, 소유자 im010)에 둔다.
+
+[Unit]
+Description=im010 백오피스 API (Spring Boot, 8081)
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=im010
+Group=im010
+WorkingDirectory=/opt/im010/admin
+EnvironmentFile=/etc/im010/admin.env
+ExecStart=/usr/bin/java -Xms256m -Xmx512m -jar /opt/im010/admin/im010-admin.jar
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=5
+# 보안 하드닝
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

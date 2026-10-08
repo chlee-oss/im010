@@ -1,0 +1,21 @@
+# 로컬 개발용 (테스트 계정). 운영에서는 쓰지 않는다.
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false              # http://localhost
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/im010
+    username: im010
+    password: im010_local
+
+im010:
+  admin:
+    # 로컬 전용 초기 비밀번호 — 첫 로그인 때 OTP 등록 · 비밀번호 변경을 강제한다
+    bootstrap-password: Im010-local-admin!
+
+logging:
+  level:
+    kr.co.im010: DEBUG
