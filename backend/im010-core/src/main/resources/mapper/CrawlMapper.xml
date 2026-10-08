@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.im010.core.mapper.CrawlMapper">
+
+    <select id="findCollectUrls" resultType="kr.co.im010.core.row.CollectUrlRow">
+        SELECT id, partner_code, url_type, url, label, sort_order
+        FROM collect_url
+        WHERE partner_code = #{partnerCode}
+        ORDER BY url_type, sort_order, id
+    </select>
+
+    <select id="findTabs" resultType="kr.co.im010.core.row.PartnerTabRow">
+        SELECT id, partner_code, url, label, status
+        FROM partner_tab
+        WHERE partner_code = #{partnerCode}
+    </select>
+
+    <insert id="insertTab">
+        INSERT INTO partner_tab (partner_code, url, label, first_seen_on, last_seen_on)
+        VALUES (#{partnerCode}, #{url}, #{label}, #{seenOn}, #{seenOn})
+        ON CONFLICT (partner_code, url) DO NOTHING
+    </insert>
+
+    <update id="touchTab">
+        UPDATE partner_tab SET label = #{label}, last_seen_on = #{seenOn} WHERE id = #{id}
+    </update>
+
+    <insert id="enqueueScheduled">
+        INSERT INTO crawl_job (partner_code, trigger, run_on)
+        SELECT s.partner_code, 'SCHEDULE', #{runOn}
+        FROM crawl_schedule s
+        WHERE s.enabled
+          AND (s.days = 'DAILY' OR (',' || s.days || ',') LIKE ('%,' || #{dow} || ',%'))
+          AND s.run_time &lt;= #{now}
+          AND EXISTS (SELECT 1 FROM collect_url c WHERE c.partner_code = s.partner_code)
+        ON CONFLICT (partner_code, run_on) WHERE trigger = 'SCHEDULE' DO NOTHING
+    </insert>
+
+    <insert id="insertJob">
+        INSERT INTO crawl_job (partner_code, trigger, url_types, attempt, run_on, due_at, requested_by)
+        VALUES (#{partnerCode}, #{trigger}, #{urlTypes,typeHandler=org.apache.ibatis.type.ArrayTypeHandler}, #{attempt},
+                #{runOn}, now() + make_interval(mins => #{delayMinutes}), #{requestedBy})
+    </insert>
+
+    <select id="claimNextJob" resultType="kr.co.im010.core.row.CrawlJobRow" flushCache="true" useCache="false">
+        UPDATE crawl_job SET status = 'RUNNING', started_at = now()
+        WHERE id = (
+            SELECT j.id FROM crawl_job j
+            WHERE j.status = 'QUEUED' AND j.due_at &lt;= now()
+              AND NOT EXISTS (SELECT 1 FROM crawl_job r WHERE r.partner_code = j.partner_code AND r.status = 'RUNNING')
+            ORDER BY j.due_at, j.id
+            LIMIT 1
+            FOR UPDATE SKIP LOCKED
+        )
+        RETURNING id, partner_code, trigger, array_to_string(url_types, '|') AS url_types, attempt, run_on
+    </select>
+
+    <update id="finishJob">
+        UPDATE crawl_job SET status = 'DONE', finished_at = now() WHERE id = #{id}
+    </update>
+
+    <update id="requeueStaleJobs">
+        UPDATE crawl_job SET status = 'QUEUED', started_at = NULL
+        WHERE status = 'RUNNING' AND started_at &lt; now() - make_interval(mins => #{olderThanMinutes})
+    </update>
+
+    <select id="insertRun" resultType="long" flushCache="true" useCache="false">
+        INSERT INTO crawl_run (job_id, partner_code, url_type, run_on, result, url_count, collected_count,
+                               new_count, changed_count, ended_count, message, started_at)
+        VALUES (#{jobId}, #{partnerCode}, #{urlType}, #{runOn}, #{result}, #{urlCount}, #{collectedCount},
+                #{newCount}, #{changedCount}, #{endedCount}, #{message}, #{startedAt})
+        RETURNING id
+    </select>
+
+    <select id="findLastSuccessCount" resultType="java.lang.Integer">
+        SELECT collected_count
+        FROM crawl_run
+        WHERE partner_code = #{partnerCode} AND url_type = #{urlType} AND result = 'SUCCESS'
+        ORDER BY finished_at DESC
+        LIMIT 1
+    </select>
+
+</mapper>

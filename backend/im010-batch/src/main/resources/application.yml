@@ -13,3 +13,10 @@ mybatis:
   configuration:
     map-underscore-to-camel-case: true
     arg-name-based-constructor-auto-mapping: true
+
+im010:
+  crawl:
+    scheduler-enabled: true
+    request-delay: 3s
+    timeout: 20s
+    zone: Asia/Seoul

@@ -1,0 +1,15 @@
+# 로컬 개발용. 스케줄은 끄고, 필요할 때 run-now 로 수집한다:
+#   ./gradlew :im010-batch:bootRun --args='--spring.profiles.active=local --im010.crawl.run-now=mv,nt'
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/im010
+    username: im010
+    password: im010_local
+
+im010:
+  crawl:
+    scheduler-enabled: false
+
+logging:
+  level:
+    kr.co.im010: DEBUG
