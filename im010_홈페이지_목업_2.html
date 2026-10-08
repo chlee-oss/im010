@@ -145,7 +145,6 @@
   .result-plan .brand-chip{margin-bottom:0;}
   .result-name{font-size:13px; font-weight:700;}
   .result-go{font-size:12px; color:var(--gold); font-weight:700;}
-  .save-tag{color:var(--coral-dark); font-size:12.5px; font-weight:700; margin-top:10px; display:block;}
   .calc-note{font-size:11.5px; color:var(--gray-500); margin-top:6px; line-height:1.5;}
 
   .hero-visual{position:relative; height:460px;}
@@ -246,27 +245,13 @@
   .isp-bullets li::before{content:"·"; position:absolute; left:2px; color:var(--coral); font-weight:800;}
   .isp-disclaimer{font-size:12px; color:var(--gray-500); margin-top:18px;}
 
-  .prepaid-layout{display:flex; gap:24px; align-items:stretch;}
-  .prepaid-layout .month-scroll{flex-wrap:wrap; align-content:flex-start;}
-  .pay-card{
     width:300px; flex-shrink:0; background:#fff; border:1px solid var(--gray-200); border-radius:16px; padding:22px;
   }
-  .pay-card h4{font-size:16px; font-weight:700; margin-bottom:6px;}
-  .pay-desc{font-size:12.5px; color:var(--gray-500); margin-bottom:16px; line-height:1.5;}
-  .pay-label{display:block; font-size:12px; font-weight:700; color:var(--gray-700); margin-bottom:6px;}
-  .pay-input{
     width:100%; padding:11px 12px; border:1.5px solid var(--gray-200); border-radius:10px; font-size:14px;
     font-family:'Pretendard', sans-serif; margin-bottom:4px; background:#fff; color:var(--navy);
   }
-  .pay-input:focus{outline:none; border-color:var(--coral);}
-  .pay-input.invalid{border-color:var(--coral-dark); background:var(--coral-tint);}
-  .pay-input + .pay-input{margin-top:6px;}
-  .pay-err{font-size:11.5px; color:var(--coral-dark); font-weight:600; min-height:16px; margin-bottom:8px;}
-  .pay-result{
     margin-top:12px; background:var(--coral-tint); border-radius:10px; padding:12px; font-size:13px; line-height:1.6; color:var(--navy);
   }
-  .pay-result a{color:var(--coral-dark); font-weight:700;}
-  .pay-privacy{font-size:11px; color:var(--gray-500); margin-top:10px;}
 
   .analysis-grid{display:grid; grid-template-columns:1.3fr 1fr; gap:20px; align-items:stretch;}
   .chart-card{background:#fff; border-radius:16px; padding:24px; border:1px solid var(--gray-200);}
@@ -310,8 +295,6 @@
     .trust-row{grid-template-columns:repeat(2,1fr); gap:24px;}
     .internet-banner{flex-direction:column; align-items:flex-start; gap:20px; padding:32px 28px;}
     .isp-grid{grid-template-columns:1fr;}
-    .prepaid-layout{flex-direction:column;}
-    .pay-card{width:100%;}
     .analysis-grid{grid-template-columns:1fr;}
     h1.hero-title{font-size:30px;}
     .partner-tabs{flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none;}
@@ -319,7 +302,6 @@
     .partner-tabs button{flex-shrink:0;}
   }
   @media (max-width:600px){
-    .header-actions .btn-ghost{display:none;}
     .header-actions .btn-primary{padding:9px 14px; font-size:13px;}
     .sec-head{flex-direction:column; align-items:flex-start;}
     .hero-sub br{display:none;}
@@ -346,22 +328,12 @@
           <a href="https://siwolmobile.com/rate_plan.do" target="_blank" rel="noopener noreferrer">시월모바일</a>
         </div>
       </div>
-      <div class="nav-item">
-        <a class="top-link" href="#prepaid">선불요금제 ▾</a>
-        <div class="dropdown">
-          <a href="#prepaid">선불요금결제 (im010)</a>
-          <a href="https://www.insmobile.co.kr/rate_plan.do?type=T006" target="_blank" rel="noopener noreferrer">인스모바일 선불요금결제</a>
-          <a href="https://www.idowell.co.kr/rate_plan.do?type=T002" target="_blank" rel="noopener noreferrer">위너스텔 선불요금결제</a>
-          <a href="https://www.sugarmobile.co.kr/rate_plan.do?type=T004" target="_blank" rel="noopener noreferrer">슈가모바일 선불요금결제</a>
-        </div>
-      </div>
+      <div class="nav-item"><a class="top-link" href="#prepaid">선불요금제</a></div>
       <div class="nav-item"><a class="top-link" href="#internet-compare">인터넷</a></div>
       <div class="nav-item"><a class="top-link" href="#" data-pending="이벤트">이벤트</a></div>
       <div class="nav-item"><a class="top-link" href="#analysis">요금제분석</a></div>
     </nav>
     <div class="header-actions">
-      <a class="btn-ghost" href="#" data-pending="마이페이지">마이페이지</a>
-      <a class="btn-ghost" href="#" data-pending="로그인">로그인</a>
       <a class="btn-primary" href="#calc">요금제 비교하기</a>
       <button class="menu-btn" id="menuBtn" type="button" aria-label="메뉴 열기" aria-expanded="false" aria-controls="mobileNav">☰</button>
     </div>
@@ -373,8 +345,6 @@
     <a href="#internet-compare">인터넷</a>
     <a href="#" data-pending="이벤트">이벤트</a>
     <a href="#analysis">요금제분석</a>
-    <a class="sub" href="#" data-pending="마이페이지">마이페이지</a>
-    <a class="sub" href="#" data-pending="로그인">로그인</a>
   </nav>
 </header>
 
@@ -405,14 +375,13 @@
             <div class="txt">im010 최저가 요금제 · <span id="netVal">SKT망</span></div>
             <div class="price num"><span>월</span> <span id="priceVal">16,500</span><span>원</span></div>
           </div>
-          <a class="result-plan" id="resultPlan" href="https://www.marvelring.com/rate_plan.do" target="_blank" rel="noopener noreferrer">
+          <a class="result-plan" id="resultPlan" href="#" data-pending="요금제 상세">
             <span class="brand-chip mv" id="resultChip">마블링</span>
             <span class="result-name" id="resultName">데이터 11GB + 매일 2GB</span>
             <span class="result-go">요금제 보기 →</span>
           </a>
         </div>
-        <span class="save-tag" id="saveTag">통신 3사 평균(월 43,900원) 대비 월 27,400원 · 62% 절약</span>
-        <p class="calc-note">※ 2026.10.01 기준 제휴사 공시 요금. 통신 3사 평균은 동일 데이터 구간 요금제의 평균(예시 데이터)입니다.</p>
+        <p class="calc-note">※ 2026.10.01 기준 게시 중인 후불 요금제(제휴사 공시 요금, 예시 데이터)에서 조건에 맞는 최저가를 보여드려요. 선불 요금제는 비교에 포함하지 않아요.</p>
       </div>
     </div>
 
@@ -421,7 +390,7 @@
         <span class="brand-chip mv">마블링</span>
         <h4>넉넉 11GB+ 요금제</h4>
         <div class="price-line num">16,500<span>원 / 월</span></div>
-        <div class="meta">SKT 망 · 5G · 소진 시 1Mbps</div>
+        <div class="meta">SKT 망 · 5G · QoS 1Mbps</div>
       </div>
       <div class="float-card fc-2">
         <span class="brand-chip im">인스모바일</span>
@@ -444,63 +413,11 @@
     <div class="sec-head">
       <div>
         <h2>이달의 요금제비교</h2>
-        <div class="sub"><span id="monthLabel">10월</span>, 가장 많이 비교되고 가입한 요금제 모음</div>
+        <div class="sub"><span id="monthLabel">10월</span>, 제휴사가 추천하는 이달의 요금제 모음</div>
       </div>
       <a class="see-all" href="#partners">전체 요금제 보기 →</a>
     </div>
-    <div class="month-scroll">
-      <div class="plan-card">
-        <span class="badge">이달의 1위</span>
-        <span class="brand-chip mv">마블링</span>
-        <div class="data">데이터 11GB + 매일 2GB</div>
-        <div class="price-line num">16,500<span>원 / 월</span></div>
-        <div class="tags"><span class="tag">SKT망</span><span class="tag">5G</span><span class="tag">유심비 무료</span></div>
-        <a class="card-cta" href="https://www.marvelring.com/rate_plan.do" target="_blank" rel="noopener noreferrer">요금제 자세히 보기</a>
-      </div>
-      <div class="plan-card">
-        <span class="brand-chip nt">토리모바일</span>
-        <div class="data">데이터 100GB</div>
-        <div class="price-line num">19,800<span>원 / 월</span></div>
-        <div class="tags"><span class="tag">KT망</span><span class="tag">번호이동 혜택</span></div>
-        <a class="card-cta" href="https://ntontel.com/rate_plan.do" target="_blank" rel="noopener noreferrer">요금제 자세히 보기</a>
-      </div>
-      <div class="plan-card">
-        <span class="badge">신규 출시</span>
-        <span class="brand-chip id">위너스텔</span>
-        <div class="data">데이터 무제한</div>
-        <div class="price-line num">23,000<span>원 / 월</span></div>
-        <div class="tags"><span class="tag">LGU+망</span><span class="tag">가족결합</span></div>
-        <a class="card-cta" href="https://www.idowell.co.kr/rate_plan.do" target="_blank" rel="noopener noreferrer">요금제 자세히 보기</a>
-      </div>
-      <div class="plan-card">
-        <span class="brand-chip sg">슈가모바일</span>
-        <div class="data">데이터 30GB</div>
-        <div class="price-line num">15,400<span>원 / 월</span></div>
-        <div class="tags"><span class="tag">KT망</span><span class="tag">선불 전환 가능</span></div>
-        <a class="card-cta" href="https://www.sugarmobile.co.kr/rate_plan.do" target="_blank" rel="noopener noreferrer">요금제 자세히 보기</a>
-      </div>
-      <div class="plan-card">
-        <span class="brand-chip im">인스모바일</span>
-        <div class="data">데이터 3GB</div>
-        <div class="price-line num">8,900<span>원 / 월</span></div>
-        <div class="tags"><span class="tag">LGU+망</span><span class="tag">가벼운 사용</span></div>
-        <a class="card-cta" href="https://www.insmobile.co.kr/rate_plan.do" target="_blank" rel="noopener noreferrer">요금제 자세히 보기</a>
-      </div>
-      <div class="plan-card">
-        <span class="brand-chip jt">조이M</span>
-        <div class="data">데이터 6GB + 매일 1GB</div>
-        <div class="price-line num">12,900<span>원 / 월</span></div>
-        <div class="tags"><span class="tag">SKT망</span><span class="tag">6개월 할인</span></div>
-        <a class="card-cta" href="https://www.joytel.co.kr/rate_plan.do?type=T001" target="_blank" rel="noopener noreferrer">요금제 자세히 보기</a>
-      </div>
-      <div class="plan-card">
-        <span class="brand-chip sw">시월모바일</span>
-        <div class="data">데이터 50GB</div>
-        <div class="price-line num">17,900<span>원 / 월</span></div>
-        <div class="tags"><span class="tag">SKT망</span><span class="tag">첫달 무료</span></div>
-        <a class="card-cta" href="https://siwolmobile.com/rate_plan.do" target="_blank" rel="noopener noreferrer">요금제 자세히 보기</a>
-      </div>
-    </div>
+    <div class="month-scroll" id="monthList"></div>
   </div>
 </section>
 
@@ -524,7 +441,7 @@
     </div>
     <p class="grid-count" id="partnerCount" aria-live="polite"></p>
     <div class="partner-grid" id="partnerGrid"></div>
-    <p class="data-basis">※ 2026.10.01 기준 각 제휴사 공시 요금(VAT 포함). 실제 가입 조건은 제휴사 페이지에서 확인해 주세요.</p>
+    <p class="data-basis">※ 2026.10.01 기준 각 제휴사 공시 요금(VAT 포함). 개통 조건은 요금제 상세의 "개통하기"로 이동한 제휴사 페이지에서 확인해 주세요.</p>
   </div>
 </section>
 
@@ -533,68 +450,10 @@
     <div class="sec-head">
       <div>
         <h2>선불요금제</h2>
-        <div class="sub">약정 없이, 필요한 만큼만 충전해서 쓰는 선불 요금제 (인스모바일 · 위너스텔 · 슈가모바일 3개사 제공)</div>
+        <div class="sub">약정 없이 쓰는 선불 요금제 (인스모바일 · 위너스텔 · 슈가모바일) · 후불 요금제와 비교하지 않아요</div>
       </div>
     </div>
-    <div class="prepaid-layout">
-      <div class="month-scroll" style="flex:1;">
-        <div class="plan-card">
-          <span class="brand-chip im">인스모바일</span>
-          <div class="data">선불 1GB · 30일</div>
-          <div class="price-line num">6,600<span>원 / 충전</span></div>
-          <div class="tags"><span class="tag">가벼운 사용</span><span class="tag">약정 없음</span></div>
-          <a class="card-cta" href="https://www.insmobile.co.kr/rate_plan.do?type=T006" target="_blank" rel="noopener noreferrer">요금제 자세히 보기</a>
-        </div>
-        <div class="plan-card">
-          <span class="brand-chip id">위너스텔</span>
-          <div class="data">선불 3GB · 30일</div>
-          <div class="price-line num">11,000<span>원 / 충전</span></div>
-          <div class="tags"><span class="tag">유심 즉시 개통</span><span class="tag">약정 없음</span></div>
-          <a class="card-cta" href="https://www.idowell.co.kr/rate_plan.do?type=T002" target="_blank" rel="noopener noreferrer">요금제 자세히 보기</a>
-        </div>
-        <div class="plan-card">
-          <span class="brand-chip sg">슈가모바일</span>
-          <div class="data">선불 무제한 · 7일</div>
-          <div class="price-line num">9,900<span>원 / 충전</span></div>
-          <div class="tags"><span class="tag">단기 여행용</span><span class="tag">약정 없음</span></div>
-          <a class="card-cta" href="https://www.sugarmobile.co.kr/rate_plan.do?type=T004" target="_blank" rel="noopener noreferrer">요금제 자세히 보기</a>
-        </div>
-      </div>
-
-      <form class="pay-card" id="payForm" novalidate>
-        <h4>선불요금결제</h4>
-        <p class="pay-desc">통신사·전화번호·충전 금액을 입력하면 해당 제휴사 결제 페이지로 연결해 드려요.</p>
-
-        <label class="pay-label" for="payBrand">통신사</label>
-        <select class="pay-input" id="payBrand" aria-describedby="errBrand">
-          <option value="">통신사를 선택하세요</option>
-          <option value="im">인스모바일</option>
-          <option value="id">위너스텔</option>
-          <option value="sg">슈가모바일</option>
-        </select>
-        <p class="pay-err" id="errBrand"></p>
-
-        <label class="pay-label" for="payPhone">전화번호</label>
-        <input class="pay-input" id="payPhone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="13"
-               placeholder="010-0000-0000" aria-describedby="errPhone">
-        <p class="pay-err" id="errPhone"></p>
-
-        <label class="pay-label" for="payAmount">충전 금액</label>
-        <select class="pay-input" id="payAmount" aria-describedby="errAmount">
-          <option value="10000">10,000원</option>
-          <option value="30000">30,000원</option>
-          <option value="50000">50,000원</option>
-          <option value="custom">직접 입력</option>
-        </select>
-        <input class="pay-input" id="payCustom" type="number" inputmode="numeric" min="1000" max="100000" step="1000"
-               placeholder="1,000 ~ 100,000원 (1,000원 단위)" aria-label="충전 금액 직접 입력" hidden>
-        <p class="pay-err" id="errAmount"></p>
-
-        <button type="submit" class="btn-primary" style="width:100%; margin-top:4px;">충전하기</button>
-        <div class="pay-result" id="payResult" role="status" hidden></div>
-        <p class="pay-privacy">입력한 번호는 충전 확인 외 용도로 사용·저장되지 않아요.</p>
-      </form>
-    </div>
+    <div class="month-scroll" id="prepaidList"></div>
   </div>
 </section>
 
@@ -603,7 +462,7 @@
     <div class="internet-banner">
       <div>
         <h3>인터넷도 im010에서 한 번에</h3>
-        <p>알뜰폰 요금제와 인터넷을 함께 신청하면 결합 할인 혜택까지. 설치 상담부터 신청까지 한 페이지에서 끝내세요.</p>
+        <p>SKT · KT · LG U+ 인터넷 상품을 비교하고, 마음에 드는 상품은 제휴업체 신청 페이지로 바로 연결해 드려요.</p>
         <a class="btn-primary" href="#internet-compare">인터넷 상품 보러가기</a>
       </div>
     </div>
@@ -623,75 +482,8 @@
       <button type="button" role="tab" aria-selected="false" data-value="single">인터넷 단독</button>
       <button type="button" role="tab" aria-selected="false" data-value="bundle">인터넷 + TV 결합</button>
     </div>
-    <div class="isp-grid" id="ispGrid">
-      <div class="isp-card" data-type="single">
-        <span class="isp-chip skt">SKT</span><span class="isp-type">인터넷 단독</span>
-        <h4>SKT 기가인터넷 500M</h4>
-        <div class="price-line num">22,000<span>원 / 월</span></div>
-        <ul class="isp-bullets">
-          <li>3년 약정 기준 월정액</li>
-          <li>현금 사은품 최대 250,000원</li>
-          <li>공유기 임대료 무료</li>
-        </ul>
-        <button type="button" class="card-cta" data-pending="인터넷 상담 신청">상담 신청</button>
-      </div>
-      <div class="isp-card" data-type="single">
-        <span class="isp-chip kt">KT</span><span class="isp-type">인터넷 단독</span>
-        <h4>KT 기가인터넷 1G</h4>
-        <div class="price-line num">27,500<span>원 / 월</span></div>
-        <ul class="isp-bullets">
-          <li>3년 약정 기준 월정액</li>
-          <li>현금 사은품 최대 280,000원</li>
-          <li>인터넷+TV 결합 시 추가 할인</li>
-        </ul>
-        <button type="button" class="card-cta" data-pending="인터넷 상담 신청">상담 신청</button>
-      </div>
-      <div class="isp-card" data-type="single">
-        <span class="isp-chip lgu">LG U+</span><span class="isp-type">인터넷 단독</span>
-        <h4>LG U+ 인터넷 500M</h4>
-        <div class="price-line num">21,000<span>원 / 월</span></div>
-        <ul class="isp-bullets">
-          <li>3년 약정 기준 월정액</li>
-          <li>현금 사은품 최대 300,000원</li>
-          <li>알뜰폰 결합 시 추가 할인</li>
-        </ul>
-        <button type="button" class="card-cta" data-pending="인터넷 상담 신청">상담 신청</button>
-      </div>
-      <div class="isp-card" data-type="bundle">
-        <span class="isp-chip skt">SKT</span><span class="isp-type">인터넷 + TV</span>
-        <h4>SKT 500M + B tv 이코노미</h4>
-        <div class="price-line num">33,000<span>원 / 월</span></div>
-        <ul class="isp-bullets">
-          <li>3년 약정 기준 월정액</li>
-          <li>현금 사은품 최대 400,000원</li>
-          <li>셋톱박스 임대료 포함</li>
-        </ul>
-        <button type="button" class="card-cta" data-pending="인터넷 상담 신청">상담 신청</button>
-      </div>
-      <div class="isp-card" data-type="bundle">
-        <span class="isp-chip kt">KT</span><span class="isp-type">인터넷 + TV</span>
-        <h4>KT 500M + 지니TV 베이직</h4>
-        <div class="price-line num">35,200<span>원 / 월</span></div>
-        <ul class="isp-bullets">
-          <li>3년 약정 기준 월정액</li>
-          <li>현금 사은품 최대 430,000원</li>
-          <li>OTT 부가서비스 1개월 무료</li>
-        </ul>
-        <button type="button" class="card-cta" data-pending="인터넷 상담 신청">상담 신청</button>
-      </div>
-      <div class="isp-card" data-type="bundle">
-        <span class="isp-chip lgu">LG U+</span><span class="isp-type">인터넷 + TV</span>
-        <h4>LG U+ 500M + U+tv 베이직</h4>
-        <div class="price-line num">34,100<span>원 / 월</span></div>
-        <ul class="isp-bullets">
-          <li>3년 약정 기준 월정액</li>
-          <li>현금 사은품 최대 450,000원</li>
-          <li>알뜰폰 결합 시 추가 할인</li>
-        </ul>
-        <button type="button" class="card-cta" data-pending="인터넷 상담 신청">상담 신청</button>
-      </div>
-    </div>
-    <p class="isp-disclaimer">※ 2026.10.01 기준 예시 조건입니다. 상품명, 요금, 사은품 조건은 통신사 정책에 따라 변경될 수 있으며 실제 상담 시 최신 조건이 안내됩니다.</p>
+    <div class="isp-grid" id="ispGrid"></div>
+    <p class="isp-disclaimer">※ 2026.10.01 기준 예시 조건입니다. 상품명, 요금, 사은품 조건은 통신사 정책에 따라 변경될 수 있으며, 신청 · 상담은 제휴업체 페이지에서 진행됩니다.</p>
   </div>
 </section>
 
@@ -741,7 +533,7 @@
           <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
           <span class="bar-val num">1,450원</span>
         </div>
-        <p class="chart-note">※ 2026.10.01 기준, 무제한 요금제를 제외한 요금제의 1GB 환산 평균 요금(예시 데이터). 낮을수록 데이터 효율이 좋습니다. 막대 길이는 최고값 대비 비율입니다.</p>
+        <p class="chart-note">※ 2026.10.01 기준, 게시 중인 후불 요금제(무제한 제외)의 1GB 환산 평균 요금(예시 데이터). 낮을수록 데이터 효율이 좋습니다. 막대 길이는 최고값 대비 비율입니다.</p>
       </div>
 
       <div class="stat-stack">
@@ -750,8 +542,8 @@
           <div class="stat-val num">11GB ~ 30GB</div>
         </div>
         <div class="stat-card">
-          <div class="stat-lbl">통신 3사 평균 대비 절감액(11GB 기준)</div>
-          <div class="stat-val num">월 27,400원</div>
+          <div class="stat-lbl">이번 달 새로 게시된 요금제</div>
+          <div class="stat-val num">9개</div>
         </div>
         <div class="stat-card">
           <div class="stat-lbl">가장 빠르게 성장 중인 요금제 구간</div>
@@ -768,9 +560,9 @@
       <div><div class="num">128,940</div><div class="lbl">누적 개통 건수</div></div>
       <div><div class="num">4.8</div><div class="lbl">평균 이용 만족도</div></div>
       <div><div class="num">7개사</div><div class="lbl">제휴 통신사</div></div>
-      <div><div class="num">최대 <span id="maxSave">75</span>%</div><div class="lbl">통신비 절감 효과</div></div>
+      <div><div class="num"><span id="planCount">12</span>개</div><div class="lbl">비교 가능한 요금제</div></div>
     </div>
-    <p class="trust-note">※ 2026.09.30 기준 집계. 절감 효과는 요금 계산기 기준 통신 3사 평균 요금 대비 최대 절감률입니다.</p>
+    <p class="trust-note">※ 2026.09.30 기준 집계(예시). 비교 가능한 요금제는 게시 중인 후불 요금제 수입니다.</p>
   </div>
 </section>
 
@@ -779,7 +571,7 @@
     <div class="footer-grid">
       <div>
         <div class="footer-logo">im010</div>
-        <div style="font-size:13px; max-width:280px; line-height:1.6;">알뜰폰 요금제 비교부터 인터넷 상품 가입까지, im010에서 한 번에 비교하고 가입하세요.</div>
+        <div style="font-size:13px; max-width:280px; line-height:1.6;">알뜰폰 요금제 비교부터 인터넷 상품 신청 연결까지, im010에서 한 번에 비교하세요.</div>
       </div>
       <div class="footer-col">
         <h5>서비스</h5>
@@ -792,10 +584,9 @@
       </div>
       <div class="footer-col">
         <h5>고객지원</h5>
-        <a href="#" data-pending="마이페이지">마이페이지</a>
         <a href="#" data-pending="자주 묻는 질문">자주 묻는 질문</a>
-        <a href="#" data-pending="1:1 문의">1:1 문의</a>
         <span>고객센터 1600-0000</span>
+        <span>help@im010.co.kr</span>
       </div>
       <div class="footer-col">
         <h5>제휴사</h5>
@@ -812,8 +603,8 @@
       </div>
       상호 : (주)아임공일공 &nbsp;|&nbsp; 대표 : 홍길동 &nbsp;|&nbsp; 사업자등록번호 : 000-00-00000 &nbsp;|&nbsp; 통신판매업신고 : 제 0000-서울-00000호<br>
       주소 : 서울특별시 OO구 OO로 00 &nbsp;|&nbsp; 고객센터 : 1600-0000 (평일 10:00–18:00) &nbsp;|&nbsp; 이메일 : help@im010.co.kr<br>
-      요금·혜택 정보는 2026.10.01 기준 각 제휴사 공시 내용이며, 실제 가입 조건은 제휴사 정책에 따라 달라질 수 있습니다.
-      본 사이트는 마블링·토리모바일·위너스텔·슈가모바일·인스모바일·조이M·시월모바일 요금제 정보를 제공하는 통합 비교 플랫폼이며, 요금제 가입·개통은 각 제휴사에서 진행됩니다. © im010. All rights reserved.
+      요금·혜택 정보는 2026.10.01 기준 각 제휴사 공시 내용이며, 실제 개통 조건은 제휴사 정책에 따라 달라질 수 있습니다.
+      본 사이트는 마블링·토리모바일·위너스텔·슈가모바일·인스모바일·조이M·시월모바일 요금제 정보를 제공하는 통합 비교 플랫폼이며, 요금제 개통과 인터넷 신청은 각 제휴사 · 제휴업체에서 진행됩니다. © im010. All rights reserved.
     </div>
   </div>
 </footer>
@@ -821,23 +612,13 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-  /* ---------- 데이터 (단일 소스) ---------- */
+  /* ---------- 데이터 (단일 소스, 예시) ---------- */
   const NET = {skt:'SKT', kt:'KT', lgu:'LGU+'};
   const BRANDS = {
-    mv:{name:'마블링',     url:'https://www.marvelring.com/rate_plan.do'},
-    nt:{name:'토리모바일', url:'https://ntontel.com/rate_plan.do'},
-    id:{name:'위너스텔',   url:'https://www.idowell.co.kr/rate_plan.do'},
-    sg:{name:'슈가모바일', url:'https://www.sugarmobile.co.kr/rate_plan.do'},
-    im:{name:'인스모바일', url:'https://www.insmobile.co.kr/rate_plan.do'},
-    jt:{name:'조이M',      url:'https://www.joytel.co.kr/rate_plan.do?type=T001'},
-    sw:{name:'시월모바일', url:'https://siwolmobile.com/rate_plan.do'},
+    mv:{name:'마블링'}, nt:{name:'토리모바일'}, id:{name:'위너스텔'}, sg:{name:'슈가모바일'},
+    im:{name:'인스모바일'}, jt:{name:'조이M'}, sw:{name:'시월모바일'},
   };
-  const PREPAID_URL = {
-    im:'https://www.insmobile.co.kr/rate_plan.do?type=T006',
-    id:'https://www.idowell.co.kr/rate_plan.do?type=T002',
-    sg:'https://www.sugarmobile.co.kr/rate_plan.do?type=T004',
-  };
-  // 후불 요금제 (예시 데이터, 2026.10.01 기준). gb: 기본 제공량, 무제한은 Infinity
+  // 게시 중인 후불 요금제 (예시, 2026.10.01). gb: 기본 제공량, 무제한은 Infinity
   const PLANS = [
     {b:'id', name:'데이터 200MB',          gb:0.2,      net:'lgu', gen:'LTE', price:4900},
     {b:'im', name:'데이터 3GB',            gb:3,        net:'lgu', gen:'LTE', price:8900},
@@ -852,23 +633,44 @@
     {b:'jt', name:'데이터 무제한',          gb:Infinity, net:'kt',  gen:'5G',  price:24900},
     {b:'mv', name:'데이터 무제한',          gb:Infinity, net:'skt', gen:'5G',  price:26400},
   ];
-  // 슬라이더 단계별 데이터량과 통신 3사 평균 요금(예시)
-  const STEPS   = [1, 2, 3, 5, 7, 11, 30, Infinity];
-  const MNO_AVG = [33000, 33000, 36000, 39000, 42000, 43900, 55000, 69000];
+  // 이달의 요금제: 제휴사 "이달의 요금제" URL 수집 결과 (예시). 프로모션관리 보류 중 → 제휴사 사이트 순서, 배지 없음
+  const MONTHLY = [
+    {b:'mv', data:'데이터 11GB + 매일 2GB', price:16500, tags:['SKT망', '5G', '유심비 무료']},
+    {b:'id', data:'데이터 무제한',           price:23000, tags:['LGU+망', '가족결합']},
+    {b:'jt', data:'데이터 6GB + 매일 1GB',  price:12900, tags:['SKT망', '6개월 할인']},
+  ];
+  // 선불 요금제 (선불 URL 수집 · 게시, 예시) — 비교 대상 아님
+  const PREPAID = [
+    {b:'im', data:'선불 1GB · 30일',   price:6600,  tags:['가벼운 사용', '약정 없음']},
+    {b:'id', data:'선불 3GB · 30일',   price:11000, tags:['유심 즉시 개통', '약정 없음']},
+    {b:'sg', data:'선불 무제한 · 7일', price:9900,  tags:['단기 여행용', '약정 없음']},
+  ];
+  // 인터넷 상품 (별도 등록, 예시). 신청은 제휴업체 페이지로 포워딩
+  const ISP = [
+    {isp:'skt', type:'single', name:'SKT 기가인터넷 500M',      price:22000, bullets:['3년 약정 기준 월정액', '현금 사은품 최대 250,000원', '공유기 임대료 무료']},
+    {isp:'kt',  type:'single', name:'KT 기가인터넷 1G',         price:27500, bullets:['3년 약정 기준 월정액', '현금 사은품 최대 280,000원', '인터넷+TV 결합 시 추가 할인']},
+    {isp:'lgu', type:'single', name:'LG U+ 인터넷 500M',        price:21000, bullets:['3년 약정 기준 월정액', '현금 사은품 최대 300,000원', '알뜰폰 결합 시 추가 할인']},
+    {isp:'skt', type:'bundle', name:'SKT 500M + B tv 이코노미', price:33000, bullets:['3년 약정 기준 월정액', '현금 사은품 최대 400,000원', '셋톱박스 임대료 포함']},
+    {isp:'kt',  type:'bundle', name:'KT 500M + 지니TV 베이직',  price:35200, bullets:['3년 약정 기준 월정액', '현금 사은품 최대 430,000원', 'OTT 부가서비스 1개월 무료']},
+    {isp:'lgu', type:'bundle', name:'LG U+ 500M + U+tv 베이직', price:34100, bullets:['3년 약정 기준 월정액', '현금 사은품 최대 450,000원', '알뜰폰 결합 시 추가 할인']},
+  ];
+  const ISP_NAME = {skt:'SKT', kt:'KT', lgu:'LG U+'};
+  const STEPS = [1, 2, 3, 5, 7, 11, 30, Infinity];
 
   const won = n => n.toLocaleString('ko-KR');
   const gbLabel = gb => gb === Infinity ? '무제한' : gb + 'GB';
-  const cheapest = (gb, net) => PLANS.filter(p => p.net === net && p.gb >= gb).sort((a,b) => a.price - b.price)[0];
-  const savePct = (price, avg) => Math.round((1 - price / avg) * 100);
+  const cheapest = (gb, net) => PLANS.filter(p => p.net === net && p.gb >= gb).sort((a, b) => a.price - b.price)[0];
+  const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  // 요금제 카드는 S2 요금제 상세로 이동 (목업에서는 "준비 중" 안내)
+  const detailLink = (cls, label) => `<a class="${cls}" href="#" data-pending="요금제 상세">${label}</a>`;
 
-  /* ---------- 요금 계산기 ---------- */
+  /* ---------- 요금 계산기 (최저가만, 3사 평균 비교 없음) ---------- */
   const dataSlider = document.getElementById('dataSlider');
   const carrierBtns = document.querySelectorAll('.carrier-toggle button');
   let net = 'skt';
 
   function renderCalc(){
-    const idx = parseInt(dataSlider.value, 10) - 1;
-    const gb = STEPS[idx], avg = MNO_AVG[idx];
+    const gb = STEPS[parseInt(dataSlider.value, 10) - 1];
     const plan = cheapest(gb, net);
     const label = gbLabel(gb);
     document.getElementById('dataVal').textContent = label;
@@ -879,9 +681,6 @@
     chip.className = 'brand-chip ' + plan.b;
     chip.textContent = BRANDS[plan.b].name;
     document.getElementById('resultName').textContent = plan.name;
-    document.getElementById('resultPlan').href = BRANDS[plan.b].url;
-    document.getElementById('saveTag').textContent =
-      `통신 3사 평균(월 ${won(avg)}원) 대비 월 ${won(avg - plan.price)}원 · ${savePct(plan.price, avg)}% 절약`;
   }
   dataSlider.addEventListener('input', renderCalc);
   carrierBtns.forEach(btn => btn.addEventListener('click', () => {
@@ -891,21 +690,44 @@
     renderCalc();
   }));
 
-  // 신뢰 지표의 "최대 절감률"을 계산기와 같은 데이터로 산출
-  let maxSave = 0;
-  STEPS.forEach((gb, i) => Object.keys(NET).forEach(n => {
-    const p = cheapest(gb, n);
-    if (p) maxSave = Math.max(maxSave, savePct(p.price, MNO_AVG[i]));
-  }));
-  document.getElementById('maxSave').textContent = maxSave;
+  /* ---------- 카드 목록 ---------- */
+  const planCard = (p, unit) => `
+    <div class="plan-card">
+      <span class="brand-chip ${p.b}">${esc(BRANDS[p.b].name)}</span>
+      <div class="data">${esc(p.data)}</div>
+      <div class="price-line num">${won(p.price)}<span>${unit}</span></div>
+      <div class="tags">${p.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
+      ${detailLink('card-cta', '요금제 자세히 보기')}
+    </div>`;
+  document.getElementById('monthList').innerHTML = MONTHLY.map(p => planCard(p, '원 / 월')).join('');
+  document.getElementById('prepaidList').innerHTML = PREPAID.map(p => planCard(p, '원')).join('');
+
+  function renderPartners(brand){
+    const list = PLANS.filter(p => brand === 'all' || p.b === brand).sort((a, b) => a.price - b.price);
+    document.getElementById('partnerGrid').innerHTML = list.map(p => `
+      <a class="p-card" href="#" data-pending="요금제 상세">
+        <span class="brand-chip ${p.b}">${esc(BRANDS[p.b].name)}</span>
+        <div class="data">${esc(p.name)}</div>
+        <div class="price-line num">${won(p.price)}<span>원 / 월</span></div>
+        <div class="meta">${NET[p.net]} · ${p.gen}</div>
+      </a>`).join('');
+    const name = brand === 'all' ? '전체' : BRANDS[brand].name;
+    document.getElementById('partnerCount').innerHTML = `${esc(name)} 요금제 <b>${list.length}</b>개`;
+  }
+
+  function renderIsp(type){
+    document.getElementById('ispGrid').innerHTML = ISP.filter(p => type === 'all' || p.type === type).map(p => `
+      <div class="isp-card">
+        <span class="isp-chip ${p.isp}">${ISP_NAME[p.isp]}</span><span class="isp-type">${p.type === 'single' ? '인터넷 단독' : '인터넷 + TV'}</span>
+        <h4>${esc(p.name)}</h4>
+        <div class="price-line num">${won(p.price)}<span>원 / 월</span></div>
+        <ul class="isp-bullets">${p.bullets.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+        <button type="button" class="card-cta" data-forward="internet">상담 신청 ↗</button>
+      </div>`).join('');
+  }
 
   /* ---------- 탭 (그룹별 독립 동작) ---------- */
-  const tabHandlers = {
-    partner: renderPartners,
-    isp: v => document.querySelectorAll('#ispGrid .isp-card').forEach(c => {
-      c.hidden = v !== 'all' && c.dataset.type !== v;
-    }),
-  };
+  const tabHandlers = { partner: renderPartners, isp: renderIsp };
   document.querySelectorAll('[data-tabs]').forEach(group => {
     const btns = group.querySelectorAll('button');
     btns.forEach(btn => btn.addEventListener('click', () => {
@@ -913,73 +735,6 @@
       btn.classList.add('active'); btn.setAttribute('aria-selected', 'true');
       tabHandlers[group.dataset.tabs](btn.dataset.value);
     }));
-  });
-
-  /* ---------- 제휴사별 요금제 ---------- */
-  function renderPartners(brand){
-    const list = PLANS.filter(p => brand === 'all' || p.b === brand).sort((a,b) => a.price - b.price);
-    document.getElementById('partnerGrid').innerHTML = list.map(p => `
-      <a class="p-card" href="${BRANDS[p.b].url}" target="_blank" rel="noopener noreferrer">
-        <span class="brand-chip ${p.b}">${BRANDS[p.b].name}</span>
-        <div class="data">${p.name}</div>
-        <div class="price-line num">${won(p.price)}<span>원 / 월</span></div>
-        <div class="meta">${NET[p.net]} · ${p.gen}</div>
-      </a>`).join('');
-    const name = brand === 'all' ? '전체' : BRANDS[brand].name;
-    document.getElementById('partnerCount').innerHTML = `${name} 요금제 <b>${list.length}</b>개`;
-  }
-
-  /* ---------- 선불요금결제 ---------- */
-  const payForm = document.getElementById('payForm');
-  const payBrand = document.getElementById('payBrand');
-  const payPhone = document.getElementById('payPhone');
-  const payAmount = document.getElementById('payAmount');
-  const payCustom = document.getElementById('payCustom');
-  const payResult = document.getElementById('payResult');
-
-  payPhone.addEventListener('input', () => {
-    const d = payPhone.value.replace(/\D/g, '').slice(0, 11);
-    payPhone.value = d.length < 4 ? d : d.length < 8 ? `${d.slice(0,3)}-${d.slice(3)}` : `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}`;
-  });
-  payAmount.addEventListener('change', () => {
-    payCustom.hidden = payAmount.value !== 'custom';
-    if (!payCustom.hidden) payCustom.focus();
-  });
-
-  function setErr(input, errId, msg){
-    document.getElementById(errId).textContent = msg;
-    input.classList.toggle('invalid', !!msg);
-    input.setAttribute('aria-invalid', msg ? 'true' : 'false');
-    return !msg;
-  }
-
-  payForm.addEventListener('submit', e => {
-    e.preventDefault();
-    payResult.hidden = true;
-    const okBrand = setErr(payBrand, 'errBrand', payBrand.value ? '' : '통신사를 선택해 주세요.');
-    const okPhone = setErr(payPhone, 'errPhone', /^010-\d{4}-\d{4}$/.test(payPhone.value) ? '' : '010으로 시작하는 11자리 번호를 입력해 주세요.');
-    let amount = parseInt(payAmount.value, 10);
-    let okAmount = true;
-    if (payAmount.value === 'custom') {
-      amount = parseInt(payCustom.value, 10);
-      okAmount = setErr(payCustom, 'errAmount',
-        amount >= 1000 && amount <= 100000 && amount % 1000 === 0 ? '' : '1,000 ~ 100,000원 사이, 1,000원 단위로 입력해 주세요.');
-    } else {
-      setErr(payCustom, 'errAmount', '');
-    }
-    if (!(okBrand && okPhone && okAmount)) return;
-
-    // 결제는 제휴사 선불결제 페이지로 위임 (전화번호는 URL로 전달하지 않음)
-    payResult.innerHTML = '';
-    const summary = document.createElement('div');
-    summary.innerHTML = `<strong></strong> · ${won(amount)}원 충전`;
-    summary.querySelector('strong').textContent = `${BRANDS[payBrand.value].name} ${payPhone.value}`;
-    const link = document.createElement('a');
-    link.href = PREPAID_URL[payBrand.value];
-    link.target = '_blank'; link.rel = 'noopener noreferrer';
-    link.textContent = `${BRANDS[payBrand.value].name} 결제 페이지로 이동 →`;
-    payResult.append(summary, link);
-    payResult.hidden = false;
   });
 
   /* ---------- 모바일 메뉴 ---------- */
@@ -994,23 +749,28 @@
   menuBtn.addEventListener('click', () => setMenu(mobileNav.hidden));
   mobileNav.addEventListener('click', e => { if (e.target.closest('a')) setMenu(false); });
 
-  /* ---------- 준비 중 페이지 안내 ---------- */
+  /* ---------- 준비 중 · 포워딩 안내 (목업) ---------- */
   const toast = document.getElementById('toast');
   let toastTimer;
-  document.addEventListener('click', e => {
-    const t = e.target.closest('[data-pending]');
-    if (!t) return;
-    e.preventDefault();
-    toast.textContent = `${t.dataset.pending} 페이지는 준비 중이에요`;
+  function showToast(msg){
+    toast.textContent = msg;
     toast.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+  document.addEventListener('click', e => {
+    const pending = e.target.closest('[data-pending]');
+    if (pending) { e.preventDefault(); showToast(`${pending.dataset.pending} 페이지는 준비 중이에요`); return; }
+    const fwd = e.target.closest('[data-forward]');
+    if (fwd) { e.preventDefault(); showToast('제휴업체 신청 페이지로 이동해요 (목업: 업체 URL 미정)'); }
   });
 
   /* ---------- 초기화 ---------- */
   document.getElementById('monthLabel').textContent = (new Date().getMonth() + 1) + '월';
+  document.getElementById('planCount').textContent = PLANS.length;
   renderCalc();
   renderPartners('all');
+  renderIsp('all');
 </script>
 
 </body>
