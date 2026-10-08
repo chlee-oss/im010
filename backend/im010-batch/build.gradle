@@ -1,0 +1,9 @@
+plugins {
+    id 'org.springframework.boot'
+}
+
+// 수집 배치 — 크롤러(Jsoup / Playwright 선택은 제휴사 페이지 확인 후) · Quartz 스케줄은 다음 단계에서 구현
+dependencies {
+    implementation project(':im010-core')
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+}

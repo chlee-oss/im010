@@ -1,0 +1,12 @@
+# 로컬 개발용 (테스트 계정 · 예시 데이터). 운영에서는 쓰지 않는다.
+# DB 계정은 backend/db/init-local.sql 로 만든다.
+spring:
+  datasource:
+    username: im010
+    password: im010_local
+  flyway:
+    locations: classpath:db/migration,classpath:db/seed
+
+logging:
+  level:
+    kr.co.im010: DEBUG

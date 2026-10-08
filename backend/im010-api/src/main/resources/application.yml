@@ -1,0 +1,35 @@
+server:
+  port: 8080
+  forward-headers-strategy: framework   # nginx 뒤에서 X-Forwarded-* 사용
+
+spring:
+  application:
+    name: im010-api
+  datasource:
+    url: ${IM010_DB_URL:jdbc:postgresql://localhost:5432/im010}
+    username: ${IM010_DB_USER:im010}
+    password: ${IM010_DB_PASSWORD:}
+  flyway:
+    locations: classpath:db/migration
+  task:
+    execution:
+      thread-name-prefix: im010-async-
+      pool:
+        core-size: 2
+        max-size: 8
+        queue-capacity: 1000
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    arg-name-based-constructor-auto-mapping: true
+
+im010:
+  front-base-url: ${IM010_FRONT_BASE_URL:http://localhost:5173}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

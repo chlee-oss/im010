@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.im010.core.mapper.ForwardLogMapper">
+
+    <insert id="insert">
+        INSERT INTO forward_log (kind, target_id, partner_ref, plan_type, target_url, from_page, result)
+        VALUES (#{kind}, #{targetId}, #{partnerRef}, #{planType}, #{targetUrl}, #{fromPage}, #{result})
+    </insert>
+
+</mapper>
