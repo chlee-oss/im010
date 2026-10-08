@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<!-- 카드형 요금제 페이지 구조 예시 (제휴사 사이트 구조를 본떠 만든 테스트용 HTML, 요금제명 · 가격은 가상) -->
+<html lang="ko">
+<head><meta charset="UTF-8"><title>요금제</title></head>
+<body>
+<div class="tab_box">
+  <ul>
+    <li><a class="tab_box_link on" href="/rate_plan.do;jsessionid=ABC123?type=T007">이벤트 요금제</a></li>
+    <li><a class="tab_box_link" href="/rate_plan.do;jsessionid=ABC123?type=T003">LTE 요금제</a></li>
+    <li><a class="tab_box_link" href="/rate_plan.do;jsessionid=ABC123?type=T009">복지 요금제</a></li>
+  </ul>
+</div>
+<a href="/rate_plan.do;jsessionid=ABC123">요금제</a>
+<div class="sub_tab">
+  <ul>
+    <li><a class="sub_tab_link on" href="/rate_plan.do;jsessionid=ABC123?type=T007">전체</a></li>
+    <li><a class="sub_tab_link" href="/rate_plan.do;jsessionid=ABC123?type=T007&subtype=T0070001">#이벤트</a></li>
+  </ul>
+</div>
+<div class="rate_list_wrap">
+  <ul class="card_list rate_list">
+    <li class="card_list_item">
+      <a href="rateplan_view.do;jsessionid=ABC123?type=T007&subtype=&no=2506" class="card_rate_link">
+        <p class="badge_wrap"><span class="badge badge_red">7개월 할인 요금제</span></p>
+        <p class="title"><span class="text_light_color me-2">LGU+</span> 예시 프라임 7GB + 1Mbps</p>
+        <div class="d-flex content_group">
+          <div class="detail">
+            <ul class="desc">
+              <li>월 데이터 7 GB</li>
+              <li>음성통화 무제한</li>
+              <li>문자 무제한</li>
+            </ul>
+            <p class="ref"></p>
+          </div>
+          <div class="price">
+            <span>월 </span>7,020 원
+            <p class="ref">*7개월 이후 18,900원</p>
+          </div>
+        </div>
+      </a>
+    </li>
+    <li class="card_list_item">
+      <a href="rateplan_view.do;jsessionid=ABC123?type=T007&subtype=&no=2781" class="card_rate_link">
+        <p class="badge_wrap"><span class="badge badge_red">인터넷 결합 가능</span></p>
+        <p class="title"><span class="text_light_color me-2">LGU+</span> 예시 5G 11GB+</p>
+        <div class="d-flex content_group">
+          <div class="detail">
+            <ul class="desc">
+              <li>
+                <!-- 월 데이터 -->
+                11GB
+                <!-- 일 데이터 -->
+                + 일 2GB
+              </li>
+              <li>통화 기본제공</li>
+              <li>문자 기본제공</li>
+            </ul>
+            <p class="ref">11GB 소진 후 최대 3Mbps 데이터 무제한 / 테더링 20GB</p>
+          </div>
+          <div class="price">
+            <p class="origin">33,000원</p>
+            <p><span>월 </span>23,100 원</p>
+            <p class="ref">*8개월 차부터 29,700원</p>
+          </div>
+        </div>
+      </a>
+    </li>
+    <li class="card_list_item">
+      <a href="rateplan_view.do;jsessionid=ABC123?type=T007&subtype=&no=3001" class="card_rate_link">
+        <p class="badge_wrap"><span class="badge badge_SKT">SKT</span></p>
+        <p class="title">[🔥HOT] [평생할인] 예시 200분 10GB</p>
+        <div class="d-flex content_group">
+          <div class="detail">
+            <ul class="desc">
+              <li>10GB</li>
+              <li>통화 200 분</li>
+              <li>문자 100 건</li>
+            </ul>
+          </div>
+          <div class="price">
+            월 10원
+            <p class="ref">*평생할인</p>
+          </div>
+        </div>
+      </a>
+    </li>
+    <li class="card_list_item">
+      <a href="rateplan_view.do;jsessionid=ABC123?type=T007&subtype=&no=3002" class="card_rate_link">
+        <p class="title"><span class="text_light_color me-2">KT</span> 예시 안심 300MB</p>
+        <div class="d-flex content_group">
+          <div class="detail">
+            <ul class="desc">
+              <li>월 데이터 300 MB</li>
+              <li>음성통화 100 분</li>
+              <li>문자 50 건</li>
+            </ul>
+          </div>
+          <div class="price">
+            <p class="ref">&nbsp;</p>
+          </div>
+        </div>
+      </a>
+    </li>
+  </ul>
+</div>
+</body>
+</html>

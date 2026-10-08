@@ -11,18 +11,57 @@ INSERT INTO partner (code, name, chip_bg, chip_fg, homepage_url, sort_order) VAL
     ('sw', '시월모바일', '#FDECC8', '#B26A00', 'https://siwolmobile.com',       7)
 ON CONFLICT (code) DO NOTHING;
 
-INSERT INTO collect_url (partner_code, url_type, url) VALUES
-    ('mv', 'POSTPAID', 'https://www.marvelring.com/rate_plan.do'),
-    ('nt', 'POSTPAID', 'https://ntontel.com/rate_plan.do'),
-    ('id', 'POSTPAID', 'https://www.idowell.co.kr/rate_plan.do'),
-    ('sg', 'POSTPAID', 'https://www.sugarmobile.co.kr/rate_plan.do'),
-    ('im', 'POSTPAID', 'https://www.insmobile.co.kr/rate_plan.do'),
-    ('jt', 'POSTPAID', 'https://www.joytel.co.kr/rate_plan.do?type=T001'),
-    ('sw', 'POSTPAID', 'https://siwolmobile.com/rate_plan.do'),
-    ('im', 'PREPAID',  'https://www.insmobile.co.kr/rate_plan.do?type=T006'),
-    ('id', 'PREPAID',  'https://www.idowell.co.kr/rate_plan.do?type=T002'),
-    ('sg', 'PREPAID',  'https://www.sugarmobile.co.kr/rate_plan.do?type=T004')
-ON CONFLICT (partner_code, url_type) DO NOTHING;
+-- 수집 URL: 제휴사 사이트의 카테고리 탭마다 등록 (2026-10-08 페이지 구조 확인 결과).
+-- 기본 페이지(rate_plan.do)는 첫 탭만 보여 주므로 쓰지 않는다. 대상이 제한된 탭은 아래 partner_tab 에 "수집 안 함"으로 둔다.
+DELETE FROM collect_url WHERE url LIKE '%/rate_plan.do' OR url = 'https://www.joytel.co.kr/rate_plan.do?type=T001';
+
+INSERT INTO collect_url (partner_code, url_type, url, label, sort_order) VALUES
+    ('mv', 'POSTPAID', 'https://www.marvelring.com/rate_plan.do?type=T007',   '이벤트 요금제',     1),
+    ('mv', 'POSTPAID', 'https://www.marvelring.com/rate_plan.do?type=T003',   'LTE 요금제',        2),
+    ('mv', 'POSTPAID', 'https://www.marvelring.com/rate_plan.do?type=T002',   '5G 무제한 요금제',  3),
+    ('mv', 'POSTPAID', 'https://www.marvelring.com/rate_plan.do?type=T006',   '24개월 할인 요금제', 4),
+    ('nt', 'POSTPAID', 'https://ntontel.com/rate_plan.do?type=T012',          '토리모바일',        1),
+    ('nt', 'PREPAID',  'https://ntontel.com/rate_plan.do?type=T004',          '토리 선불 요금제',  1),
+    ('id', 'POSTPAID', 'https://www.idowell.co.kr/rate_plan.do?type=T008',    '인기요금제',        1),
+    ('id', 'POSTPAID', 'https://www.idowell.co.kr/rate_plan.do?type=T009',    'U+ 이벤트요금제',   2),
+    ('id', 'POSTPAID', 'https://www.idowell.co.kr/rate_plan.do?type=T006',    'U+ 후불요금제',     3),
+    ('id', 'POSTPAID', 'https://www.idowell.co.kr/rate_plan.do?type=T004',    'KT 후불요금제',     4),
+    ('id', 'POSTPAID', 'https://www.idowell.co.kr/rate_plan.do?type=T011',    'KT 제휴요금제',     5),
+    ('id', 'PREPAID',  'https://www.idowell.co.kr/rate_plan.do?type=T002',    '선불요금제',        1),
+    ('sg', 'POSTPAID', 'https://www.sugarmobile.co.kr/rate_plan.do?type=T017', '제휴',             1),
+    ('sg', 'POSTPAID', 'https://www.sugarmobile.co.kr/rate_plan.do?type=T012', '6개월 할인',       2),
+    ('sg', 'POSTPAID', 'https://www.sugarmobile.co.kr/rate_plan.do?type=T016', '5G 슈퍼딜',        3),
+    ('sg', 'POSTPAID', 'https://www.sugarmobile.co.kr/rate_plan.do?type=T006', 'LTE',              4),
+    ('sg', 'POSTPAID', 'https://www.sugarmobile.co.kr/rate_plan.do?type=T005', '5G',               5),
+    ('sg', 'PREPAID',  'https://www.sugarmobile.co.kr/rate_plan.do?type=T004', '선불 요금제',      1),
+    ('im', 'POSTPAID', 'https://www.insmobile.co.kr/rate_plan.do?type=T007',  '6~7개월 할인',      1),
+    ('im', 'POSTPAID', 'https://www.insmobile.co.kr/rate_plan.do?type=T003',  '24개월 할인',       2),
+    ('im', 'POSTPAID', 'https://www.insmobile.co.kr/rate_plan.do?type=T002',  '평생할인',          3),
+    ('im', 'POSTPAID', 'https://www.insmobile.co.kr/rate_plan.do?type=T004',  '12개월 할인',       4),
+    ('im', 'POSTPAID', 'https://www.insmobile.co.kr/rate_plan.do?type=T011',  '이벤트 요금제',     5),
+    ('im', 'PREPAID',  'https://www.insmobile.co.kr/rate_plan.do?type=T006',  '선불 요금제',       1),
+    ('jt', 'POSTPAID', 'https://www.joytel.co.kr/rate_plan.do?type=T004',     '전체 요금제',       1),
+    ('sw', 'POSTPAID', 'https://siwolmobile.com/rate_plan.do?type=T006',      '이달의 요금제',     1),
+    ('sw', 'POSTPAID', 'https://siwolmobile.com/rate_plan.do?type=T002',      'LTE요금제',         2),
+    ('sw', 'POSTPAID', 'https://siwolmobile.com/rate_plan.do?type=T005',      '5G요금제',          3),
+    ('sw', 'POSTPAID', 'https://siwolmobile.com/rate_plan.do?type=T020',      '제휴',              4),
+    ('sw', 'MONTHLY',  'https://siwolmobile.com/rate_plan.do?type=T006',      '이달의 요금제',     1)
+ON CONFLICT (url_type, url) DO NOTHING;
+
+-- 수집 안 함으로 확인한 탭: 대상 제한(복지 · 임직원 · 태블릿) · 다른 탭에 모두 포함된 탭
+INSERT INTO partner_tab (partner_code, url, label, status, first_seen_on, last_seen_on) VALUES
+    ('nt', 'https://ntontel.com/rate_plan.do?type=T003',           '토리 복지 요금제',    'IGNORED', '2026-10-08', '2026-10-08'),
+    ('nt', 'https://ntontel.com/rate_plan.do?type=T014',           '헬리오스 임직원전용', 'IGNORED', '2026-10-08', '2026-10-08'),
+    ('sg', 'https://www.sugarmobile.co.kr/rate_plan.do?type=T003', '특수요금',            'IGNORED', '2026-10-08', '2026-10-08'),
+    ('im', 'https://www.insmobile.co.kr/rate_plan.do?type=T005',   '태블릿 전용',         'IGNORED', '2026-10-08', '2026-10-08'),
+    ('jt', 'https://www.joytel.co.kr/rate_plan.do?type=T001',      '프로모션 요금제',     'IGNORED', '2026-10-08', '2026-10-08'),
+    ('sw', 'https://siwolmobile.com/rate_plan.do?type=T018',       '태블릿',              'IGNORED', '2026-10-08', '2026-10-08')
+ON CONFLICT (partner_code, url) DO NOTHING;
+
+-- 수집 스케줄: 매일 04:00 (로컬 배치는 scheduler-enabled=false, run-now 로 실행)
+INSERT INTO crawl_schedule (partner_code)
+SELECT code FROM partner
+ON CONFLICT (partner_code) DO NOTHING;
 
 -- 요금제 (1~12 후불, 13~15 선불)
 INSERT INTO plan (id, partner_code, plan_type, status, activation_url) VALUES

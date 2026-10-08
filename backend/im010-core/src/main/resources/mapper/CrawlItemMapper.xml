@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.im010.core.mapper.CrawlItemMapper">
+
+    <select id="findBaselines" resultType="kr.co.im010.core.row.PlanBaselineRow">
+        SELECT p.id AS plan_id, p.partner_plan_code, p.status,
+               v.name, v.data_text, v.data_gb, v.qos_text, v.voice_text, v.sms_text, v.network, v.generation,
+               COALESCE(v.monthly_price, v.charge_price) AS price, v.discount_months, v.price_after_discount,
+               array_to_string(v.supplemented_fields, '|') AS supplemented_fields
+        FROM plan p
+        LEFT JOIN LATERAL (
+            SELECT * FROM plan_version pv WHERE pv.plan_id = p.id ORDER BY pv.version_no DESC LIMIT 1
+        ) v ON TRUE
+        WHERE p.partner_code = #{partnerCode} AND p.plan_type = #{planType}
+        ORDER BY p.id
+    </select>
+
+    <select id="findOpenItems" resultType="kr.co.im010.core.row.OpenItemRow">
+        SELECT id, item_key, value_hash
+        FROM crawl_item
+        WHERE partner_code = #{partnerCode} AND url_type = #{urlType}
+          AND status IN ('REVIEW_PENDING', 'APPROVAL_REQUESTED')
+    </select>
+
+    <select id="findHandledHashes" resultType="kr.co.im010.core.row.HandledHashRow">
+        SELECT DISTINCT item_key, value_hash, status
+        FROM crawl_item
+        WHERE partner_code = #{partnerCode} AND url_type = #{urlType}
+          AND status IN ('APPROVED', 'EXCLUDED') AND value_hash IS NOT NULL
+    </select>
+
+    <insert id="insertItem">
+        INSERT INTO crawl_item (run_id, partner_code, url_type, item_key, partner_plan_code, plan_id, change_type, status,
+                                name, data_text, data_gb, qos_text, voice_text, sms_text, network, generation,
+                                price, discount_months, price_after_discount, detail_url, source_url, site_order,
+                                changed_fields, warnings, value_hash, collected_on)
+        VALUES (#{runId}, #{partnerCode}, #{urlType}, #{itemKey}, #{partnerPlanCode}, #{planId}, #{changeType}, #{status},
+                #{name}, #{dataText}, #{dataGb}, #{qosText}, #{voiceText}, #{smsText}, #{network}, #{generation},
+                #{price}, #{discountMonths}, #{priceAfterDiscount}, #{detailUrl}, #{sourceUrl}, #{siteOrder},
+                #{changedFields,typeHandler=org.apache.ibatis.type.ArrayTypeHandler},
+                #{warnings,typeHandler=org.apache.ibatis.type.ArrayTypeHandler},
+                #{valueHash}, #{collectedOn})
+    </insert>
+
+    <update id="supersedeItems">
+        UPDATE crawl_item SET status = 'SUPERSEDED', updated_at = now()
+        WHERE id IN <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </update>
+
+    <update id="touchCollected">
+        UPDATE plan SET last_collected_on = #{collectedOn}
+        WHERE id IN <foreach collection="planIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </update>
+
+    <update id="endPlans">
+        UPDATE plan SET status = 'ENDED', ended_on = #{endedOn}, updated_at = now()
+        WHERE status &lt;&gt; 'ENDED'
+          AND id IN <foreach collection="planIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </update>
+
+    <update id="hidePicksOfPlans">
+        UPDATE monthly_pick SET exposed = FALSE
+        WHERE exposed
+          AND plan_id IN <foreach collection="planIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </update>
+
+    <select id="findExposedPicks" resultType="kr.co.im010.core.row.MonthlyPickRow">
+        SELECT id, partner_plan_code, plan_id, site_order
+        FROM monthly_pick
+        WHERE partner_code = #{partnerCode} AND exposed
+        ORDER BY site_order, id
+    </select>
+
+    <update id="updatePickOrder">
+        UPDATE monthly_pick SET site_order = #{siteOrder}, collected_on = #{collectedOn} WHERE id = #{id}
+    </update>
+
+    <update id="hidePicks">
+        UPDATE monthly_pick SET exposed = FALSE
+        WHERE id IN <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </update>
+
+    <select id="findPlansByCodes" resultType="kr.co.im010.core.row.PlanCodeRow">
+        SELECT id AS plan_id, partner_plan_code, status
+        FROM plan
+        WHERE partner_code = #{partnerCode} AND status &lt;&gt; 'ENDED'
+          AND partner_plan_code IN <foreach collection="codes" item="c" open="(" separator="," close=")">#{c}</foreach>
+    </select>
+
+    <delete id="deleteExpired">
+        DELETE FROM crawl_item
+        WHERE collected_on &lt; #{before}
+          AND status NOT IN ('REVIEW_PENDING', 'APPROVAL_REQUESTED')
+    </delete>
+
+</mapper>
