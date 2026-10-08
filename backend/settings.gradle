@@ -1,0 +1,6 @@
+rootProject.name = 'im010'
+
+include 'im010-core'   // 공통 도메인 · MyBatis 매퍼 · DB 마이그레이션
+include 'im010-api'    // 고객용 REST API (React 프런트가 호출) · /go 포워딩
+include 'im010-admin'  // 백오피스 API (PA · PR · BA · RC · ST) — 다음 단계
+include 'im010-batch'  // 크롤링 수집 · 변경 감지 · 판매 종료 · 예약 게시 — 다음 단계

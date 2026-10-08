@@ -1,0 +1,13 @@
+# 로컬 개발용 (테스트 계정 · 예시 데이터). 운영에서는 쓰지 않는다.
+# 로컬 DB: D:\pgdata\im010 클러스터 (포트 5433). 만들고 켜는 방법은 README "로컬 실행" 참고.
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/im010
+    username: im010
+    password: im010_local
+  flyway:
+    locations: classpath:db/migration,classpath:db/seed
+
+logging:
+  level:
+    kr.co.im010: DEBUG

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.im010.core.mapper.PartnerMapper">
+
+    <select id="findExposed" resultType="kr.co.im010.core.row.PartnerRow">
+        SELECT code, name, chip_bg, chip_fg, homepage_url
+        FROM partner
+        WHERE exposed
+        ORDER BY sort_order, code
+    </select>
+
+</mapper>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.im010.core.mapper.InternetProductMapper">
+
+    <select id="findExposed" resultType="kr.co.im010.core.row.InternetProductRow">
+        SELECT ip.id,
+               ip.carrier,
+               ip.product_type,
+               ip.name,
+               ip.monthly_price,
+               array_to_string(ip.benefits, '|') AS benefits
+        FROM internet_product ip
+        WHERE ip.exposed
+        <if test="productType != null">
+          AND ip.product_type = #{productType}
+        </if>
+        ORDER BY ip.sort_order, ip.id
+    </select>
+
+    <!-- 신청 URL: 상품별 URL → 없으면 계약 중인 제휴업체의 기본 URL -->
+    <select id="findForwardTarget" resultType="kr.co.im010.core.row.InternetForwardTarget">
+        SELECT ip.id,
+               ip.exposed,
+               ip.internet_partner_id,
+               COALESCE(ip.apply_url, CASE WHEN ipt.status = 'ACTIVE' THEN ipt.apply_url END) AS apply_url
+        FROM internet_product ip
+        LEFT JOIN internet_partner ipt ON ipt.id = ip.internet_partner_id
+        WHERE ip.id = #{id}
+    </select>
+
+</mapper>

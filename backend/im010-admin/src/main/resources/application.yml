@@ -1,0 +1,22 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: im010-admin
+  datasource:
+    url: ${IM010_DB_URL:jdbc:postgresql://localhost:5432/im010}
+    username: ${IM010_DB_USER:im010}
+    password: ${IM010_DB_PASSWORD:}
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    arg-name-based-constructor-auto-mapping: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

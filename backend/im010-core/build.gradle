@@ -1,0 +1,9 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+    api "org.mybatis.spring.boot:mybatis-spring-boot-starter:${mybatisStarterVersion}"
+    runtimeOnly 'org.postgresql:postgresql'
+}

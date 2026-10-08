@@ -1,0 +1,50 @@
+/* 목업에 없던 화면(S2 상세 · 404)과 상태 표시. 목업의 토큰(--coral 등)을 그대로 쓴다. */
+
+.state-msg { font-size: 14px; color: var(--gray-500); padding: 12px 0; }
+.state-msg.error { color: var(--coral-dark); }
+
+/* S2 요금제 상세 */
+.detail { padding: 32px 0 64px; }
+.breadcrumb { font-size: 12px; color: var(--gray-500); margin-bottom: 18px; }
+.breadcrumb a:hover { color: var(--coral-dark); }
+.notice {
+  background: var(--coral-tint); color: var(--coral-dark); font-size: 14px; font-weight: 600;
+  padding: 12px 16px; border-radius: 12px; margin-bottom: 18px;
+}
+.notice.ended { background: var(--gray-200); color: var(--gray-700); }
+.detail-grid { display: grid; grid-template-columns: 1fr 300px; gap: 32px; align-items: start; }
+.detail-main { background: #fff; border: 1px solid var(--gray-200); border-radius: 20px; padding: 28px; }
+.detail-title { font-size: 30px; font-weight: 800; letter-spacing: -0.6px; margin: 4px 0 6px; }
+.detail-meta { font-size: 14px; color: var(--gray-500); margin-bottom: 12px; }
+.spec-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 18px 0 24px; }
+.spec { background: var(--cream); border: 1px solid var(--gray-200); border-radius: 12px; padding: 14px; text-align: center; }
+.spec-lbl { font-size: 12px; color: var(--gray-500); margin-bottom: 4px; }
+.spec-val { font-size: 15px; font-weight: 700; }
+.detail-h { font-size: 18px; font-weight: 800; margin: 20px 0 10px; }
+.detail-text { font-size: 14px; color: var(--gray-700); }
+.detail-basis { font-size: 12px; color: var(--gray-500); margin-top: 14px; }
+.price-box {
+  position: sticky; top: 92px; background: #fff; border: 1px solid var(--gray-200); border-radius: 20px;
+  padding: 24px; box-shadow: 0 12px 28px rgba(31, 36, 48, 0.08); display: flex; flex-direction: column; gap: 12px;
+}
+.price-box-price { font-size: 30px; font-weight: 700; }
+.price-box-price span { font-size: 15px; color: var(--gray-500); font-weight: 500; }
+.price-box .btn-primary { width: 100%; padding: 14px 0; font-size: 15px; }
+.btn-primary.disabled { background: var(--gray-200); color: var(--gray-500); box-shadow: none; cursor: not-allowed; }
+.price-box-note { font-size: 12px; color: var(--gray-500); text-align: center; }
+.similar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+/* 404 */
+.not-found { padding: 96px 0; text-align: center; }
+.nf-code { font-size: 72px; font-weight: 700; color: var(--coral); }
+.not-found h1 { font-size: 24px; margin: 8px 0; }
+.not-found p { color: var(--gray-500); margin-bottom: 24px; }
+.nf-actions { display: flex; gap: 10px; justify-content: center; }
+.nf-actions .card-cta { width: auto; padding: 10px 18px; border-radius: 100px; }
+
+@media (max-width: 920px) {
+  .detail-grid { grid-template-columns: 1fr; }
+  .price-box { position: static; }
+  .spec-grid { grid-template-columns: repeat(2, 1fr); }
+  .similar-grid { grid-template-columns: 1fr; }
+}

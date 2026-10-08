@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.im010.core.mapper.PlanMapper">
+
+    <!-- PlanRow 생성자 인자 이름과 같은 컬럼명 (map-underscore-to-camel-case) -->
+    <sql id="planColumns">
+        p.id,
+        p.partner_code,
+        pt.name                              AS partner_name,
+        p.plan_type,
+        p.status,
+        v.name,
+        v.data_text,
+        v.data_gb,
+        v.qos_text,
+        v.voice_text,
+        v.sms_text,
+        v.network,
+        v.generation,
+        v.monthly_price,
+        v.charge_price,
+        v.valid_days,
+        v.discount_months,
+        v.price_after_discount,
+        array_to_string(v.tags, '|')         AS tags,
+        v.collected_on,
+        v.published_at
+    </sql>
+
+    <sql id="planFrom">
+        FROM plan p
+        JOIN plan_version v ON v.id = p.published_version_id
+        JOIN partner pt     ON pt.code = p.partner_code AND pt.exposed
+    </sql>
+
+    <select id="findPublished" resultType="kr.co.im010.core.row.PlanRow">
+        SELECT <include refid="planColumns"/>
+        <include refid="planFrom"/>
+        WHERE p.status = 'PUBLISHED'
+          AND p.plan_type = #{planType}
+        <if test="partnerCode != null">
+          AND p.partner_code = #{partnerCode}
+        </if>
+        ORDER BY COALESCE(v.monthly_price, v.charge_price), p.id
+    </select>
+
+    <select id="findCheapestPostpaid" resultType="kr.co.im010.core.row.PlanRow">
+        SELECT <include refid="planColumns"/>
+        <include refid="planFrom"/>
+        WHERE p.status = 'PUBLISHED'
+          AND p.plan_type = 'POSTPAID'
+          AND v.network = #{network}
+        <choose>
+            <when test="minGb == null">
+          AND v.data_gb IS NULL
+            </when>
+            <otherwise>
+          AND (v.data_gb IS NULL OR v.data_gb &gt;= #{minGb})
+            </otherwise>
+        </choose>
+        ORDER BY v.monthly_price, p.id
+        LIMIT 1
+    </select>
+
+    <select id="findDetail" resultType="kr.co.im010.core.row.PlanRow">
+        SELECT <include refid="planColumns"/>
+        <include refid="planFrom"/>
+        WHERE p.id = #{id}
+          AND p.status IN ('PUBLISHED', 'ENDED')
+    </select>
+
+    <select id="findSimilarPostpaid" resultType="kr.co.im010.core.row.PlanRow">
+        SELECT <include refid="planColumns"/>
+        <include refid="planFrom"/>
+        WHERE p.status = 'PUBLISHED'
+          AND p.plan_type = 'POSTPAID'
+          AND p.id &lt;&gt; #{excludeId}
+          AND v.network = #{network}
+        <choose>
+            <when test="dataGb == null">
+          AND v.data_gb IS NULL
+          ORDER BY v.monthly_price, p.id
+            </when>
+            <otherwise>
+          AND v.data_gb BETWEEN #{dataGb} * 0.5 AND #{dataGb} * 1.5
+          ORDER BY ABS(v.data_gb - #{dataGb}), v.monthly_price, p.id
+            </otherwise>
+        </choose>
+        LIMIT #{limit}
+    </select>
+
+    <select id="findMonthlyPicks" resultType="kr.co.im010.core.row.PlanRow">
+        SELECT <include refid="planColumns"/>
+        FROM monthly_pick mp
+        JOIN plan p         ON p.id = mp.plan_id AND p.status = 'PUBLISHED'
+        JOIN plan_version v ON v.id = p.published_version_id
+        JOIN partner pt     ON pt.code = p.partner_code AND pt.exposed
+        WHERE mp.exposed
+        ORDER BY pt.name, mp.site_order
+        LIMIT #{limit}
+    </select>
+
+    <select id="countPublished" resultType="int">
+        SELECT count(*)
+        <include refid="planFrom"/>
+        WHERE p.status = 'PUBLISHED'
+          AND p.plan_type = #{planType}
+    </select>
+
+    <select id="findForwardTarget" resultType="kr.co.im010.core.row.PlanForwardTarget">
+        SELECT p.id, p.partner_code, p.plan_type, p.status, p.activation_url
+        FROM plan p
+        WHERE p.id = #{id}
+    </select>
+
+</mapper>

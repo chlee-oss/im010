@@ -1,0 +1,44 @@
+plugins {
+    id 'org.springframework.boot' version '4.1.1' apply false
+}
+
+ext {
+    springBootVersion = '4.1.1'
+    mybatisStarterVersion = '4.1.0'
+}
+
+allprojects {
+    group = 'kr.co.im010'
+    version = '0.1.0'
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+        testImplementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        // MyBatis가 record 생성자 인자 이름으로 컬럼을 매핑할 수 있게 한다
+        options.compilerArgs << '-parameters'
+    }
+
+    tasks.withType(Test).configureEach {
+        useJUnitPlatform()
+    }
+}
