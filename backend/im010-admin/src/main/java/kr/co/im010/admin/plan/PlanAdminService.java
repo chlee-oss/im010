@@ -64,7 +64,8 @@ public class PlanAdminService {
         String type = "PREPAID".equals(planType) ? "PREPAID" : "POSTPAID";
         int p = Math.max(page, 1);
         String partnerCode = Texts.trim(partner);
-        String st = Texts.trim(state);
+        // 상태를 고르지 않으면 판매 종료는 뺀다 (판매 종료는 [상태] 에서 따로 골라 본다)
+        String st = Texts.trim(state) == null ? "ACTIVE" : Texts.trim(state);
         String net = Texts.trim(network);
         String query = Texts.trim(q);
         List<ListItem> items = planMapper.findPlans(type, partnerCode, st, net, query, PAGE_SIZE, (p - 1) * PAGE_SIZE)
