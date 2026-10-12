@@ -62,8 +62,10 @@ export function InternetProducts() {
         <div className="isp-grid">
           {list.map((p) => (
             <div className="isp-card" key={p.id}>
-              <span className={`isp-chip ${CHIP[p.carrier]}`}>{p.carrierLabel}</span>
-              <span className="isp-type">{p.productType === 'SINGLE' ? '인터넷 단독' : '인터넷 + TV'}</span>
+              <div>
+                <span className={`isp-chip ${CHIP[p.carrier]}`}>{p.carrierLabel}</span>
+                <span className="isp-type">{p.productType === 'SINGLE' ? '인터넷 단독' : '인터넷 + TV'}</span>
+              </div>
               <h4>{p.name}</h4>
               <div className="price-line num">
                 {won(p.monthlyPrice)}
