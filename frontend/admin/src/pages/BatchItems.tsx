@@ -109,7 +109,7 @@ export default function BatchItems() {
           <label>
             구분{' '}
             <select value={urlType} onChange={(e) => { setUrlType(e.target.value); setPage(1) }}>
-              <option value="">후불 · 선불 · 이달의</option>
+              <option value="">전체</option>
               <option value="POSTPAID">후불</option>
               <option value="PREPAID">선불</option>
               <option value="MONTHLY">이달의 요금제</option>

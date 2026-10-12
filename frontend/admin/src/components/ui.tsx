@@ -69,12 +69,15 @@ export function Drawer({ title, onClose, children }: { title: ReactNode; onClose
 /** 확인 · 입력 창 */
 export function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
+  // 화면마다 onClose 를 인라인 함수로 넘겨 렌더마다 바뀐다 — 효과에 묶으면 입력할 때마다 첫 칸으로 포커스가 돌아간다
+  const closeRef = useRef(onClose)
+  closeRef.current = onClose
   useEffect(() => {
     ref.current?.querySelector<HTMLElement>('input, textarea, select, button')?.focus()
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && closeRef.current()
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  }, [])
   return (
     <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal" role="dialog" aria-modal="true" aria-label={title} ref={ref}>
