@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import kr.co.im010.batch.CrawlProperties;
 import kr.co.im010.batch.notify.Notifier;
 import kr.co.im010.batch.notify.Notifier.Level;
+import kr.co.im010.core.notify.AlertType;
 import kr.co.im010.core.mapper.CrawlMapper;
 import kr.co.im010.core.parse.PageFetcher;
 import kr.co.im010.core.parse.ParsedPage;
@@ -66,7 +67,7 @@ public class CrawlService {
                 runJob(job);
             } catch (RuntimeException e) {
                 log.error("crawl job {} ({}) failed", job.id(), job.partnerCode(), e);
-                notifier.send(Level.URGENT, "수집 작업 오류 — " + job.partnerCode(), e.toString());
+                notifier.send(AlertType.CRAWL_FAILURE, Level.URGENT, "수집 작업 오류 — " + partnerName(job), e.toString());
             } finally {
                 crawlMapper.finishJob(job.id());
             }
@@ -105,7 +106,8 @@ public class CrawlService {
             crawlMapper.insertJob(job.partnerCode(), "RETRY", failedTypes.toArray(String[]::new), job.attempt() + 1,
                     job.runOn(), (int) props.retryDelay().toMinutes(), null);
         }
-        notifier.send(Level.INFO, "수집 완료 — " + job.partnerCode(), summaries.stream()
+        // 제휴사별 완료는 로그만 — 운영자에게는 하루 한 번 수집 결과 요약을 보낸다 (AlertJobs)
+        log.info("수집 완료 — {} : {}", job.partnerCode(), summaries.stream()
                 .map(s -> "%s %s %d건 (신규 %d · 변경 %d · 종료 %d)".formatted(TYPE_LABEL.get(s.urlType()), s.result(),
                         s.collected(), s.newCount(), s.changedCount(), s.endedNames().size() + s.hiddenPicks()))
                 .collect(Collectors.joining(" / ")));
@@ -155,18 +157,23 @@ public class CrawlService {
     }
 
     private void alert(CrawlJobRow job, CrawlApplier.Summary s) {
-        String label = job.partnerCode() + " " + TYPE_LABEL.get(s.urlType());
+        String label = partnerName(job) + " " + TYPE_LABEL.get(s.urlType());
         if (!s.result().equals("SUCCESS")) {
-            notifier.send(Level.URGENT, "수집 " + (s.result().equals("FAILED") ? "실패" : "이상") + " — " + label,
+            notifier.send(AlertType.CRAWL_FAILURE, Level.URGENT, "수집 " + (s.result().equals("FAILED") ? "실패" : "이상") + " — " + label,
                     s.message() + (s.result().equals("FAILED") && job.attempt() < props.maxAttempts() ? " · 재시도 예정" : ""));
             return;
         }
         if (!s.endedNames().isEmpty()) {
-            notifier.send(Level.WARN, "판매 종료 처리 — " + label, String.join(", ", s.endedNames()));
+            notifier.send(AlertType.PLAN_ENDED, Level.WARN, "판매 종료 처리 — " + label, String.join(", ", s.endedNames()));
         }
         if (s.hiddenPicks() > 0) {
-            notifier.send(Level.URGENT, "이달의 요금제 자동 제외 — " + job.partnerCode(), s.hiddenPicks() + "건");
+            notifier.send(AlertType.MONTHLY_REMOVED, Level.URGENT, "이달의 요금제 자동 제외 — " + partnerName(job), s.hiddenPicks() + "건");
         }
+    }
+
+    private String partnerName(CrawlJobRow job) {
+        String name = crawlMapper.findPartnerName(job.partnerCode());
+        return name != null ? name : job.partnerCode();
     }
 
     /** 사이트 메뉴의 탭과 등록된 수집 URL 을 비교해 새 탭 · 사라진 탭을 알린다. */
@@ -197,14 +204,14 @@ public class CrawlService {
             }
         }
         if (!newTabs.isEmpty()) {
-            notifier.send(Level.WARN, "미등록 탭 발견 — " + job.partnerCode(),
+            notifier.send(AlertType.TAB_CHANGED, Level.WARN, "미등록 탭 발견 — " + partnerName(job),
                     String.join(", ", newTabs) + " → 제휴사관리에서 수집 URL 등록 또는 수집 안 함 처리");
         }
         List<String> gone = registered.stream()
                 .filter(u -> Urls.param(u, "type") != null && !tabs.containsKey(u))
                 .sorted().toList();
         if (!gone.isEmpty()) {
-            notifier.send(Level.WARN, "등록된 탭이 사이트 메뉴에 없음 — " + job.partnerCode(),
+            notifier.send(AlertType.TAB_CHANGED, Level.WARN, "등록된 탭이 사이트 메뉴에 없음 — " + partnerName(job),
                     String.join(", ", gone) + " → 탭이 없어졌으면 수집 URL 정리");
         }
     }

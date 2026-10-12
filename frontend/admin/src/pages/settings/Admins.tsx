@@ -1,16 +1,31 @@
 import { useState } from 'react'
-import { Badge, Loading, Modal, PageHead } from '../../components/ui'
+import { useSearchParams } from 'react-router-dom'
+import { Badge, Loading, Modal, PageHead, Tabs } from '../../components/ui'
 import { get, post, put } from '../../lib/api'
 import { dateTime } from '../../lib/format'
 import { useMe } from '../../lib/me'
 import { useRun } from '../../lib/notice'
 import type { AdminResult, AdminUser, Group, IpSetting } from '../../lib/types'
 import { useLoad } from '../../lib/useLoad'
+import { NotifyChannels, NotifyHistory } from './Notify'
 
 type Form = { id?: number; loginId: string; name: string; dept: string; phone: string; groupId: number | ''; status: 'ACTIVE' | 'RETIRED' }
 
 /** ST-02 관리자관리: 계정 발급 · 수정 · 퇴사, 잠금 해제 · 비밀번호 / OTP 초기화(최고관리자), 사내 IP 제한 */
+/** ST-02 관리자관리 [관리자] [알림 채널] [알림 이력] */
 export default function Admins() {
+  const [params, setParams] = useSearchParams()
+  const tab = (params.get('tab') ?? 'ADMINS') as 'ADMINS' | 'CHANNELS' | 'HISTORY'
+  return (
+    <>
+      <PageHead title="관리자관리" />
+      <Tabs value={tab} onChange={(v) => setParams(v === 'ADMINS' ? {} : { tab: v })} tabs={[['ADMINS', '관리자'], ['CHANNELS', '알림 채널'], ['HISTORY', '알림 이력']]} />
+      {tab === 'CHANNELS' ? <NotifyChannels /> : tab === 'HISTORY' ? <NotifyHistory /> : <AdminList />}
+    </>
+  )
+}
+
+function AdminList() {
   const { me, can } = useMe()
   const { run, busy } = useRun()
   const { data, error, reload } = useLoad(() => get<AdminUser[]>('/settings/admins'), [])
@@ -31,13 +46,14 @@ export default function Admins() {
   if (!data) return <Loading error={error} />
   return (
     <>
-      <PageHead title="관리자관리">
+      <div className="filter-row">
+        <span className="muted">알림 메일 주소와 받을 알림은 각 관리자가 오른쪽 위 메뉴 › 내 알림 설정에서 정합니다.</span>
         {canEdit && (
           <button className="primary" onClick={() => setForm({ loginId: '', name: '', dept: '', phone: '', groupId: '', status: 'ACTIVE' })}>
             + 관리자 발급
           </button>
         )}
-      </PageHead>
+      </div>
       <table className="grid">
         <thead>
           <tr>

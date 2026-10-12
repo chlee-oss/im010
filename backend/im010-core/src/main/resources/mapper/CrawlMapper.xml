@@ -72,6 +72,10 @@
         RETURNING id
     </select>
 
+    <select id="findPartnerName" resultType="string">
+        SELECT name FROM partner WHERE code = #{code}
+    </select>
+
     <select id="findLastSuccessCount" resultType="java.lang.Integer">
         SELECT collected_count
         FROM crawl_run

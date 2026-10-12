@@ -11,6 +11,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import kr.co.im010.batch.notify.Notifier;
 import kr.co.im010.batch.notify.Notifier.Level;
+import kr.co.im010.core.notify.AlertType;
 import kr.co.im010.core.mapper.PlanAdminMapper;
 import kr.co.im010.core.row.PlanVersionRow;
 
@@ -46,7 +47,7 @@ public class PublishScheduler {
                 log.info("예약 게시: plan {} v{} ({})", v.planId(), v.versionNo(), v.name());
             } catch (RuntimeException e) {
                 log.error("예약 게시 실패: plan {} version {}", v.planId(), v.id(), e);
-                notifier.send(Level.URGENT, "게시 예약 실패", "요금제 " + v.planId() + " · " + v.name() + " — " + e.getMessage());
+                notifier.send(AlertType.PUBLISH_FAILURE, Level.URGENT, "게시 예약 실패", "요금제 " + v.planId() + " · " + v.name() + " — " + e.getMessage());
             }
         }
     }

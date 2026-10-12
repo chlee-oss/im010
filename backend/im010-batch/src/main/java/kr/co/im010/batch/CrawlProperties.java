@@ -22,6 +22,10 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * @param maxFieldFailureRatio 필수 항목(요금제명 · 요금) 추출 실패 비율 상한 (6.3: 20%)
  * @param priceJumpRatio       전 버전 대비 요금 변동 경고 기준 (3.2: ±30%)
  * @param runNow               시작하자마자 수집할 제휴사 코드 (로컬 · 수동 실행용). 지정하면 수집 후 종료
+ * @param mailFrom             알림 메일 보내는 사람
+ * @param staleDays            기준일 경과 알림: 게시 중 요금제의 최근 수집일이 이 일수보다 오래되면 (7장: 3일)
+ * @param delayHours           점검 · 승인 지연 알림 기준 (7장: 24시간)
+ * @param notificationKeepDays 알림 · 발송 기록 보관 기간
  */
 @ConfigurationProperties(prefix = "im010.crawl")
 public record CrawlProperties(
@@ -36,6 +40,10 @@ public record CrawlProperties(
         @DefaultValue("0.5") double minKeepRatio,
         @DefaultValue("0.2") double maxFieldFailureRatio,
         @DefaultValue("0.3") double priceJumpRatio,
-        @DefaultValue List<String> runNow
+        @DefaultValue List<String> runNow,
+        @DefaultValue("im010 <noreply@im010.co.kr>") String mailFrom,
+        @DefaultValue("3") int staleDays,
+        @DefaultValue("24") int delayHours,
+        @DefaultValue("90") int notificationKeepDays
 ) {
 }

@@ -43,6 +43,9 @@ public interface CrawlMapper {
 
     long insertRun(CrawlRunRow run);
 
+    /** 알림 문구용 제휴사 이름 */
+    String findPartnerName(@Param("code") String code);
+
     /** 직전 정상 수집 건수 (판매 종료 보호 조건 — 50% 넘게 감소). 없으면 null. */
     Integer findLastSuccessCount(@Param("partnerCode") String partnerCode, @Param("urlType") String urlType);
 }

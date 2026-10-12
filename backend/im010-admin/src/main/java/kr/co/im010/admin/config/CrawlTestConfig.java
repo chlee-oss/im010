@@ -5,6 +5,7 @@ import java.time.Duration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import kr.co.im010.core.notify.WebhookSender;
 import kr.co.im010.core.parse.JsoupPageFetcher;
 import kr.co.im010.core.parse.PageFetcher;
 import kr.co.im010.core.parse.RatePlanParser;
@@ -21,5 +22,11 @@ public class CrawlTestConfig {
     @Bean
     public RatePlanParser ratePlanParser() {
         return new RatePlanParser();
+    }
+
+    /** 알림 채널 [테스트 발송] */
+    @Bean
+    public WebhookSender webhookSender() {
+        return new WebhookSender();
     }
 }
