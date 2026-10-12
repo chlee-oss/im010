@@ -27,13 +27,59 @@
 
     <select id="findPartners" resultType="kr.co.im010.core.row.PartnerAdminRow">
         <include refid="partnerSelect"/>
+        WHERE pt.deleted_at IS NULL
         ORDER BY pt.sort_order, pt.code
     </select>
 
     <select id="findPartner" resultType="kr.co.im010.core.row.PartnerAdminRow">
         <include refid="partnerSelect"/>
-        WHERE pt.code = #{code}
+        WHERE pt.code = #{code} AND pt.deleted_at IS NULL
     </select>
+
+    <!-- 삭제 표시된 제휴사 코드도 포함 -->
+    <select id="existsCode" resultType="boolean">
+        SELECT EXISTS (SELECT 1 FROM partner WHERE code = #{code})
+    </select>
+
+    <!-- 삭제 전 확인: 남겨야 할 이력 -->
+    <select id="findUsage" resultType="kr.co.im010.core.row.PartnerUsageRow">
+        SELECT (SELECT count(*) FROM plan WHERE partner_code = #{code})         AS plans,
+               (SELECT count(*) FROM monthly_pick WHERE partner_code = #{code}) AS monthly_picks,
+               (SELECT count(*) FROM crawl_run WHERE partner_code = #{code})    AS crawl_runs,
+               (SELECT count(*) FROM crawl_item WHERE partner_code = #{code})   AS crawl_items,
+               EXISTS (SELECT 1 FROM crawl_job WHERE partner_code = #{code} AND status = 'RUNNING') AS running
+    </select>
+
+    <!-- 대기 중인 작업 (queuedOnly = false 면 끝난 작업까지) -->
+    <delete id="deleteJobs">
+        DELETE FROM crawl_job WHERE partner_code = #{code}
+        <if test="queuedOnly">AND status = 'QUEUED'</if>
+    </delete>
+
+    <delete id="deleteTabs">
+        DELETE FROM partner_tab WHERE partner_code = #{code}
+    </delete>
+
+    <delete id="deleteUrls">
+        DELETE FROM collect_url WHERE partner_code = #{code}
+    </delete>
+
+    <delete id="deleteSchedule">
+        DELETE FROM crawl_schedule WHERE partner_code = #{code}
+    </delete>
+
+    <delete id="deletePartner">
+        DELETE FROM partner WHERE code = #{code}
+    </delete>
+
+    <update id="markDeleted">
+        UPDATE partner SET deleted_at = now(), deleted_by = #{by}, exposed = FALSE, updated_at = now()
+        WHERE code = #{code}
+    </update>
+
+    <update id="disableSchedule">
+        UPDATE crawl_schedule SET enabled = FALSE, updated_at = now() WHERE partner_code = #{code}
+    </update>
 
     <insert id="insertPartner">
         INSERT INTO partner (code, name, chip_bg, chip_fg, homepage_url, exposed, sort_order)

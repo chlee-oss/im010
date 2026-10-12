@@ -53,6 +53,8 @@ button:hover:not(:disabled), .button:hover { border-color: var(--navy); }
 button:disabled { opacity: 0.45; cursor: not-allowed; }
 button.primary { background: var(--coral); border-color: var(--coral); color: var(--white); }
 button.primary:hover:not(:disabled) { background: var(--coral-dark); border-color: var(--coral-dark); }
+button.danger { color: var(--red); border-color: var(--red); }
+button.danger.primary { background: var(--red); color: var(--white); }
 button.wide { width: 100%; justify-content: center; padding: 11px; font-size: 14px; }
 button.icon { border: none; background: none; font-size: 16px; padding: 4px 8px; }
 

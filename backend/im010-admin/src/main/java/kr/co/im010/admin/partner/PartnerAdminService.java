@@ -26,6 +26,7 @@ import kr.co.im010.core.row.CollectUrlRow;
 import kr.co.im010.core.row.CrawlRunAdminRow;
 import kr.co.im010.core.row.PartnerAdminRow;
 import kr.co.im010.core.row.PartnerTabRow;
+import kr.co.im010.core.row.PartnerUsageRow;
 
 /**
  * 제휴사관리 (PA-01 [알뜰폰]): 제휴사 정보 · 수집 URL(유형별 탭마다) · 사이트 탭 확인 · [테스트].
@@ -60,6 +61,10 @@ public class PartnerAdminService {
     public record ScheduleRequest(boolean enabled, String days, String runTime) {
     }
 
+    /** purged = 행까지 지움 · false = 이력을 남기고 삭제 표시 */
+    public record DeleteResult(boolean purged) {
+    }
+
     private final PartnerAdminMapper partnerMapper;
     private final PlanAdminMapper planMapper;
     private final PageFetcher fetcher;
@@ -90,8 +95,10 @@ public class PartnerAdminService {
         if (code == null || !CODE.matcher(code).matches()) {
             throw ApiException.badRequest("코드는 영문 소문자 · 숫자 2 ~ 10자여야 합니다");
         }
-        if (partnerMapper.findPartner(code) != null) {
-            throw ApiException.conflict("이미 있는 코드입니다");
+        if (partnerMapper.existsCode(code)) {
+            throw ApiException.conflict(partnerMapper.findPartner(code) != null
+                    ? "이미 있는 코드입니다"
+                    : "삭제된 제휴사의 코드입니다. 다른 코드를 써 주세요");
         }
         PartnerRequest r = validate(req);
         partnerMapper.insertPartner(code, r.name(), r.chipBg(), r.chipFg(), r.homepageUrl(), r.exposed(), r.sortOrder());
@@ -107,6 +114,41 @@ public class PartnerAdminService {
         partnerMapper.updatePartner(code, r.name(), r.chipBg(), r.chipFg(), r.homepageUrl(), r.exposed(), r.sortOrder());
         audit.action(PROGRAM, "PARTNER_UPDATE", code, r.name() + (r.exposed() ? "" : " (비노출)"));
         return detail(code);
+    }
+
+    /** 삭제 전 확인: 이력이 있으면 삭제 표시만 된다는 걸 미리 보여 준다. */
+    public PartnerUsageRow usage(String code) {
+        find(code);
+        return partnerMapper.findUsage(code);
+    }
+
+    /**
+     * 제휴사 삭제. 요금제 · 수집 이력이 없으면 관련 설정과 함께 지우고 (purged),
+     * 있으면 이력은 남긴 채 삭제 표시 · 비노출 · 스케줄 OFF 로 목록 · 수집 · 프런트에서 뺀다.
+     * 수집 실행 중에는 지울 수 없다.
+     */
+    @Transactional
+    public DeleteResult delete(String code) {
+        PartnerAdminRow partner = find(code);
+        PartnerUsageRow usage = partnerMapper.findUsage(code);
+        if (usage.running()) {
+            throw ApiException.conflict("수집이 실행 중입니다. 끝난 뒤 다시 시도해 주세요");
+        }
+        boolean purge = !usage.hasHistory();
+        if (purge) {
+            partnerMapper.deleteJobs(code, false);
+            partnerMapper.deleteTabs(code);
+            partnerMapper.deleteUrls(code);
+            partnerMapper.deleteSchedule(code);
+            partnerMapper.deletePartner(code);
+        } else {
+            partnerMapper.deleteJobs(code, true);
+            partnerMapper.disableSchedule(code);
+            partnerMapper.markDeleted(code, CurrentAdmin.get().loginId());
+        }
+        audit.action(PROGRAM, "PARTNER_DELETE", code, partner.name() + (purge ? "" : " (이력 보존: 요금제 "
+                + (usage.plans() + usage.monthlyPicks()) + " · 수집 " + usage.crawlRuns() + ")"));
+        return new DeleteResult(purge);
     }
 
     @Transactional
