@@ -40,7 +40,7 @@ export default function HomePage() {
               <em>얼마나</em> 아낄 수 있을까요?
             </h1>
             <p className="hero-sub">
-              데이터 사용량과 원하는 통신망만 알려주세요.
+              데이터 사용량과 원하는 통신망만 알려주세요.{' '}
               <br />
               제휴사 요금제 중 조건에 맞는 최저가 요금제를 바로 찾아 드려요.
             </p>
