@@ -21,6 +21,7 @@ import kr.co.im010.admin.auth.Action;
 import kr.co.im010.admin.auth.RequiresPermission;
 import kr.co.im010.core.row.CrawlRunAdminRow;
 import kr.co.im010.core.row.PartnerAdminRow;
+import kr.co.im010.core.row.PartnerUsageRow;
 
 /** PA-01 제휴사관리 [알뜰폰] · BA-01 스케줄관리 */
 @RestController
@@ -64,6 +65,18 @@ public class PartnerAdminController {
     @RequiresPermission(program = PA, action = Action.EDIT)
     public PartnerAdminService.Detail update(@PathVariable String code, @RequestBody PartnerAdminService.PartnerRequest body) {
         return service.update(code, body);
+    }
+
+    @GetMapping("/partners/{code}/usage")
+    @RequiresPermission(program = PA, action = Action.VIEW)
+    public PartnerUsageRow usage(@PathVariable String code) {
+        return service.usage(code);
+    }
+
+    @DeleteMapping("/partners/{code}")
+    @RequiresPermission(program = PA, action = Action.EDIT)
+    public PartnerAdminService.DeleteResult delete(@PathVariable String code) {
+        return service.delete(code);
     }
 
     @PostMapping("/partners/{code}/urls")

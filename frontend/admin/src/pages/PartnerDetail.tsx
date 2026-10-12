@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Badge, Loading, Modal, PageHead } from '../components/ui'
 import { del, get, post, put } from '../lib/api'
 import { NETWORK, URL_TYPE, won } from '../lib/format'
@@ -23,6 +23,16 @@ interface TestResult {
 
 type UrlForm = { id?: number; urlType: UrlType; url: string; label: string; sortOrder: number }
 
+interface Usage {
+  plans: number
+  monthlyPicks: number
+  crawlRuns: number
+  crawlItems: number
+  running: boolean
+}
+
+const hasHistory = (u: Usage) => u.plans + u.monthlyPicks + u.crawlRuns + u.crawlItems > 0
+
 /** PA-01 제휴사 상세: 기본 정보 · 수집 URL(유형별 탭마다) · 사이트 탭 확인 · [테스트] */
 export default function PartnerDetail() {
   const { code } = useParams()
@@ -32,6 +42,8 @@ export default function PartnerDetail() {
   const [info, setInfo] = useState<Partner | null>(null)
   const [urlForm, setUrlForm] = useState<UrlForm | null>(null)
   const [test, setTest] = useState<{ url: string; result: TestResult | null } | null>(null)
+  const [usage, setUsage] = useState<Usage | null>(null)
+  const navigate = useNavigate()
   const canEdit = can('PA-01', 'EDIT')
 
   if (!data) return <Loading error={error} />
@@ -69,6 +81,14 @@ export default function PartnerDetail() {
     void run(() => del<Detail>(`/partners/${code}/urls/${u.id}?hidePlans=${hidePlans}`), () => '삭제했습니다').then((d) => d && setData(d))
   }
 
+  const askDelete = () => void run(() => get<Usage>(`/partners/${code}/usage`)).then((u) => u && setUsage(u))
+
+  const removePartner = () =>
+    void run(
+      () => del<{ purged: boolean }>(`/partners/${code}`),
+      (r) => (r.purged ? '제휴사를 삭제했습니다' : '제휴사를 삭제했습니다. 요금제 · 수집 이력은 보존됩니다'),
+    ).then((r) => r && navigate('/partners'))
+
   return (
     <>
       <PageHead title={`제휴사 상세 — ${partner.name}`}>
@@ -80,7 +100,14 @@ export default function PartnerDetail() {
       <section className="panel">
         <div className="panel-head">
           <h2>기본 정보</h2>
-          {canEdit && !info && <button onClick={() => setInfo(partner)}>수정</button>}
+          {canEdit && !info && (
+            <div className="actions left">
+              <button onClick={() => setInfo(partner)}>수정</button>
+              <button className="danger" onClick={askDelete} disabled={busy}>
+                삭제
+              </button>
+            </div>
+          )}
         </div>
         {info ? (
           <>
@@ -272,6 +299,36 @@ export default function PartnerDetail() {
             <button onClick={() => setUrlForm(null)}>취소</button>
             <button className="primary" disabled={busy} onClick={saveUrl}>
               저장
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {usage && (
+        <Modal title="제휴사 삭제" onClose={() => setUsage(null)}>
+          <p>
+            <b>{partner.name}</b> ({partner.code}) 제휴사를 삭제합니다.
+          </p>
+          {usage.running ? (
+            <p className="form-error">수집이 실행 중이라 지금은 삭제할 수 없습니다. 끝난 뒤 다시 시도해 주세요.</p>
+          ) : hasHistory(usage) ? (
+            <>
+              <p>
+                요금제 {usage.plans}건 · 이달의 요금제 {usage.monthlyPicks}건 · 수집 실행 {usage.crawlRuns}건의 이력이 있어 기록은 남기고 삭제 처리합니다.
+              </p>
+              <ul className="hint">
+                <li>제휴사 목록 · 스케줄관리에서 빠지고 더 이상 수집하지 않습니다.</li>
+                <li>프런트에서 이 제휴사 요금제 · 칩이 모두 숨겨집니다.</li>
+                <li>요금제 · 접수 · 실행 이력은 그대로 조회됩니다. 코드 {partner.code}는 다시 쓸 수 없습니다.</li>
+              </ul>
+            </>
+          ) : (
+            <p>요금제 · 수집 이력이 없어 수집 URL · 사이트 탭 · 스케줄과 함께 완전히 지웁니다.</p>
+          )}
+          <div className="actions">
+            <button onClick={() => setUsage(null)}>취소</button>
+            <button className="danger primary" disabled={busy || usage.running} onClick={removePartner}>
+              삭제
             </button>
           </div>
         </Modal>

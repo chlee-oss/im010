@@ -11,6 +11,7 @@ import kr.co.im010.core.row.CollectUrlRow;
 import kr.co.im010.core.row.CrawlRunAdminRow;
 import kr.co.im010.core.row.PartnerAdminRow;
 import kr.co.im010.core.row.PartnerTabRow;
+import kr.co.im010.core.row.PartnerUsageRow;
 
 /** 제휴사관리(PA-01: 제휴사 · 수집 URL · 사이트 탭) · 스케줄관리(BA-01: 스케줄 · 즉시 실행 · 실행 이력). */
 @Mapper
@@ -18,7 +19,28 @@ public interface PartnerAdminMapper {
 
     List<PartnerAdminRow> findPartners();
 
+    /** 삭제 표시된 제휴사는 찾지 않는다. */
     PartnerAdminRow findPartner(@Param("code") String code);
+
+    /** 삭제 표시된 제휴사 코드까지 (코드는 다시 쓸 수 없다) */
+    boolean existsCode(@Param("code") String code);
+
+    PartnerUsageRow findUsage(@Param("code") String code);
+
+    void deleteJobs(@Param("code") String code, @Param("queuedOnly") boolean queuedOnly);
+
+    void deleteTabs(@Param("code") String code);
+
+    void deleteUrls(@Param("code") String code);
+
+    void deleteSchedule(@Param("code") String code);
+
+    void deletePartner(@Param("code") String code);
+
+    /** 이력이 있는 제휴사: 행은 남기고 삭제 표시 · 비노출 */
+    void markDeleted(@Param("code") String code, @Param("by") String by);
+
+    void disableSchedule(@Param("code") String code);
 
     void insertPartner(@Param("code") String code, @Param("name") String name, @Param("chipBg") String chipBg,
                        @Param("chipFg") String chipFg, @Param("homepageUrl") String homepageUrl,
