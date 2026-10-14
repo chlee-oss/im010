@@ -31,6 +31,7 @@
             <when test="state == 'SCHEDULED'">AND p.status NOT IN ('ENDED', 'HIDDEN') AND d.publish_at IS NOT NULL</when>
             <when test="state == 'ENDED'">AND p.status = 'ENDED'</when>
             <when test="state == 'HIDDEN'">AND p.status = 'HIDDEN'</when>
+            <when test="state == 'ACTIVE'">AND p.status &lt;&gt; 'ENDED'</when>
         </choose>
     </sql>
 

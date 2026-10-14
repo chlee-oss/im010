@@ -117,7 +117,7 @@ function PlanList() {
           <label>
             상태{' '}
             <select value={state} onChange={(e) => set('state', e.target.value)}>
-              <option value="">전체</option>
+              <option value="">전체 (판매 종료 제외)</option>
               {Object.entries(PLAN_STATE).map(([k, v]) => (
                 <option key={k} value={k}>
                   {v}
