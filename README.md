@@ -7,7 +7,7 @@
 
 | 영역 | 기술 |
 |---|---|
-| 서버 OS | Rocky Linux 9.7 |
+| 서버 OS | Rocky Linux 9.8 |
 | 웹 | nginx (React 정적 파일 + `/api` · `/go` 리버스 프록시) |
 | WAS | Spring Boot 4.1 (Java 21) · MyBatis 4.1 · Gradle |
 | DB | PostgreSQL (마이그레이션: Flyway) |
@@ -167,14 +167,27 @@ im010/
 - 세션 쿠키(HttpOnly · SameSite=Strict · 운영 Secure) + CSRF(쿠키 → `X-XSRF-TOKEN` 헤더)
 - 승인한 수집값의 지문을 버전에 남겨, 운영자가 값을 고쳐 게시해도 같은 수집값이 다시 들어오면 변경 없음으로 본다
 
-## 운영 서버 (Rocky Linux 9.7) 메모
+## 운영 서버 (Rocky Linux 9.8) 메모
 
-- PostgreSQL은 OS 기본 저장소 대신 **PGDG 공식 저장소**에서 설치 (17 이상 권장)
-- Java 21: `dnf install java-21-openjdk-headless`
-- **SELinux**: nginx → 8080 프록시 허용 `setsebool -P httpd_can_network_connect 1`
-- **firewalld**: 80/443만 외부 공개, 8080 · 8081 · 5432는 내부만
+- 개발계 = 로컬 PC(위 "로컬 실행"), 운영계 = 이 서버
+- 서버: 211.119.128.187 (호스트명 IM010) · 32 vCPU · 메모리 9.4GiB · 디스크 195GB · SSH 22 · 운영 계정 `im010oper`
+- PostgreSQL은 OS 기본 저장소 대신 **PGDG 공식 저장소**에서 설치 (17 이상 권장). 먼저 기본 모듈을 끈다: `dnf -qy module disable postgresql`
+- Java 21: `dnf install java-21-openjdk-headless` (AppStream)
+- nginx: `dnf module enable nginx:1.26 && dnf install nginx` — 설정 파일은 1.25.1+ 문법(`http2 on;`)이다. 기본 스트림(1.20)은 이 문법이 없어 쓰지 않는다
+- SELinux 포트 등록(`semanage`)은 `policycoreutils-python-utils` 패키지가 필요하다 (설치돼 있음)
+- 서버에 원래 있던 서비스: Zabbix agent(10050, 61.111.2.225에서만), rpcbind(111) — 외부에서는 iptables가 막는다
+- **SELinux**: nginx → 8080 · 8081 프록시 허용 `setsebool -P httpd_can_network_connect 1`, nginx가 7945를 열 수 있게 `semanage port -a -t http_port_t -p tcp 7945`
+- **방화벽 = iptables 서비스** (firewalld는 쓰지 않는다 — 둘을 같이 켜면 규칙이 충돌). 기본 정책 INPUT DROP + 허용 IP는 모든 포트 허용:
+  `61.111.2.99` · `61.111.2.100` (TC_MANAGE) · `58.120.97.201` (TC_Office) · `61.111.2.225` (Zabbix) · DNS · 시간 서버
+  - **443만 누구나(고객)**: DROP 규칙 앞에 `IM010_HTTPS` 규칙 (setup-letsencrypt.sh가 넣고 저장)
+  - **80은 외부에 닫는다**: Let's Encrypt 발급 · 갱신하는 1분 남짓만 `IM010_ACME_TMP` 임시 규칙(저장 안 함)으로 열고 바로 뺀다 (`/usr/local/sbin/im010-acme-port80`, certbot pre/post hook). http:// 로 들어오는 고객은 연결되지 않으므로 주소는 항상 https:// 로 알린다
+  - 7945는 따로 열지 않는다 — 허용 IP만 들어오고, nginx `allow`가 한 번 더 거른다
+  - 8080 · 8081 · 5432는 열지 않는다 (api · admin은 127.0.0.1에만 바인딩)
+- **포트 구성**: `www.im010.co.kr` 443 HTTPS (80은 허용 IP에서만 → 443 리다이렉트) · `admin.im010.co.kr` 7945 HTTPS만 (80/443으로 오는 admin 주소 · IP 직접 접속은 기본 서버가 끊음, 고객 주소의 `/admin/`은 404)
 - 배포 파일
-  - nginx: [`im010.conf`](deploy/nginx/im010.conf)(고객) · [`im010-admin.conf`](deploy/nginx/im010-admin.conf)(백오피스, 별도 주소 · 사내 IP 제한 선택) · [`im010-proxy.inc`](deploy/nginx/im010-proxy.inc)
+  - nginx: [`im010.conf`](deploy/nginx/im010.conf)(고객 80/443) · [`im010-admin.conf`](deploy/nginx/im010-admin.conf)(백오피스 7945 · 사내 IP 제한 선택) · [`im010-proxy.inc`](deploy/nginx/im010-proxy.inc) · 보안 헤더 [`im010-headers.inc`](deploy/nginx/im010-headers.inc) · [`im010-admin-headers.inc`](deploy/nginx/im010-admin-headers.inc)
+  - TLS 인증서: **Let's Encrypt** 1장(www · admin, cert-name `im010`) — nginx는 `/etc/pki/nginx/<도메인>.crt|key`를 보고, 그 파일이 `/etc/letsencrypt/live/im010/`으로 연결된다. 발급 전에는 임시 자체 서명 인증서
+  - 설치 스크립트: [`setup-nginx.sh`](deploy/scripts/setup-nginx.sh) → (DNS) → [`setup-letsencrypt.sh`](deploy/scripts/setup-letsencrypt.sh) `<메일>`(443 개방 포함). 발급 · 갱신 확인은 80 포트 webroot(`/var/www/letsencrypt`, 그동안만 80 임시 개방), admin 주소도 80에서는 확인 파일만 응답하고 나머지는 끊는다. 자동 갱신 `certbot-renew.timer` + 갱신 후 nginx reload
   - systemd: [`im010-api`](deploy/systemd/im010-api.service) · [`im010-admin`](deploy/systemd/im010-admin.service) · [`im010-batch`](deploy/systemd/im010-batch.service) (배치는 한 대에서만)
   - 환경 변수 예시: [`api.env`](deploy/api.env.example) · [`admin.env`](deploy/admin.env.example) · [`batch.env`](deploy/batch.env.example)
 - 백오피스 첫 계정: `IM010_ADMIN_BOOTSTRAP_PASSWORD`를 넣고 시작 → 첫 로그인(OTP · 비밀번호 변경) 후 값을 지운다
