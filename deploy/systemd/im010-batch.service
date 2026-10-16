@@ -4,7 +4,7 @@
 
 [Unit]
 Description=im010 수집 배치 (크롤링 · 변경 감지 · 예약 게시)
-After=network-online.target postgresql.service
+After=network-online.target postgresql-17.service
 Wants=network-online.target
 
 [Service]

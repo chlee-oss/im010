@@ -4,7 +4,7 @@
 
 [Unit]
 Description=im010 API (Spring Boot)
-After=network-online.target postgresql.service
+After=network-online.target postgresql-17.service
 Wants=network-online.target
 
 [Service]
@@ -13,6 +13,8 @@ User=im010
 Group=im010
 WorkingDirectory=/opt/im010/api
 EnvironmentFile=/etc/im010/api.env
+# nginx 뒤에서만 받는다 (외부에서 8080 · 8081 직접 접속 차단)
+Environment=SERVER_ADDRESS=127.0.0.1
 ExecStart=/usr/bin/java -Xms256m -Xmx512m -jar /opt/im010/api/im010-api.jar
 SuccessExitStatus=143
 Restart=on-failure

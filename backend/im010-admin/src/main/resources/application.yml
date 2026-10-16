@@ -1,5 +1,6 @@
 server:
   port: 8081
+  address: ${IM010_BIND_ADDRESS:127.0.0.1}   # nginx 뒤에서만 받는다 (외부에서 8080 · 8081 직접 접속 차단)
   forward-headers-strategy: framework   # nginx 뒤에서 X-Forwarded-* 사용
   servlet:
     session:
