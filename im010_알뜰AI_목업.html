@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>im010 알뜰AI 목업</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<style>
+  /* im010_알뜰AI_기획서.md 목업 — 홈페이지 목업과 같은 토큰 */
+  :root {
+    --coral: #FA5A47; --coral-dark: #D9432F; --coral-tint: #FFF1EE;
+    --navy: #1F2430; --gray-700: #4B5262; --gray-500: #8A8F9C; --gray-200: #E9E7E3;
+    --cream: #FFFBF8; --white: #fff;
+    --mobile-bg: #FFF1EE; --mobile-ac: #D9432F;
+    --internet-bg: #E8F0FE; --internet-ac: #2158C7;
+    --misc-bg: #FFF4D6; --misc-ac: #B3790B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--cream); color: var(--navy); -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+  :focus-visible { outline: none; }
+
+  /* GNB */
+  header { position: sticky; top: 0; z-index: 10; background: rgba(255,251,248,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--gray-200); }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+  .logo { font-size: 22px; font-weight: 800; } .logo span { color: var(--coral); }
+  .menu { display: flex; gap: 4px; font-size: 15px; font-weight: 600; }
+  .menu > div { position: relative; }
+  .menu a.top { display: flex; align-items: center; height: 68px; padding: 0 14px; border-bottom: 2px solid transparent; }
+  .menu a.top.on { color: var(--coral-dark); border-bottom-color: var(--coral); }
+  .drop { position: absolute; top: 100%; left: 0; background: var(--white); border: 1px solid var(--gray-200); border-radius: 12px; padding: 8px; min-width: 150px; box-shadow: 0 12px 28px rgba(31,36,48,.1); display: none; }
+  .menu > div:hover .drop, .menu > div:focus-within .drop { display: block; }
+  .drop a { display: block; padding: 9px 12px; border-radius: 8px; font-size: 14px; color: var(--gray-700); font-weight: 500; }
+  .drop a:hover { background: var(--coral-tint); color: var(--coral-dark); }
+  .cta { background: var(--coral); color: var(--white); padding: 10px 18px; border-radius: 999px; font-weight: 700; font-size: 14px; }
+  .new-badge { font-size: 10px; font-weight: 800; color: var(--white); background: var(--coral); border-radius: 6px; padding: 1px 5px; margin-left: 4px; vertical-align: 2px; }
+
+  /* 목록 */
+  .page-head { padding: 44px 0 20px; }
+  .page-head h1 { font-size: 30px; font-weight: 800; letter-spacing: -.5px; }
+  .page-head h1 em { font-style: normal; color: var(--coral); }
+  .page-head p { margin-top: 8px; color: var(--gray-700); }
+  .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tabs button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 16px; border-radius: 999px; border: 1px solid var(--gray-200); background: var(--white); color: var(--gray-700); cursor: pointer; }
+  .tabs button.on { background: var(--navy); color: var(--white); border-color: var(--navy); }
+  .tools { display: flex; gap: 8px; }
+  .tools input, .tools select { font: inherit; font-size: 14px; padding: 8px 12px; border: 1px solid var(--gray-200); border-radius: 10px; background: var(--white); }
+
+  /* 글 카드 — 참고 이미지: 파스텔 배경 · 왼쪽 제목 · 오른쪽 썸네일(아래 잘림) · 선택 시 테두리 */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .card {
+    position: relative; display: flex; justify-content: space-between; gap: 14px;
+    height: 112px; padding: 16px 16px 0 22px; border-radius: 20px; overflow: hidden;
+    background: var(--bg); border: 2px solid transparent; cursor: pointer; transition: border-color .15s;
+  }
+  .card:hover, .card:focus-visible, .card.current { border-color: var(--ac); }
+  .card.mobile { --bg: var(--mobile-bg); --ac: var(--mobile-ac); }
+  .card.internet { --bg: var(--internet-bg); --ac: var(--internet-ac); }
+  .card.misc { --bg: var(--misc-bg); --ac: var(--misc-ac); }
+  .card .text { display: flex; flex-direction: column; justify-content: space-between; padding-bottom: 14px; min-width: 0; }
+  .card h3 { font-size: 16.5px; font-weight: 700; line-height: 1.38; letter-spacing: -.2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .card .meta { font-size: 12.5px; color: var(--gray-700); }
+  .card .meta b { color: var(--ac); font-weight: 700; }
+  .card .ad { font-size: 11px; font-weight: 700; border: 1px solid var(--gray-500); color: var(--gray-700); border-radius: 4px; padding: 0 4px; margin-right: 5px; }
+  .card .thumb { flex: 0 0 120px; height: 92px; margin-top: 4px; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 0 rgba(0,0,0,.04), 0 0 0 1px rgba(31,36,48,.06); background: var(--white); }
+  .card .thumb svg { display: block; width: 100%; height: 100%; }
+
+  .featured { display: grid; grid-template-columns: 1fr 260px; gap: 24px; padding: 26px 26px 0 30px; height: auto; min-height: 196px; margin-bottom: 16px; }
+  .featured .text { padding-bottom: 24px; }
+  .featured h3 { font-size: 22px; -webkit-line-clamp: 2; }
+  .featured .sum { font-size: 14px; color: var(--gray-700); line-height: 1.6; margin: 8px 0 14px; }
+  .featured .thumb { flex: none; width: 260px; height: 172px; margin-top: 0; border-radius: 14px 14px 0 0; }
+  .pin { font-size: 12px; font-weight: 700; color: var(--ac); margin-bottom: 6px; display: inline-block; }
+  .more { display: block; margin: 26px auto 60px; font: inherit; font-weight: 700; padding: 12px 28px; border-radius: 999px; border: 1px solid var(--gray-200); background: var(--white); cursor: pointer; }
+
+  /* 상세 */
+  .detail { background: var(--white); border-top: 1px solid var(--gray-200); padding: 48px 0 70px; }
+  .article { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+  .crumb { font-size: 13px; color: var(--gray-500); }
+  .article h1 { font-size: 30px; font-weight: 800; line-height: 1.35; letter-spacing: -.6px; margin: 10px 0 10px; }
+  .article .meta { font-size: 14px; color: var(--gray-700); }
+  .article .meta b { color: var(--mobile-ac); }
+  .ai-sum { margin: 26px 0; background: linear-gradient(135deg, #F4F0FF, #FFF1EE); border-radius: 16px; padding: 18px 20px; }
+  .ai-sum h4 { font-size: 14px; font-weight: 800; display: flex; justify-content: space-between; }
+  .ai-sum h4 small { font-weight: 500; color: var(--gray-500); font-size: 12px; }
+  .ai-sum ul { margin-top: 10px; padding-left: 18px; line-height: 1.75; font-size: 15px; }
+  .hero-img { border-radius: 16px; overflow: hidden; margin-bottom: 26px; }
+  .body p { font-size: 17px; line-height: 1.85; margin-bottom: 18px; color: #2B303B; }
+  .body h2 { font-size: 21px; font-weight: 800; margin: 30px 0 12px; }
+  .note { font-size: 13px; color: var(--gray-700); background: var(--cream); border-radius: 10px; padding: 12px 14px; margin: 26px 0 14px; }
+  .note a { color: var(--coral-dark); font-weight: 700; }
+  .source { font-size: 13px; color: var(--gray-500); }
+  .tags { margin: 14px 0 30px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .tags a { font-size: 13px; color: var(--gray-700); background: #F4F3F1; border-radius: 999px; padding: 5px 12px; }
+  .related h3, .same h3 { font-size: 18px; font-weight: 800; margin-bottom: 12px; }
+  .plans { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 26px; }
+  .plan { border: 1px solid var(--gray-200); border-radius: 16px; padding: 16px; }
+  .plan .chip { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
+  .plan h4 { margin: 10px 0 4px; font-size: 16px; }
+  .plan .price { font-size: 20px; font-weight: 800; }
+  .plan .price small { font-size: 13px; color: var(--gray-500); font-weight: 500; }
+  .plan a { display: inline-block; margin-top: 10px; font-size: 13px; font-weight: 700; color: var(--white); background: var(--coral); padding: 7px 14px; border-radius: 999px; }
+  .pager { display: flex; justify-content: space-between; font-size: 14px; color: var(--gray-700); border-top: 1px solid var(--gray-200); border-bottom: 1px solid var(--gray-200); padding: 14px 0; margin-bottom: 30px; }
+  .same .grid { grid-template-columns: 1fr 1fr; }
+  .label { display: inline-block; font-size: 12px; font-weight: 700; color: var(--white); background: var(--navy); border-radius: 6px; padding: 3px 8px; margin-bottom: 10px; }
+
+  @media (max-width: 760px) {
+    .menu, .tools { display: none; }
+    .grid, .same .grid, .plans { grid-template-columns: 1fr; }
+    .card { height: 104px; } .card .thumb { flex-basis: 104px; height: 84px; }
+    .featured { grid-template-columns: 1fr; padding: 22px 22px 0; } .featured .thumb { width: 100%; }
+    .article h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="#">im<span>010</span></a>
+    <nav class="menu" aria-label="주 메뉴">
+      <div><a class="top" href="#">이달의 요금제</a></div>
+      <div><a class="top" href="#">요금제 ▾</a></div>
+      <div><a class="top" href="#">선불요금제</a></div>
+      <div><a class="top" href="#">인터넷</a></div>
+      <div><a class="top" href="#">요금제분석</a></div>
+      <div>
+        <a class="top on" href="#list">알뜰AI ▾<span class="new-badge">N</span></a>
+        <div class="drop">
+          <a href="#list">전체 보기</a>
+          <a href="#list" data-cat="mobile">알뜰통신</a>
+          <a href="#list" data-cat="internet">인터넷</a>
+          <a href="#list" data-cat="misc">잡식잡식</a>
+        </div>
+      </div>
+    </nav>
+    <a class="cta" href="#">요금제 비교하기</a>
+  </div>
+</header>
+
+<main id="list" class="wrap">
+  <div class="page-head">
+    <span class="label">목업 ① 목록 /ai</span>
+    <h1>알뜰<em>AI</em></h1>
+    <p>알뜰폰 · 인터넷 소식과 통신비 아끼는 정보를 모았어요</p>
+  </div>
+
+  <div class="toolbar">
+    <div class="tabs" role="tablist">
+      <button class="on" data-cat="all">전체</button>
+      <button data-cat="mobile">알뜰통신</button>
+      <button data-cat="internet">인터넷</button>
+      <button data-cat="misc">잡식잡식</button>
+    </div>
+    <div class="tools">
+      <input type="search" placeholder="제목 · 태그 검색" aria-label="검색" />
+      <select aria-label="정렬"><option>최신순</option><option>많이 본 순</option></select>
+    </div>
+  </div>
+
+  <a class="card mobile featured" href="#detail" data-cat="mobile">
+    <div class="text">
+      <div>
+        <span class="pin">📌 추천</span>
+        <h3>10월 알뜰폰 요금제, 무엇이 달라졌나 — 7개사 신규 요금제 한눈에</h3>
+        <p class="sum">데이터 10GB대 요금제가 1만 원 초반까지 내려왔어요. 이번 달 새로 나온 요금제와 할인 조건을 정리했습니다.</p>
+      </div>
+      <p class="meta"><b>알뜰통신</b> · 10.15 · 5분 읽기</p>
+    </div>
+    <div class="thumb" data-thumb="chart"></div>
+  </a>
+
+  <div class="grid" id="grid"></div>
+  <button class="more">더 보기 (8 / 57)</button>
+</main>
+
+<section id="detail" class="detail">
+  <article class="article">
+    <span class="label">목업 ② 상세 /ai/posts/123/esim-gaetong</span>
+    <p class="crumb">알뜰AI › 알뜰통신</p>
+    <h1>eSIM으로 알뜰폰 개통하는 법, 10분이면 끝</h1>
+    <p class="meta"><b>알뜰통신</b> · 2026.10.15 · 3분 읽기 · 수정 2026.10.16 · im010 편집팀</p>
+
+    <div class="ai-sum">
+      <h4>✨ AI 3줄 요약 <small>AI가 정리하고 편집팀이 확인했어요</small></h4>
+      <ul>
+        <li>eSIM 지원 단말이면 유심 배송 없이 바로 개통할 수 있어요</li>
+        <li>본인인증 → 요금제 선택 → QR 코드 등록 순서로 진행돼요</li>
+        <li>제휴사별 eSIM 지원 여부는 본문 표에서 확인하세요</li>
+      </ul>
+    </div>
+
+    <div class="hero-img" data-thumb="phone" data-size="hero"></div>
+
+    <div class="body">
+      <p>유심을 택배로 받고 기다리던 시대는 지났어요. 최근 출시된 스마트폰 대부분은 eSIM을 지원해서, 알뜰폰도 집에서 바로 개통할 수 있습니다.</p>
+      <h2>1. 내 휴대폰이 eSIM을 지원하는지 확인</h2>
+      <p>설정 › 일반 › 정보에서 "EID" 항목이 보이면 eSIM을 쓸 수 있는 단말이에요. …</p>
+    </div>
+
+    <p class="note">작성일 기준 정보예요. 요금 · 혜택은 바뀔 수 있으니 최신 요금은 <a href="#">요금제 비교하기</a>에서 확인하세요.</p>
+    <p class="source">출처: ○○일보 「알뜰폰 eSIM 개통 쉬워진다」 (2026.10.14) ↗</p>
+    <div class="tags"><a href="#">#eSIM</a><a href="#">#개통</a><a href="#">#알뜰폰</a></div>
+
+    <div class="related">
+      <h3>이 글과 관련된 요금제</h3>
+      <div class="plans">
+        <div class="plan"><span class="chip" style="background:#FFE9E5;color:#D9432F">마블링</span><h4>프라임 7GB + 1Mbps</h4><p class="price">7,020원 <small>/월 · 7개월 후 18,900원</small></p><a href="#">개통하기</a></div>
+        <div class="plan"><span class="chip" style="background:#E6F0FF;color:#2158C7">토리모바일</span><h4>통화기본 7GB+</h4><p class="price">9,900원 <small>/월 · 24개월 후 22,000원</small></p><a href="#">개통하기</a></div>
+      </div>
+    </div>
+
+    <div class="pager"><a href="#">‹ 이전 글</a><a href="#list">목록</a><a href="#">다음 글 ›</a></div>
+
+    <div class="same">
+      <h3>알뜰통신의 다른 글</h3>
+      <div class="grid" id="same"></div>
+    </div>
+  </article>
+</section>
+
+<script>
+  // 썸네일: 실제로는 운영자가 올린 이미지. 목업에서는 참고 이미지처럼 "화면 미리보기" 느낌의 SVG
+  const THUMBS = {
+    chart: (a) => `<svg viewBox="0 0 120 92"><rect width="120" height="92" fill="#fff"/><rect x="8" y="8" width="104" height="8" rx="3" fill="#EEF0F4"/><rect x="12" y="24" width="20" height="56" rx="3" fill="${a}" opacity=".25"/><rect x="38" y="40" width="20" height="40" rx="3" fill="${a}" opacity=".45"/><rect x="64" y="30" width="20" height="50" rx="3" fill="${a}" opacity=".7"/><rect x="90" y="50" width="20" height="30" rx="3" fill="${a}"/></svg>`,
+    phone: (a) => `<svg viewBox="0 0 120 92"><rect width="120" height="92" fill="#fff"/><rect x="40" y="10" width="40" height="76" rx="8" fill="#1F2430"/><rect x="44" y="18" width="32" height="56" rx="3" fill="${a}" opacity=".85"/><rect x="50" y="30" width="20" height="20" rx="3" fill="#fff"/><rect x="53" y="33" width="5" height="5" fill="#1F2430"/><rect x="62" y="33" width="5" height="5" fill="#1F2430"/><rect x="53" y="42" width="5" height="5" fill="#1F2430"/><rect x="62" y="42" width="5" height="5" fill="#1F2430"/></svg>`,
+    wifi: (a) => `<svg viewBox="0 0 120 92"><rect width="120" height="92" fill="#fff"/><rect x="0" y="0" width="120" height="14" fill="#F4F5F7"/><circle cx="8" cy="7" r="2.5" fill="#E2E4E9"/><circle cx="16" cy="7" r="2.5" fill="#E2E4E9"/><path d="M36 48a34 34 0 0 1 48 0" stroke="${a}" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M46 58a20 20 0 0 1 28 0" stroke="${a}" stroke-width="6" fill="none" stroke-linecap="round" opacity=".7"/><circle cx="60" cy="70" r="5" fill="${a}"/></svg>`,
+    doc: (a) => `<svg viewBox="0 0 120 92"><rect width="120" height="92" fill="#fff"/><rect x="0" y="0" width="120" height="14" fill="#F4F5F7"/><rect x="10" y="22" width="48" height="60" rx="4" fill="${a}" opacity=".18"/><rect x="66" y="24" width="44" height="6" rx="3" fill="#D8DBE2"/><rect x="66" y="36" width="38" height="5" rx="2.5" fill="#E6E8EC"/><rect x="66" y="46" width="42" height="5" rx="2.5" fill="#E6E8EC"/><rect x="66" y="56" width="30" height="5" rx="2.5" fill="#E6E8EC"/><rect x="66" y="68" width="24" height="8" rx="4" fill="${a}"/></svg>`,
+    spark: (a) => `<svg viewBox="0 0 120 92"><rect width="120" height="92" fill="#fff"/><circle cx="60" cy="46" r="26" fill="${a}" opacity=".2"/><path d="M60 24l5 15 15 5-15 5-5 15-5-15-15-5 15-5z" fill="${a}"/><circle cx="92" cy="22" r="5" fill="${a}" opacity=".6"/><circle cx="26" cy="70" r="4" fill="${a}" opacity=".5"/></svg>`,
+  }
+  const AC = { mobile: '#D9432F', internet: '#2158C7', misc: '#B3790B' }
+  const NAME = { mobile: '알뜰통신', internet: '인터넷', misc: '잡식잡식' }
+  const POSTS = [
+    ['mobile', 'eSIM으로 알뜰폰 개통하는 법, 10분이면 끝', '10.15', 3, 'phone', false, true],
+    ['internet', '인터넷 약정 끝나면 꼭 해야 할 3가지', '10.14', 4, 'wifi'],
+    ['misc', '데이터 아끼는 스마트폰 설정 5가지', '10.13', 2, 'spark'],
+    ['mobile', '번호이동 vs 신규가입, 알뜰폰은 뭐가 유리할까', '10.11', 4, 'doc'],
+    ['internet', '인터넷 + TV 결합, 사은품만 보고 고르면 안 되는 이유', '10.10', 5, 'doc'],
+    ['mobile', '시월모바일 10월 이벤트 요금제 총정리', '10.09', 3, 'chart', true],
+    ['misc', '해외여행 갈 때 데이터, 로밍 · eSIM · 유심 비교', '10.07', 6, 'phone'],
+    ['internet', '이사할 때 인터넷 이전 설치, 비용 아끼는 순서', '10.05', 3, 'wifi'],
+  ]
+  function card([cat, title, date, min, thumb, ad, current]) {
+    return `<a class="card ${cat}${current ? ' current' : ''}" href="#detail" data-cat="${cat}" aria-label="${title}, ${NAME[cat]}, ${date}">
+      <div class="text"><h3>${title}</h3><p class="meta">${ad ? '<span class="ad">제휴</span>' : ''}<b>${NAME[cat]}</b> · ${date} · ${min}분 읽기</p></div>
+      <div class="thumb">${THUMBS[thumb](AC[cat])}</div></a>`
+  }
+  const grid = document.getElementById('grid')
+  function render(cat) {
+    grid.innerHTML = POSTS.filter((p) => cat === 'all' || p[0] === cat).map(card).join('')
+    document.querySelectorAll('.tabs button').forEach((b) => b.classList.toggle('on', b.dataset.cat === cat))
+    document.querySelector('.featured').style.display = cat === 'all' || cat === 'mobile' ? '' : 'none'
+  }
+  document.querySelectorAll('[data-cat]').forEach((el) => {
+    if (el.tagName === 'BUTTON' || el.closest('.drop')) el.addEventListener('click', () => render(el.dataset.cat ?? 'all'))
+  })
+  document.querySelector('.drop a').addEventListener('click', () => render('all'))
+  render('all')
+  // 같은 카테고리 글 (지금 보고 있는 글 제외)
+  document.getElementById('same').innerHTML = POSTS.filter((p) => p[0] === 'mobile' && !p[6]).slice(0, 4).map(card).join('')
+  document.querySelectorAll('[data-thumb]').forEach((el) => {
+    el.innerHTML = THUMBS[el.dataset.thumb](el.closest('.card') ? AC.mobile : AC.mobile)
+    if (el.dataset.size === 'hero') el.querySelector('svg').setAttribute('style', 'width:100%;height:280px;background:#FFF1EE')
+  })
+</script>
+</body>
+</html>
