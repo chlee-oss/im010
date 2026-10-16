@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { api } from '../api/client'
+import { pickMonthlyFallback } from '../lib/monthlyFallback'
 import { BrandChip, usePartners } from '../lib/partners'
 import { pickTwo } from '../lib/planPicks'
 import { useApi } from '../lib/useApi'
@@ -7,9 +8,25 @@ import { PlanCard } from './PlanCard'
 import { PlanListCard } from './PlanListCard'
 import StateMessage from './StateMessage'
 
-/** 이달의 요금제 — 제휴사 "이달의 요금제" URL 수집 결과 (제휴사 이름순 → 사이트 순서, 배지 없음). */
+/**
+ * 이달의 요금제 — 제휴사 "이달의 요금제" URL 수집 결과 (제휴사 이름순 → 사이트 순서, 배지 없음).
+ * 수집 결과가 없으면 후불 5G · QoS 5Mbps 요금제에서 제휴사를 돌아가며 무작위 6개를 대신 보여 준다.
+ */
 export function MonthlyPlans() {
-  const { data, loading, error } = useApi((signal) => api.monthlyPlans(signal), [])
+  const monthly = useApi((signal) => api.monthlyPlans(signal), [])
+  const empty = !!monthly.data && monthly.data.length === 0
+  const all = useApi((signal) => (empty ? api.plans('POSTPAID', undefined, signal) : Promise.resolve(null)), [empty])
+  // 대신 보여 줄 때는 고른 기준(망 · 5G · 소진 후 속도)을 태그로 보여 준다
+  const fallback = useMemo(
+    () =>
+      (all.data ? pickMonthlyFallback(all.data) : []).map((p) =>
+        p.tags.length > 0 ? p : { ...p, tags: [`${p.networkLabel}망`, p.generation, `소진 후 ${p.qos}`] },
+      ),
+    [all.data],
+  )
+  const data = empty ? (all.data ? fallback : null) : monthly.data
+  const loading = monthly.loading || (empty && all.loading)
+  const error = monthly.error ?? (empty ? all.error : null)
   const [month] = useState(() => new Date().getMonth() + 1)
   return (
     <section id="month">
@@ -17,7 +34,9 @@ export function MonthlyPlans() {
         <div className="sec-head">
           <div>
             <h2>이달의 요금제비교</h2>
-            <div className="sub">{month}월, 제휴사가 추천하는 이달의 요금제 모음</div>
+            <div className="sub">
+              {empty ? '5G · 데이터 소진 후 5Mbps 요금제를 제휴사별로 골라 봤어요' : `${month}월, 제휴사가 추천하는 이달의 요금제 모음`}
+            </div>
           </div>
           <a className="see-all" href="#partners">
             전체 요금제 보기 →
