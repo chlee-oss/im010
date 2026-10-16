@@ -6,7 +6,10 @@ import java.util.List;
 
 import kr.co.im010.core.row.PlanRow;
 
-/** 요금제 카드 · 목록 · 계산기 결과에 쓰는 응답. */
+/**
+ * 요금제 카드 · 목록 · 계산기 결과에 쓰는 응답.
+ * voice · sms · discountMonths · priceAfterDiscount 는 제휴사별 요금제 카드용, mainPick 은 메인 노출 순서 (1 · 2, 없으면 null).
+ */
 public record PlanSummary(
         long id,
         String partnerCode,
@@ -23,7 +26,12 @@ public record PlanSummary(
         Integer chargePrice,
         Integer validDays,
         String qos,
-        List<String> tags
+        List<String> tags,
+        String voice,
+        String sms,
+        Integer discountMonths,
+        Integer priceAfterDiscount,
+        Integer mainPick
 ) {
 
     public static PlanSummary from(PlanRow r) {
@@ -32,7 +40,7 @@ public record PlanSummary(
                 r.dataGb() == null, r.dataGb(),
                 r.network(), Network.labelOf(r.network()), r.generation(),
                 r.monthlyPrice(), r.chargePrice(), r.validDays(), r.qosText(),
-                splitPipe(r.tags()));
+                splitPipe(r.tags()), r.voiceText(), r.smsText(), r.discountMonths(), r.priceAfterDiscount(), r.mainPick());
     }
 
     static List<String> splitPipe(String joined) {

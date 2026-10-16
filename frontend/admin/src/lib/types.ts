@@ -114,6 +114,8 @@ export interface PlanRow {
   publishAt: string | null
   lastCollectedOn: string | null
   endedOn: string | null
+  /** 메인 "제휴사별 요금제" 노출 순서 (1 · 2), 없으면 null */
+  mainPick: 1 | 2 | null
 }
 
 export type PlanState = 'PUBLISHED' | 'DRAFT' | 'SCHEDULED' | 'ENDED' | 'HIDDEN'

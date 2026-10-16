@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Badge, Empty, Loading, Modal, PageHead, Pager, Tabs, selectAll } from '../components/ui'
-import { get, post, qs } from '../lib/api'
+import { get, post, put, qs } from '../lib/api'
 import { NETWORK, PLAN_STATE, dateTime, localToIso, nextHourLocal, won } from '../lib/format'
 import { useMe } from '../lib/me'
 import { bulkText, useRun } from '../lib/notice'
@@ -84,6 +84,12 @@ function PlanList() {
     void reloadMe()
   }
   const canApprove = can('PR-01', 'APPROVE')
+  const canEdit = can('PR-01', 'EDIT')
+  const setMainPick = (id: number, value: string) =>
+    run(
+      () => put(`/plans/${id}/main-pick`, { mainPick: value ? Number(value) : null }),
+      () => (value ? `메인 ${value}번째로 지정했습니다 (같은 제휴사의 기존 ${value}번째는 해제)` : '메인 노출을 해제했습니다'),
+    ).then(() => reload())
 
   return (
     <>
@@ -182,6 +188,9 @@ function PlanList() {
               <th>상태</th>
               <th>게시 일시</th>
               <th>최종 수집</th>
+              {type === 'POSTPAID' && (
+                <th title="메인 '제휴사별 요금제'에 제휴사마다 2개씩 보입니다. 지정하지 않은 자리는 게시 중 요금제 중 월 요금이 낮은 순">메인 노출</th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -221,6 +230,27 @@ function PlanList() {
                   )}
                 </td>
                 <td>{p.lastCollectedOn ?? '–'}</td>
+                {type === 'POSTPAID' && (
+                  <td onClick={(e) => e.stopPropagation()}>
+                    {canEdit && st !== 'ENDED' ? (
+                      <select
+                        aria-label={`${p.name} 메인 노출`}
+                        value={p.mainPick ?? ''}
+                        disabled={busy}
+                        onChange={(e) => void setMainPick(p.id, e.target.value)}
+                      >
+                        <option value="">자동</option>
+                        <option value="1">1번째</option>
+                        <option value="2">2번째</option>
+                      </select>
+                    ) : p.mainPick ? (
+                      <Badge tone="navy">{p.mainPick}번째</Badge>
+                    ) : (
+                      '–'
+                    )}
+                    {p.mainPick && st !== 'PUBLISHED' && <span className="small muted"> 게시 전엔 안 보임</span>}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
