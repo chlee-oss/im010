@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.im010.core.mapper.AiMapper">
+
+    <!-- ========== 카테고리 ========== -->
+
+    <sql id="categoryColumns">
+        c.code, c.name, c.slug, c.bg_color, c.accent_color, c.sort_order, c.exposed,
+        (SELECT count(*) FROM ai_post p WHERE p.category_code = c.code) AS post_count
+    </sql>
+
+    <select id="findCategories" resultType="kr.co.im010.core.row.AiCategoryRow">
+        SELECT <include refid="categoryColumns"/> FROM ai_category c
+        <if test="exposedOnly">WHERE c.exposed</if>
+        ORDER BY c.sort_order, c.code
+    </select>
+
+    <select id="findCategory" resultType="kr.co.im010.core.row.AiCategoryRow">
+        SELECT <include refid="categoryColumns"/> FROM ai_category c WHERE c.code = #{code}
+    </select>
+
+    <select id="existsCategorySlug" resultType="boolean">
+        SELECT EXISTS (SELECT 1 FROM ai_category WHERE slug = #{slug}
+                       <if test="excludeCode != null">AND code &lt;&gt; #{excludeCode}</if>)
+    </select>
+
+    <insert id="insertCategory">
+        INSERT INTO ai_category (code, name, slug, bg_color, accent_color, sort_order, exposed)
+        VALUES (#{code}, #{name}, #{slug}, #{bgColor}, #{accentColor}, #{sortOrder}, #{exposed})
+    </insert>
+
+    <update id="updateCategory">
+        UPDATE ai_category SET name = #{name}, slug = #{slug}, bg_color = #{bgColor}, accent_color = #{accentColor},
+                               sort_order = #{sortOrder}, exposed = #{exposed}, updated_at = now()
+        WHERE code = #{code}
+    </update>
+
+    <!-- ========== 글 ========== -->
+
+    <sql id="listColumns">
+        p.id, p.category_code, c.name AS category_name, c.slug AS category_slug, c.bg_color, c.accent_color,
+        p.title, p.slug, p.card_summary, p.thumbnail_url, array_to_string(p.tags, '|') AS tags,
+        p.sponsored, p.pinned, p.read_minutes, p.status, p.publish_at, p.view_count, p.updated_by, p.updated_at
+    </sql>
+
+    <sql id="postColumns">
+        p.id, p.category_code, c.name AS category_name, c.slug AS category_slug, c.bg_color, c.accent_color,
+        p.title, p.slug, p.card_summary, p.thumbnail_url, p.body_md, p.body_html,
+        array_to_string(p.ai_summary, E'\n') AS ai_summary, array_to_string(p.tags, '|') AS tags, p.sources_json,
+        array_to_string(p.related_plan_ids, ',') AS related_plan_ids,
+        array_to_string(p.related_internet_ids, ',') AS related_internet_ids,
+        p.sponsored, p.pinned, p.seo_title, p.seo_description, p.read_minutes, p.author_name, p.status, p.publish_at,
+        p.content_updated_at, p.view_count, p.created_by, p.updated_by, p.created_at, p.updated_at
+    </sql>
+
+    <!-- 고객에게 보이는 글 -->
+    <sql id="visible">
+        p.status = 'PUBLISHED' AND p.publish_at &lt;= now() AND c.exposed
+    </sql>
+
+    <!-- 검색: 와일드카드 해석 없이 포함 여부만 -->
+    <sql id="publicFilter">
+        <if test="categoryCode != null">AND p.category_code = #{categoryCode}</if>
+        <if test="tag != null">AND #{tag} = ANY (p.tags)</if>
+        <if test="q != null">
+            AND (position(lower(#{q}) IN lower(p.title)) &gt; 0
+                 OR position(lower(#{q}) IN lower(COALESCE(p.card_summary, ''))) &gt; 0
+                 OR position(lower(#{q}) IN lower(array_to_string(p.tags, ' '))) &gt; 0)
+        </if>
+        <if test="excludeId != null">AND p.id &lt;&gt; #{excludeId}</if>
+    </sql>
+
+    <select id="findPublished" resultType="kr.co.im010.core.row.AiPostListRow">
+        SELECT <include refid="listColumns"/>
+        FROM ai_post p JOIN ai_category c ON c.code = p.category_code
+        <if test="sort == 'popular'">
+        LEFT JOIN LATERAL (SELECT sum(v.views) AS recent FROM ai_post_view v
+                           WHERE v.post_id = p.id AND v.view_on &gt;= current_date - 30) r ON TRUE
+        </if>
+        WHERE <include refid="visible"/>
+        <include refid="publicFilter"/>
+        ORDER BY
+        <if test="sort == 'popular'">COALESCE(r.recent, 0) DESC,</if>
+        p.publish_at DESC, p.id DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countPublished" resultType="int">
+        SELECT count(*) FROM ai_post p JOIN ai_category c ON c.code = p.category_code
+        WHERE <include refid="visible"/>
+        <include refid="publicFilter"/>
+    </select>
+
+    <select id="findPinned" resultType="kr.co.im010.core.row.AiPostListRow">
+        SELECT <include refid="listColumns"/>
+        FROM ai_post p JOIN ai_category c ON c.code = p.category_code
+        WHERE <include refid="visible"/> AND p.pinned
+        <if test="categoryCode != null">AND p.category_code = #{categoryCode}</if>
+        ORDER BY p.publish_at DESC LIMIT 1
+    </select>
+
+    <select id="findPublishedPost" resultType="kr.co.im010.core.row.AiPostRow">
+        SELECT <include refid="postColumns"/>
+        FROM ai_post p JOIN ai_category c ON c.code = p.category_code
+        WHERE p.id = #{id} AND <include refid="visible"/>
+    </select>
+
+    <select id="findOlder" resultType="kr.co.im010.core.row.AiPostListRow">
+        SELECT <include refid="listColumns"/>
+        FROM ai_post p JOIN ai_category c ON c.code = p.category_code
+        WHERE <include refid="visible"/> AND p.category_code = #{categoryCode}
+          AND (p.publish_at, p.id) &lt; (#{publishAt}, #{id})
+        ORDER BY p.publish_at DESC, p.id DESC LIMIT 1
+    </select>
+
+    <select id="findNewer" resultType="kr.co.im010.core.row.AiPostListRow">
+        SELECT <include refid="listColumns"/>
+        FROM ai_post p JOIN ai_category c ON c.code = p.category_code
+        WHERE <include refid="visible"/> AND p.category_code = #{categoryCode}
+          AND (p.publish_at, p.id) &gt; (#{publishAt}, #{id})
+        ORDER BY p.publish_at, p.id LIMIT 1
+    </select>
+
+    <update id="incrementView">
+        UPDATE ai_post SET view_count = view_count + 1
+        WHERE id = #{id} AND status = 'PUBLISHED' AND publish_at &lt;= now()
+    </update>
+
+    <insert id="incrementDailyView">
+        INSERT INTO ai_post_view (post_id, view_on, views) VALUES (#{id}, #{viewOn}, 1)
+        ON CONFLICT (post_id, view_on) DO UPDATE SET views = ai_post_view.views + 1
+    </insert>
+
+    <!-- ========== 백오피스 ========== -->
+
+    <sql id="adminFilter">
+        <if test="categoryCode != null">AND p.category_code = #{categoryCode}</if>
+        <choose>
+            <when test="state == 'DRAFT'">AND p.status = 'DRAFT'</when>
+            <when test="state == 'SCHEDULED'">AND p.status = 'PUBLISHED' AND p.publish_at &gt; now()</when>
+            <when test="state == 'PUBLISHED'">AND p.status = 'PUBLISHED' AND p.publish_at &lt;= now()</when>
+            <when test="state == 'HIDDEN'">AND p.status = 'HIDDEN'</when>
+        </choose>
+        <if test="q != null">
+            AND (position(lower(#{q}) IN lower(p.title)) &gt; 0
+                 OR position(lower(#{q}) IN lower(array_to_string(p.tags, ' '))) &gt; 0)
+        </if>
+    </sql>
+
+    <select id="findPosts" resultType="kr.co.im010.core.row.AiPostListRow">
+        SELECT <include refid="listColumns"/>
+        FROM ai_post p JOIN ai_category c ON c.code = p.category_code
+        WHERE TRUE <include refid="adminFilter"/>
+        ORDER BY p.pinned DESC, COALESCE(p.publish_at, p.updated_at) DESC, p.id DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countPosts" resultType="int">
+        SELECT count(*) FROM ai_post p WHERE TRUE <include refid="adminFilter"/>
+    </select>
+
+    <select id="findPost" resultType="kr.co.im010.core.row.AiPostRow">
+        SELECT <include refid="postColumns"/>
+        FROM ai_post p JOIN ai_category c ON c.code = p.category_code
+        WHERE p.id = #{id}
+    </select>
+
+    <select id="insertPost" resultType="long" flushCache="true" useCache="false">
+        INSERT INTO ai_post (category_code, title, slug, card_summary, thumbnail_url, body_md, body_html, ai_summary, tags,
+                             sources_json, related_plan_ids, related_internet_ids, sponsored, pinned, seo_title,
+                             seo_description, read_minutes, created_by, updated_by)
+        VALUES (#{w.categoryCode}, #{w.title}, #{w.slug}, #{w.cardSummary}, #{w.thumbnailUrl}, #{w.bodyMd}, #{w.bodyHtml},
+                #{w.aiSummary,typeHandler=org.apache.ibatis.type.ArrayTypeHandler},
+                #{w.tags,typeHandler=org.apache.ibatis.type.ArrayTypeHandler}, #{w.sourcesJson},
+                #{w.relatedPlanIds,typeHandler=org.apache.ibatis.type.ArrayTypeHandler},
+                #{w.relatedInternetIds,typeHandler=org.apache.ibatis.type.ArrayTypeHandler},
+                #{w.sponsored}, #{w.pinned}, #{w.seoTitle}, #{w.seoDescription}, #{w.readMinutes}, #{w.by}, #{w.by})
+        RETURNING id
+    </select>
+
+    <update id="updatePost">
+        UPDATE ai_post SET
+            category_code = #{w.categoryCode}, title = #{w.title}, slug = #{w.slug}, card_summary = #{w.cardSummary},
+            thumbnail_url = #{w.thumbnailUrl}, body_md = #{w.bodyMd}, body_html = #{w.bodyHtml},
+            ai_summary = #{w.aiSummary,typeHandler=org.apache.ibatis.type.ArrayTypeHandler},
+            tags = #{w.tags,typeHandler=org.apache.ibatis.type.ArrayTypeHandler}, sources_json = #{w.sourcesJson},
+            related_plan_ids = #{w.relatedPlanIds,typeHandler=org.apache.ibatis.type.ArrayTypeHandler},
+            related_internet_ids = #{w.relatedInternetIds,typeHandler=org.apache.ibatis.type.ArrayTypeHandler},
+            sponsored = #{w.sponsored}, pinned = #{w.pinned}, seo_title = #{w.seoTitle},
+            seo_description = #{w.seoDescription}, read_minutes = #{w.readMinutes}, updated_by = #{w.by}, updated_at = now()
+        WHERE id = #{id}
+    </update>
+
+    <update id="unpinOthers">
+        UPDATE ai_post SET pinned = FALSE WHERE category_code = #{categoryCode} AND id &lt;&gt; #{exceptId} AND pinned
+    </update>
+
+    <update id="publish">
+        UPDATE ai_post SET status = 'PUBLISHED', publish_at = #{publishAt}, updated_by = #{by}, updated_at = now()
+        WHERE id = #{id}
+    </update>
+
+    <update id="setStatus">
+        UPDATE ai_post SET status = #{status}, updated_by = #{by}, updated_at = now() WHERE id = #{id}
+    </update>
+
+    <update id="touchContentUpdated">
+        UPDATE ai_post SET content_updated_at = now()
+        WHERE id = #{id} AND status = 'PUBLISHED' AND publish_at &lt;= now()
+    </update>
+
+    <delete id="deletePost">
+        DELETE FROM ai_post WHERE id = #{id}
+    </delete>
+
+</mapper>

@@ -9,6 +9,9 @@ import Approvals from './pages/Approvals'
 import BatchItems from './pages/BatchItems'
 import InternetProducts from './pages/InternetProducts'
 import Login from './pages/Login'
+import AiCategories from './pages/ai/AiCategories'
+import AiPostEdit from './pages/ai/AiPostEdit'
+import AiPosts from './pages/ai/AiPosts'
 import NotReady from './pages/NotReady'
 import PartnerDetail from './pages/PartnerDetail'
 import Partners from './pages/Partners'
@@ -59,6 +62,10 @@ export default function App() {
           <Route path="/partners/:code" element={<PartnerDetail />} />
           <Route path="/schedules" element={<Schedules />} />
           <Route path="/internet" element={<InternetProducts />} />
+          <Route path="/contents/posts" element={<AiPosts />} />
+          <Route path="/contents/posts/new" element={<AiPostEdit />} />
+          <Route path="/contents/posts/:id" element={<AiPostEdit />} />
+          <Route path="/contents/categories" element={<AiCategories />} />
           <Route path="/receipts/plans" element={<Receipts key="plans" kind="plans" />} />
           <Route path="/receipts/internet" element={<Receipts key="internet" kind="internet" />} />
           <Route path="/settings/programs" element={<Programs />} />

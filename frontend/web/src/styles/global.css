@@ -49,7 +49,9 @@ nav.main-nav a.top-link{
   transition:color .15s;
 }
 nav.main-nav > .nav-item:hover a.top-link,
-nav.main-nav > .nav-item:focus-within a.top-link{color:var(--coral-dark); border-bottom-color:var(--coral);}
+nav.main-nav > .nav-item:focus-within a.top-link,
+nav.main-nav a.top-link.on{color:var(--coral-dark); border-bottom-color:var(--coral);}
+.new-badge{font-size:10px; font-weight:800; color:#fff; background:var(--coral); border-radius:6px; padding:1px 5px; margin-left:4px; line-height:1.4;}
 .dropdown{
   position:absolute; top:100%; left:0; background:var(--white); border:1px solid var(--gray-200);
   border-radius:12px; padding:8px; min-width:150px; box-shadow:0 12px 28px rgba(31,36,48,0.10);

@@ -33,6 +33,14 @@
         JOIN partner pt     ON pt.code = p.partner_code AND pt.exposed
     </sql>
 
+    <select id="findPublishedByIds" resultType="kr.co.im010.core.row.PlanRow">
+        SELECT <include refid="planColumns"/>
+        <include refid="planFrom"/>
+        WHERE p.status = 'PUBLISHED'
+          AND p.id IN <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+        ORDER BY COALESCE(v.monthly_price, v.charge_price), p.id
+    </select>
+
     <select id="findPublished" resultType="kr.co.im010.core.row.PlanRow">
         SELECT <include refid="planColumns"/>
         <include refid="planFrom"/>

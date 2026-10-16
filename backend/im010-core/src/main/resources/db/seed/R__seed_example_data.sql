@@ -131,3 +131,53 @@ SELECT setval('plan_version_id_seq',     GREATEST((SELECT max(id) FROM plan_vers
 SELECT setval('monthly_pick_id_seq',     GREATEST((SELECT max(id) FROM monthly_pick), 1));
 SELECT setval('internet_partner_id_seq', GREATEST((SELECT max(id) FROM internet_partner), 1));
 SELECT setval('internet_product_id_seq', GREATEST((SELECT max(id) FROM internet_product), 1));
+
+-- 알뜰AI 예시 글 (목업과 같은 제목). 썸네일이 없으면 화면에서 카테고리 기본 그림을 쓴다.
+INSERT INTO ai_post (id, category_code, title, slug, card_summary, body_md, body_html, ai_summary, tags, sources_json,
+                     related_plan_ids, related_internet_ids, sponsored, pinned, read_minutes, status, publish_at,
+                     content_updated_at, view_count, created_by, updated_by) VALUES
+    (1, 'MOBILE', '10월 알뜰폰 요금제, 무엇이 달라졌나 — 7개사 신규 요금제 한눈에', '10월-알뜰폰-요금제-무엇이-달라졌나',
+     '데이터 10GB대 요금제가 1만 원 초반까지 내려왔어요. 이번 달 새로 나온 요금제와 할인 조건을 정리했습니다.',
+     E'이번 달 제휴 7개사가 새 요금제를 내놨어요. 가장 큰 변화는 **데이터 10GB대 요금제 가격**입니다.\n\n## 달라진 점\n\n| 구분 | 9월 | 10월 |\n| --- | --- | --- |\n| 10GB대 최저 | 13,200원 | 11,000원 |\n| 무제한 최저 | 27,500원 | 26,400원 |\n\n## 고를 때 볼 것\n\n- 할인 기간이 끝난 뒤 요금\n- 데이터 소진 후 속도(QoS)\n',
+     E'<p>이번 달 제휴 7개사가 새 요금제를 내놨어요. 가장 큰 변화는 <strong>데이터 10GB대 요금제 가격</strong>입니다.</p>\n<h2>달라진 점</h2>\n<table>\n<thead>\n<tr><th>구분</th><th>9월</th><th>10월</th></tr>\n</thead>\n<tbody>\n<tr><td>10GB대 최저</td><td>13,200원</td><td>11,000원</td></tr>\n<tr><td>무제한 최저</td><td>27,500원</td><td>26,400원</td></tr>\n</tbody>\n</table>\n<h2>고를 때 볼 것</h2>\n<ul>\n<li>할인 기간이 끝난 뒤 요금</li>\n<li>데이터 소진 후 속도(QoS)</li>\n</ul>',
+     ARRAY['10GB대 요금제 최저가가 11,000원까지 내려왔어요', '할인 기간 뒤 요금을 꼭 함께 보세요', '무제한 요금제도 1,000원가량 싸졌어요'],
+     ARRAY['10월요금제', '알뜰폰', '요금비교'], '[]', '{7,10,4}', '{}', FALSE, TRUE, 5, 'PUBLISHED', now() - interval '1 day', NULL, 812, 'admin', 'admin'),
+    (2, 'MOBILE', 'eSIM으로 알뜰폰 개통하는 법, 10분이면 끝', 'esim으로-알뜰폰-개통하는-법',
+     '유심 배송 없이 집에서 바로 개통하는 순서를 정리했어요.',
+     E'유심을 택배로 받고 기다리던 시대는 지났어요. 최근 출시된 스마트폰 대부분은 eSIM을 지원해서, 알뜰폰도 집에서 바로 개통할 수 있습니다.\n\n## 1. 내 휴대폰이 eSIM을 지원하는지 확인\n\n설정 › 일반 › 정보에서 "EID" 항목이 보이면 eSIM을 쓸 수 있는 단말이에요.\n\n## 2. 본인인증 → 요금제 선택 → QR 코드 등록\n\n제휴사 개통 화면에서 본인인증을 마치면 QR 코드가 나와요. 휴대폰 카메라로 찍으면 등록이 끝납니다.\n',
+     E'<p>유심을 택배로 받고 기다리던 시대는 지났어요. 최근 출시된 스마트폰 대부분은 eSIM을 지원해서, 알뜰폰도 집에서 바로 개통할 수 있습니다.</p>\n<h2>1. 내 휴대폰이 eSIM을 지원하는지 확인</h2>\n<p>설정 › 일반 › 정보에서 &quot;EID&quot; 항목이 보이면 eSIM을 쓸 수 있는 단말이에요.</p>\n<h2>2. 본인인증 → 요금제 선택 → QR 코드 등록</h2>\n<p>제휴사 개통 화면에서 본인인증을 마치면 QR 코드가 나와요. 휴대폰 카메라로 찍으면 등록이 끝납니다.</p>',
+     ARRAY['eSIM 지원 단말이면 유심 배송 없이 바로 개통할 수 있어요', '본인인증 → 요금제 선택 → QR 코드 등록 순서로 진행돼요', '제휴사별 eSIM 지원 여부는 개통 화면에서 확인하세요'],
+     ARRAY['eSIM', '개통', '알뜰폰'], '[{"name":"○○일보","title":"알뜰폰 eSIM 개통 쉬워진다","date":"2026.10.14","url":"https://example.com/news/esim"}]',
+     '{7,10}', '{}', FALSE, FALSE, 3, 'PUBLISHED', now() - interval '1 day 2 hours', now() - interval '3 hours', 640, 'admin', 'admin'),
+    (3, 'INTERNET', '인터넷 약정 끝나면 꼭 해야 할 3가지', '인터넷-약정-끝나면-꼭-해야-할-3가지',
+     '약정 만료 뒤 그대로 두면 요금이 오를 수 있어요.',
+     E'약정이 끝나면 할인이 사라져 요금이 오르는 경우가 많아요.\n\n## 1. 재약정 혜택 확인\n\n## 2. 다른 통신사 사은품 비교\n\n## 3. 결합 할인 다시 계산\n',
+     E'<p>약정이 끝나면 할인이 사라져 요금이 오르는 경우가 많아요.</p>\n<h2>1. 재약정 혜택 확인</h2>\n<h2>2. 다른 통신사 사은품 비교</h2>\n<h2>3. 결합 할인 다시 계산</h2>',
+     ARRAY['약정이 끝나면 할인이 빠져 요금이 오를 수 있어요', '재약정 혜택과 갈아타기 사은품을 함께 비교하세요', '알뜰폰 결합 할인도 다시 계산해 보세요'],
+     ARRAY['인터넷', '약정', '사은품'], '[]', '{}', '{1,3}', FALSE, TRUE, 4, 'PUBLISHED', now() - interval '2 days', NULL, 455, 'admin', 'admin'),
+    (4, 'MISC', '데이터 아끼는 스마트폰 설정 5가지', '데이터-아끼는-스마트폰-설정-5가지',
+     '설정 몇 개만 바꿔도 데이터가 남아요.', E'자동 업데이트, 동영상 자동 재생만 꺼도 데이터가 많이 남아요.\n',
+     E'<p>자동 업데이트, 동영상 자동 재생만 꺼도 데이터가 많이 남아요.</p>',
+     ARRAY['앱 자동 업데이트는 와이파이에서만', '동영상 자동 재생을 끄세요', '데이터 절약 모드를 켜 두세요'],
+     ARRAY['데이터', '꿀팁'], '[]', '{}', '{}', FALSE, FALSE, 2, 'PUBLISHED', now() - interval '3 days', NULL, 1203, 'admin', 'admin'),
+    (5, 'MOBILE', '번호이동 vs 신규가입, 알뜰폰은 뭐가 유리할까', '번호이동-vs-신규가입',
+     NULL, E'대부분은 번호이동이 유리해요. 쓰던 번호를 그대로 쓰고, 이벤트도 번호이동 기준이 많아요.\n',
+     E'<p>대부분은 번호이동이 유리해요. 쓰던 번호를 그대로 쓰고, 이벤트도 번호이동 기준이 많아요.</p>',
+     '{}', ARRAY['번호이동', '알뜰폰'], '[]', '{}', '{}', FALSE, FALSE, 4, 'PUBLISHED', now() - interval '5 days', NULL, 377, 'admin', 'admin'),
+    (6, 'INTERNET', '인터넷 + TV 결합, 사은품만 보고 고르면 안 되는 이유', '인터넷-tv-결합-사은품',
+     NULL, E'사은품이 커도 3년 동안 내는 요금이 더 많으면 손해예요.\n', E'<p>사은품이 커도 3년 동안 내는 요금이 더 많으면 손해예요.</p>',
+     '{}', ARRAY['결합', '사은품'], '[]', '{}', '{4,5}', FALSE, FALSE, 5, 'PUBLISHED', now() - interval '6 days', NULL, 298, 'admin', 'admin'),
+    (7, 'MOBILE', '시월모바일 10월 이벤트 요금제 총정리', '시월모바일-10월-이벤트-요금제',
+     NULL, E'시월모바일이 10월 한 달 동안 이벤트 요금제를 열었어요.\n', E'<p>시월모바일이 10월 한 달 동안 이벤트 요금제를 열었어요.</p>',
+     '{}', ARRAY['이벤트', '시월모바일'], '[]', '{}', '{}', TRUE, FALSE, 3, 'PUBLISHED', now() - interval '7 days', NULL, 520, 'admin', 'admin'),
+    (8, 'MISC', '해외여행 갈 때 데이터, 로밍 · eSIM · 유심 비교', '해외여행-데이터-로밍-esim-유심',
+     NULL, E'짧은 여행은 로밍, 일주일 이상이면 현지 eSIM이 싸요.\n', E'<p>짧은 여행은 로밍, 일주일 이상이면 현지 eSIM이 싸요.</p>',
+     '{}', ARRAY['해외여행', 'eSIM'], '[]', '{}', '{}', FALSE, FALSE, 6, 'PUBLISHED', now() - interval '9 days', NULL, 233, 'admin', 'admin'),
+    (9, 'INTERNET', '이사할 때 인터넷 이전 설치, 비용 아끼는 순서', '이사할-때-인터넷-이전-설치',
+     NULL, E'이전 설치비는 통신사마다 달라요. 이사 2주 전에 신청하세요.\n', E'<p>이전 설치비는 통신사마다 달라요. 이사 2주 전에 신청하세요.</p>',
+     '{}', ARRAY['이사', '인터넷'], '[]', '{}', '{}', FALSE, FALSE, 3, 'PUBLISHED', now() - interval '11 days', NULL, 187, 'admin', 'admin'),
+    (10, 'MISC', '[작성 중] 11월 통신비 절약 체크리스트', '11월-통신비-절약-체크리스트',
+     NULL, E'작성 중인 글이에요.\n', E'<p>작성 중인 글이에요.</p>',
+     '{}', '{}', '[]', '{}', '{}', FALSE, FALSE, 1, 'DRAFT', NULL, NULL, 0, 'admin', 'admin')
+ON CONFLICT (id) DO NOTHING;
+SELECT setval('ai_post_id_seq',          GREATEST((SELECT max(id) FROM ai_post), 1));

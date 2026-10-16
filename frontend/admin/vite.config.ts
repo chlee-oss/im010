@@ -9,6 +9,8 @@ export default defineConfig({
     port: 5174,
     proxy: {
       '/admin/api': process.env.IM010_ADMIN_API ?? 'http://localhost:8081',
+      // 알뜰AI 이미지 미리보기: 올린 이미지는 im010-api(8080)가 /uploads 로 보여 준다
+      '/uploads': process.env.IM010_API ?? 'http://localhost:8080',
     },
   },
 })

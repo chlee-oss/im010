@@ -85,3 +85,76 @@ export interface Faq {
   question: string
   answer: string
 }
+
+// 알뜰AI
+export interface AiCategory {
+  code: string
+  name: string
+  slug: string
+  bgColor: string
+  accentColor: string
+}
+
+export interface AiCard {
+  id: number
+  categorySlug: string
+  categoryName: string
+  bgColor: string
+  accentColor: string
+  title: string
+  slug: string
+  cardSummary: string | null
+  thumbnailUrl: string | null
+  tags: string[]
+  sponsored: boolean
+  readMinutes: number
+  publishedAt: string
+  isNew: boolean
+}
+
+export interface AiPage {
+  pinned: AiCard | null
+  total: number
+  page: number
+  size: number
+  items: AiCard[]
+}
+
+export interface AiSource {
+  name: string | null
+  title: string | null
+  date: string | null
+  url: string | null
+}
+
+export interface AiPost {
+  id: number
+  categorySlug: string
+  categoryName: string
+  bgColor: string
+  accentColor: string
+  title: string
+  slug: string
+  cardSummary: string | null
+  thumbnailUrl: string | null
+  bodyHtml: string
+  aiSummary: string[]
+  tags: string[]
+  sources: AiSource[]
+  sponsored: boolean
+  readMinutes: number
+  authorName: string
+  publishedAt: string
+  contentUpdatedAt: string | null
+  seoTitle: string | null
+  seoDescription: string | null
+}
+
+export interface AiDetail {
+  post: AiPost
+  relatedPlans: PlanSummary[]
+  relatedInternet: InternetProduct[]
+  older: AiCard | null
+  newer: AiCard | null
+  sameCategory: AiCard[]
+}

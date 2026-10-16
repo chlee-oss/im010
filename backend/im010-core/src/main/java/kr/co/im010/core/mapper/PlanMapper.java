@@ -35,5 +35,8 @@ public interface PlanMapper {
 
     int countPublished(@Param("planType") String planType);
 
+    /** 알뜰AI 글에 연결된 요금제 중 지금 게시 중인 것 (주어진 순서와 무관하게 가격순) */
+    List<PlanRow> findPublishedByIds(@Param("ids") List<Long> ids);
+
     PlanForwardTarget findForwardTarget(@Param("id") long id);
 }
