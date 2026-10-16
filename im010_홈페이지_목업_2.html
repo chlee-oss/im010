@@ -156,6 +156,8 @@
   .float-card .price-line{font-size:22px; font-weight:700; margin:8px 0 4px;}
   .float-card .price-line span{font-size:13px; color:var(--gray-500); font-weight:500;}
   .float-card .meta{font-size:12px; color:var(--gray-500);}
+  a.float-card{display:block; color:inherit; transition:box-shadow .15s, translate .15s;}
+  a.float-card:hover{box-shadow:0 20px 36px rgba(31,36,48,0.18); translate:0 -3px;}
   .fc-1{top:10px; right:40px; transform:rotate(3deg); z-index:3;}
   .fc-2{top:150px; right:190px; transform:rotate(-4deg); z-index:2;}
   .fc-3{top:280px; right:20px; transform:rotate(2deg); z-index:1; opacity:0.9;}
@@ -418,25 +420,26 @@
       </div>
     </div>
 
-    <div class="hero-visual" aria-hidden="true">
-      <div class="float-card fc-1">
+    <!-- Hero 카드: 게시 중인 후불 요금제 중 QoS 5Mbps 요금제를 월 요금이 낮은 순으로 3개 (로컬 수집값 2026.10.16). 누르면 요금제 상세 -->
+    <div class="hero-visual">
+      <a class="float-card fc-1" href="#" data-pending="요금제 상세">
+        <span class="brand-chip nt">토리모바일</span>
+        <h4>토리 통화기본 100GB + 7개월</h4>
+        <div class="price-line num">12,100<span>원 / 월</span></div>
+        <div class="meta">LGU+ 망 · LTE · QoS 5Mbps</div>
+      </a>
+      <a class="float-card fc-2" href="#" data-pending="요금제 상세">
         <span class="brand-chip mv">마블링</span>
-        <h4>넉넉 11GB+ 요금제</h4>
-        <div class="price-line num">16,500<span>원 / 월</span></div>
-        <div class="meta">SKT 망 · 5G · QoS 1Mbps</div>
-      </div>
-      <div class="float-card fc-2">
-        <span class="brand-chip im">인스모바일</span>
-        <h4>가벼운 3GB 요금제</h4>
-        <div class="price-line num">8,900<span>원 / 월</span></div>
-        <div class="meta">LGU+ 망 · LTE</div>
-      </div>
-      <div class="float-card fc-3">
-        <span class="brand-chip jt">조이M</span>
-        <h4>무제한 요금제</h4>
-        <div class="price-line num">24,900<span>원 / 월</span></div>
-        <div class="meta">KT 망 · 5G 완전 무제한</div>
-      </div>
+        <h4>마블링 프라임 100GB + 5Mbps</h4>
+        <div class="price-line num">17,180<span>원 / 월</span></div>
+        <div class="meta">LGU+ 망 · LTE · QoS 5Mbps</div>
+      </a>
+      <a class="float-card fc-3" href="#" data-pending="요금제 상세">
+        <span class="brand-chip nt">토리모바일</span>
+        <h4>토리 통화기본 매일5GB+</h4>
+        <div class="price-line num">26,400<span>원 / 월</span></div>
+        <div class="meta">LGU+ 망 · LTE · QoS 5Mbps</div>
+      </a>
     </div>
   </div>
 </section>
