@@ -10,7 +10,7 @@ import StateMessage from './StateMessage'
 
 /**
  * 이달의 요금제 — 제휴사 "이달의 요금제" URL 수집 결과 (제휴사 이름순 → 사이트 순서, 배지 없음).
- * 수집 결과가 없으면 후불 5G · QoS 5Mbps 요금제에서 제휴사를 돌아가며 무작위 6개를 대신 보여 준다.
+ * 수집 결과가 없으면 후불 QoS 5Mbps 요금제(5G 먼저, 모자라면 LTE)에서 제휴사를 돌아가며 무작위 6개를 대신 보여 준다.
  */
 export function MonthlyPlans() {
   const monthly = useApi((signal) => api.monthlyPlans(signal), [])
@@ -35,7 +35,9 @@ export function MonthlyPlans() {
           <div>
             <h2>이달의 요금제비교</h2>
             <div className="sub">
-              {empty ? '5G · 데이터 소진 후 5Mbps 요금제를 제휴사별로 골라 봤어요' : `${month}월, 제휴사가 추천하는 이달의 요금제 모음`}
+              {empty
+                ? `${fallback.length > 0 && fallback.every((p) => p.generation === '5G') ? '5G · ' : ''}데이터 소진 후 5Mbps 요금제를 제휴사별로 골라 봤어요`
+                : `${month}월, 제휴사가 추천하는 이달의 요금제 모음`}
             </div>
           </div>
           <a className="see-all" href="#partners">
