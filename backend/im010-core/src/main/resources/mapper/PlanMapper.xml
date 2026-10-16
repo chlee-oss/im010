@@ -24,7 +24,8 @@
         v.price_after_discount,
         array_to_string(v.tags, '|')         AS tags,
         v.collected_on,
-        v.published_at
+        v.published_at,
+        p.main_pick
     </sql>
 
     <sql id="planFrom">

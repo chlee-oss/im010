@@ -1,9 +1,13 @@
 import { useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
+import { api } from '../api/client'
 import Calculator from '../components/Calculator'
 import { Analysis, TrustRow } from '../components/Insights'
 import { InternetBanner, InternetProducts } from '../components/Internet'
 import { MonthlyPlans, PartnerPlans, PrepaidPlans } from '../components/PlanSections'
+import { won } from '../lib/format'
+import { BrandChip } from '../lib/partners'
+import { useApi } from '../lib/useApi'
 import { usePageTitle } from '../lib/usePageTitle'
 import { useToast } from '../lib/toast'
 
@@ -55,34 +59,28 @@ export default function HomePage() {
   )
 }
 
-// Hero 플로팅 카드 — 프로모션관리 보류 중 임시 규칙은 "이달의 요금제 앞 3개"이지만, 1차 화면은 목업 장식 그대로 둔다.
+/** Hero 카드 기준: 데이터를 다 쓴 뒤에도 5Mbps 로 쓸 수 있는 요금제 */
+const HERO_QOS = /(^|[^d.])5s*Mbps/i
+
+// Hero 플로팅 카드 — 게시 중인 후불 요금제 중 QoS 5Mbps 요금제를 월 요금이 낮은 순으로 3개. 없으면 비워 둔다
 function HeroCards() {
+  const { data } = useApi((signal) => api.plans('POSTPAID', undefined, signal), [])
+  const plans = (data ?? []).filter((p) => HERO_QOS.test(p.qos ?? '')).slice(0, 3)
   return (
-    <div className="hero-visual" aria-hidden="true">
-      <div className="float-card fc-1">
-        <span className="brand-chip mv">마블링</span>
-        <h4>넉넉 11GB+ 요금제</h4>
-        <div className="price-line num">
-          16,500<span>원 / 월</span>
-        </div>
-        <div className="meta">SKT 망 · 5G · QoS 1Mbps</div>
-      </div>
-      <div className="float-card fc-2">
-        <span className="brand-chip im">인스모바일</span>
-        <h4>가벼운 3GB 요금제</h4>
-        <div className="price-line num">
-          8,900<span>원 / 월</span>
-        </div>
-        <div className="meta">LGU+ 망 · LTE</div>
-      </div>
-      <div className="float-card fc-3">
-        <span className="brand-chip jt">조이M</span>
-        <h4>무제한 요금제</h4>
-        <div className="price-line num">
-          24,900<span>원 / 월</span>
-        </div>
-        <div className="meta">KT 망 · 5G 완전 무제한</div>
-      </div>
+    <div className="hero-visual">
+      {plans.map((p, i) => (
+        <Link key={p.id} className={`float-card fc-${i + 1}`} to={`/plans/${p.id}`}>
+          <BrandChip code={p.partnerCode} name={p.partnerName} />
+          <h4>{p.name}</h4>
+          <div className="price-line num">
+            {won(p.monthlyPrice)}
+            <span>원 / 월</span>
+          </div>
+          <div className="meta">
+            {p.networkLabel} 망 · {p.generation} · QoS {p.qos}
+          </div>
+        </Link>
+      ))}
     </div>
   )
 }

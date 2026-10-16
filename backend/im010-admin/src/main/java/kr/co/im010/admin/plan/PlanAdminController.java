@@ -41,6 +41,10 @@ public class PlanAdminController {
     public record UrlBody(@NotNull @Size(max = 500) String url) {
     }
 
+    /** 메인 노출 순서 1 · 2, null 이면 해제 */
+    public record MainPickBody(Integer mainPick) {
+    }
+
     private final PlanAdminService planService;
 
     public PlanAdminController(PlanAdminService planService) {
@@ -112,6 +116,12 @@ public class PlanAdminController {
     @RequiresPermission(program = PlanAdminService.PROGRAM, action = Action.APPROVE)
     public PlanAdminService.Detail unhide(@PathVariable long id) {
         return planService.hide(id, false);
+    }
+
+    @PutMapping("/{id}/main-pick")
+    @RequiresPermission(program = PlanAdminService.PROGRAM, action = Action.EDIT)
+    public PlanAdminService.Detail mainPick(@PathVariable long id, @RequestBody MainPickBody body) {
+        return planService.setMainPick(id, body.mainPick());
     }
 
     @PostMapping("/{id}/rollback")

@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import './styles/global.css'
 import './styles/pages.css'
+import './styles/plan-list.css'
 import './styles/ai.css'
 import App from './App.tsx'
 

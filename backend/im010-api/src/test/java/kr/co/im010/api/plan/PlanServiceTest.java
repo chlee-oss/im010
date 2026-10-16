@@ -28,7 +28,7 @@ class PlanServiceTest {
     static PlanRow row(long id, String type, String status, BigDecimal gb, String network, String tags) {
         return new PlanRow(id, "mv", "마블링", type, status, "넉넉 11GB+", "데이터 11GB + 매일 2GB", gb, "1Mbps",
                 "기본 제공", "기본 제공", network, "5G", "POSTPAID".equals(type) ? 16500 : null,
-                "PREPAID".equals(type) ? 6600 : null, null, null, null, tags, LocalDate.of(2026, 10, 1), null);
+                "PREPAID".equals(type) ? 6600 : null, null, null, null, tags, LocalDate.of(2026, 10, 1), null, null);
     }
 
     @Test

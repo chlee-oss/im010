@@ -7,6 +7,7 @@ import java.time.OffsetDateTime;
  * 요금제관리(PR-01) 목록 · 상세의 요금제 한 건. 이름 · 요금 · 망은 대기 버전이 있으면 대기 버전, 없으면 게시 중 버전 값.
  *
  * @param draftVersionId 게시 전 버전 (게시 대기 · 예약), 없으면 null
+ * @param mainPick       메인 "제휴사별 요금제" 노출 순서 (1 · 2), 없으면 null
  */
 public record PlanAdminRow(
         long id,
@@ -24,6 +25,7 @@ public record PlanAdminRow(
         OffsetDateTime publishedAt,
         OffsetDateTime publishAt,
         LocalDate lastCollectedOn,
-        LocalDate endedOn
+        LocalDate endedOn,
+        Integer mainPick
 ) {
 }

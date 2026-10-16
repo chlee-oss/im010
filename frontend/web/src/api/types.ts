@@ -28,6 +28,12 @@ export interface PlanSummary {
   validDays: number | null
   qos: string | null
   tags: string[]
+  voice: string | null
+  sms: string | null
+  discountMonths: number | null
+  priceAfterDiscount: number | null
+  /** 메인 "제휴사별 요금제" 노출 순서 (백오피스 PR-01 지정), 없으면 null */
+  mainPick: 1 | 2 | null
 }
 
 export interface PlanDetail {
