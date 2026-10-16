@@ -7,6 +7,7 @@ import java.time.OffsetDateTime;
 /**
  * 게시 중 버전 기준의 요금제 한 건. 목록 · 상세 · 계산기 · 이달의 요금제가 같은 행을 쓴다.
  * dataGb 가 null 이면 데이터 무제한. tags 는 DB 배열을 '|' 로 이어 붙인 문자열.
+ * mainPick 은 메인 "제휴사별 요금제"에 먼저 보여 줄 순서 (1 · 2, PR-01 에서 지정), 없으면 null.
  */
 public record PlanRow(
         long id,
@@ -29,6 +30,7 @@ public record PlanRow(
         Integer priceAfterDiscount,
         String tags,
         LocalDate collectedOn,
-        OffsetDateTime publishedAt
+        OffsetDateTime publishedAt,
+        Integer mainPick
 ) {
 }
