@@ -12,6 +12,8 @@ spring:
     password: im010_local
 
 im010:
+  upload:
+    dir: ${user.home}/im010-uploads
   admin:
     # 로컬 전용 초기 비밀번호 — 첫 로그인 때 OTP 등록 · 비밀번호 변경을 강제한다
     bootstrap-password: Im010-local-admin!

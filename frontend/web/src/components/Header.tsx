@@ -1,5 +1,7 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
+import { api } from '../api/client'
+import { useApi } from '../lib/useApi'
 import { usePartners } from '../lib/partners'
 import { useToast } from '../lib/toast'
 
@@ -16,6 +18,8 @@ export default function Header() {
   const [open, setOpen] = useState(false)
   const partners = usePartners()
   const toast = useToast()
+  const aiOn = useLocation().pathname.startsWith('/ai')
+  const aiCategories = useApi((signal) => api.aiCategories(signal), [])
   const pending = (e: React.MouseEvent) => {
     e.preventDefault()
     toast('이벤트 페이지는 준비 중이에요')
@@ -46,6 +50,20 @@ export default function Header() {
               )}
             </div>
           ))}
+          {/* 알뜰AI: 업계 소식 · 정보 콘텐츠 (im010_알뜰AI_기획서.md) */}
+          <div className="nav-item">
+            <Link className={'top-link' + (aiOn ? ' on' : '')} to="/ai" aria-current={aiOn ? 'page' : undefined}>
+              알뜰AI ▾<span className="new-badge">N</span>
+            </Link>
+            <div className="dropdown">
+              <Link to="/ai">전체 보기</Link>
+              {(aiCategories.data ?? []).map((c) => (
+                <Link key={c.slug} to={`/ai/${c.slug}`}>
+                  {c.name}
+                </Link>
+              ))}
+            </div>
+          </div>
           <div className="nav-item">
             <a className="top-link" href="#" onClick={pending}>
               이벤트
@@ -74,6 +92,12 @@ export default function Header() {
             <a key={s.href} href={s.href}>
               {s.label === '요금제' ? '요금제 전체 비교' : s.label}
             </a>
+          ))}
+          <Link to="/ai">알뜰AI</Link>
+          {(aiCategories.data ?? []).map((c) => (
+            <Link key={c.slug} className="sub" to={`/ai/${c.slug}`}>
+              {c.name}
+            </Link>
           ))}
           <a href="#" onClick={pending}>
             이벤트

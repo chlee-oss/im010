@@ -7,5 +7,8 @@ dependencies {
     api "org.mybatis.spring.boot:mybatis-spring-boot-starter:${mybatisStarterVersion}"
     api 'org.jsoup:jsoup:1.23.2'   // 제휴사 요금제 페이지 파서 (배치 수집 · 백오피스 [테스트])
     api 'tools.jackson.core:jackson-databind'   // 알림 웹훅 본문 (Boot BOM 관리 버전)
+    api 'org.commonmark:commonmark:0.30.0'                 // 알뜰AI 본문 (마크다운 → HTML)
+    api 'org.commonmark:commonmark-ext-gfm-tables:0.30.0'
+    api 'org.commonmark:commonmark-ext-autolink:0.30.0'
     runtimeOnly 'org.postgresql:postgresql'
 }
