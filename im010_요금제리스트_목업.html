@@ -68,12 +68,8 @@
   .price p { font-size: 13px; color: var(--gray-500); white-space: nowrap; }
   .price .keep { color: var(--gray-500); }
 
-  .plan-foot { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 28px 16px; }
+  .plan-foot { position: relative; display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding: 14px 28px 16px; }
   .plan-foot::before { content: ''; position: absolute; top: 0; left: 24px; right: 24px; border-top: 1.5px dashed var(--gray-200); }
-  .acts { display: flex; gap: 10px; }
-  .chip-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: var(--gray-500); background: var(--gray-100); border: none; border-radius: 999px; padding: 6px 12px; }
-  .chip-btn:hover { color: var(--navy); }
-  .chip-btn.on { color: var(--coral-dark); background: var(--coral-tint); }
   .save { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; background: none; border: none; color: var(--navy); white-space: nowrap; }
   .save em { font-style: normal; color: #E8403A; }
   .save .arrow { color: var(--gray-400); transition: transform .15s; }
@@ -92,11 +88,6 @@
 
   .example { font-size: 11px; font-weight: 700; color: var(--gray-500); border: 1px dashed var(--gray-400); border-radius: 6px; padding: 1px 6px; }
 
-  /* 비교함 */
-  .tray { position: fixed; left: 50%; bottom: 18px; transform: translate(-50%, 140%); background: var(--navy); color: #fff; border-radius: 999px; padding: 10px 10px 10px 22px; display: flex; align-items: center; gap: 16px; box-shadow: 0 12px 30px rgba(0,0,0,.25); transition: transform .2s; font-size: 14px; }
-  .tray.show { transform: translate(-50%, 0); }
-  .tray button { background: var(--coral); color: #fff; border: none; border-radius: 999px; padding: 9px 16px; font-weight: 700; }
-
   @media (max-width: 760px) {
     .wrap { padding: 0 16px; }
     .pair { grid-template-columns: 1fr; gap: 14px; }
@@ -113,7 +104,7 @@
 </head>
 <body>
 
-<div class="note"><div class="wrap">목업 · 요금제 리스트 (제휴사별 2개씩). 값은 로컬 DB 수집값(2026-10-16), <b>예시</b> 표시는 수집값이 1개뿐이라 채운 예시 · 평점 · 찜 수 · 제휴 혜택은 데이터가 없어 넣지 않음</div></div>
+<div class="note"><div class="wrap">목업 · 요금제 리스트 (제휴사별 2개씩). 값은 로컬 DB 수집값(2026-10-16), <b>예시</b> 표시는 수집값이 1개뿐이라 채운 예시 · 평점 · 제휴 혜택은 데이터가 없어 넣지 않음</div></div>
 
 <main class="wrap">
   <div class="head">
@@ -124,7 +115,6 @@
   <div id="list"></div>
 </main>
 
-<div class="tray" id="tray" role="status" aria-live="polite"><span id="trayText"></span><button type="button">비교하기</button></div>
 
 <script>
   // 로컬 DB 수집값 (2026-10-16). ex = 예시
@@ -211,10 +201,6 @@
         </div>
       </div>
       <div class="plan-foot">
-        <div class="acts">
-          <button type="button" class="chip-btn" data-like>♡ 찜</button>
-          <button type="button" class="chip-btn" data-compare>＋ 비교하기</button>
-        </div>
         ${saved
           ? `<button type="button" class="save" data-toggle aria-expanded="false">할인으로 최대 <em>${won(saved)}원</em> 아껴요 <span class="arrow">⌄</span></button>`
           : `<button type="button" class="save" data-toggle aria-expanded="false">요금 자세히 <span class="arrow">⌄</span></button>`}
@@ -241,27 +227,13 @@
       <div class="pair">${PLANS[pt.code].map((p, i) => card(pt, p, i)).join('')}</div>
     </section>`).join('')
 
-  // 동작: 펼치기 · 찜 · 비교함
-  const compare = new Set()
-  const tray = document.getElementById('tray')
+  // 동작: 카드 · 아래 문구를 누르면 상세 표 펼치기
   document.getElementById('list').addEventListener('click', (e) => {
     const plan = e.target.closest('.plan')
     if (!plan) return
     if (e.target.closest('[data-toggle]') || e.target.closest('.plan-main')) {
       const open = plan.classList.toggle('open')
       plan.querySelector('[data-toggle]').setAttribute('aria-expanded', open)
-    } else if (e.target.closest('[data-like]')) {
-      const b = e.target.closest('[data-like]')
-      b.classList.toggle('on')
-      b.textContent = b.classList.contains('on') ? '♥ 찜' : '♡ 찜'
-    } else if (e.target.closest('[data-compare]')) {
-      const b = e.target.closest('[data-compare]')
-      if (compare.has(plan.id)) compare.delete(plan.id)
-      else if (compare.size < 3) compare.add(plan.id)
-      b.classList.toggle('on', compare.has(plan.id))
-      b.textContent = compare.has(plan.id) ? '✓ 비교함' : '＋ 비교하기'
-      document.getElementById('trayText').textContent = `비교함 ${compare.size} / 3`
-      tray.classList.toggle('show', compare.size > 0)
     }
   })
   document.getElementById('list').addEventListener('keydown', (e) => {

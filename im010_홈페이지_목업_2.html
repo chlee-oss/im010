@@ -227,12 +227,8 @@
   .lp-price{display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-top:10px; padding-top:12px; border-top:1px solid #F4F5F7;}
   .lp-price b{font-size:23px; font-weight:800; letter-spacing:-0.5px;}
   .lp-price small{font-size:13px; color:var(--gray-500); white-space:nowrap;}
-  .lp-foot{position:relative; display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px 26px 14px;}
+  .lp-foot{position:relative; display:flex; justify-content:flex-end; align-items:center; gap:10px; padding:12px 26px 14px;}
   .lp-foot::before{content:''; position:absolute; top:0; left:22px; right:22px; border-top:1.5px dashed var(--gray-200);}
-  .lp-acts{display:flex; gap:8px;}
-  .lp-chip{font-family:inherit; font-size:12.5px; font-weight:600; color:var(--gray-500); background:#F4F5F7; border:none; border-radius:999px; padding:6px 11px; cursor:pointer;}
-  .lp-chip:hover{color:var(--navy);}
-  .lp-chip.on{color:var(--coral-dark); background:var(--coral-tint);}
   .lp-save{font-size:13.5px; font-weight:700; white-space:nowrap;}
   .lp-save em{font-style:normal; color:#E8403A;}
   .lp-example{font-size:11px; font-weight:700; color:var(--gray-500); border:1px dashed var(--gray-500); border-radius:6px; padding:0 5px;}
@@ -800,7 +796,6 @@
           <div class="lp-price"><b class="num">월 ${won(p.price)}원</b><small>${p.months ? `${p.months}개월 이후 ${won(p.after)}원` : '할인 기간 없음'}</small></div>
         </a>
         <div class="lp-foot">
-          <div class="lp-acts"><button type="button" class="lp-chip" data-like>♡ 찜</button><button type="button" class="lp-chip" data-compare>＋ 비교하기</button></div>
           ${saved ? `<span class="lp-save">할인으로 최대 <em>${won(saved)}원</em> 아껴요</span>` : `<a class="lp-save" href="#" data-pending="요금제 상세">자세히 ›</a>`}
         </div>
       </article>`;
@@ -815,21 +810,6 @@
     const name = brand === 'all' ? '전체' : BRANDS[brand].name;
     document.getElementById('partnerCount').innerHTML = `${esc(name)} · 제휴사별 낮은 가격 <b>2</b>개`;
   }
-  // 찜 · 비교하기 (목업: 화면 안에서만)
-  const compare = new Set();
-  document.getElementById('partnerList').addEventListener('click', e => {
-    const like = e.target.closest('[data-like]');
-    if (like) { like.classList.toggle('on'); like.textContent = like.classList.contains('on') ? '♥ 찜' : '♡ 찜'; return; }
-    const cmp = e.target.closest('[data-compare]');
-    if (!cmp) return;
-    const key = cmp.closest('.lp-card').querySelector('.lp-name').textContent;
-    if (compare.has(key)) compare.delete(key);
-    else if (compare.size < 3) compare.add(key);
-    else { showToast('비교함에는 3개까지 담을 수 있어요'); return; }
-    cmp.classList.toggle('on', compare.has(key));
-    cmp.textContent = compare.has(key) ? '✓ 비교함' : '＋ 비교하기';
-    showToast(`비교함 ${compare.size} / 3`);
-  });
 
   function renderIsp(type){
     document.getElementById('ispGrid').innerHTML = ISP.filter(p => type === 'all' || p.type === type).map(p => `
