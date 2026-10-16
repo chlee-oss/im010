@@ -1,4 +1,7 @@
 import type {
+  AiCategory,
+  AiDetail,
+  AiPage,
   Faq,
   FooterInfo,
   InternetProduct,
@@ -62,4 +65,15 @@ export const api = {
   footer: (signal?: AbortSignal) => getJson<FooterInfo>('/api/footer', signal),
 
   faqs: (signal?: AbortSignal) => getJson<Faq[]>('/api/faqs', signal),
+
+  aiCategories: (signal?: AbortSignal) => getJson<AiCategory[]>('/api/ai/categories', signal),
+
+  /** category = 카테고리 주소 (mobile · internet · misc), sort = latest | popular */
+  aiPosts: (p: { category?: string; tag?: string; q?: string; sort?: string; page?: number }, signal?: AbortSignal) =>
+    getJson<AiPage>(`/api/ai/posts${qs(p)}`, signal),
+
+  aiPost: (id: number, signal?: AbortSignal) => getJson<AiDetail>(`/api/ai/posts/${id}`, signal),
+
+  /** 조회 수 (실패해도 화면에는 영향 없음) */
+  aiView: (id: number) => fetch(`/api/ai/posts/${id}/view`, { method: 'POST' }).catch(() => undefined),
 }

@@ -114,6 +114,8 @@ export interface PlanRow {
   publishAt: string | null
   lastCollectedOn: string | null
   endedOn: string | null
+  /** 메인 "제휴사별 요금제" 노출 순서 (1 · 2), 없으면 null */
+  mainPick: 1 | 2 | null
 }
 
 export type PlanState = 'PUBLISHED' | 'DRAFT' | 'SCHEDULED' | 'ENDED' | 'HIDDEN'
@@ -400,4 +402,97 @@ export interface MyNotify {
   email: string | null
   mailAlerts: string[]
   types: AlertTypeInfo[]
+}
+
+// 알뜰AI (CT-01 · CT-02)
+export type AiState = 'DRAFT' | 'SCHEDULED' | 'PUBLISHED' | 'HIDDEN'
+
+export interface AiCategory {
+  code: string
+  name: string
+  slug: string
+  bgColor: string
+  accentColor: string
+  sortOrder: number
+  exposed: boolean
+  postCount: number
+}
+
+export interface AiPostListRow {
+  id: number
+  categoryCode: string
+  categoryName: string
+  categorySlug: string
+  bgColor: string
+  accentColor: string
+  title: string
+  slug: string
+  cardSummary: string | null
+  thumbnailUrl: string | null
+  tags: string | null
+  sponsored: boolean
+  pinned: boolean
+  readMinutes: number
+  status: string
+  publishAt: string | null
+  viewCount: number
+  updatedBy: string | null
+  updatedAt: string
+}
+
+export interface AiPostRow {
+  id: number
+  categoryCode: string
+  title: string
+  slug: string
+  cardSummary: string | null
+  thumbnailUrl: string | null
+  bodyMd: string
+  bodyHtml: string
+  sponsored: boolean
+  pinned: boolean
+  seoTitle: string | null
+  seoDescription: string | null
+  readMinutes: number
+  authorName: string
+  status: string
+  publishAt: string | null
+  contentUpdatedAt: string | null
+  viewCount: number
+  createdBy: string | null
+  updatedBy: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AiSource {
+  name: string | null
+  title: string | null
+  date: string | null
+  url: string | null
+}
+
+export interface AiRelatedOption {
+  id: number
+  kind: 'PLAN' | 'INTERNET'
+  label: string
+  partner: string | null
+  price: number | null
+}
+
+export interface AiPostDetail {
+  post: AiPostRow
+  state: AiState
+  aiSummary: string[]
+  tags: string[]
+  sources: AiSource[]
+  relatedPlanIds: number[]
+  relatedInternetIds: number[]
+  related: AiRelatedOption[]
+}
+
+export interface AiPostPage {
+  total: number
+  page: number
+  items: { post: AiPostListRow; state: AiState }[]
 }

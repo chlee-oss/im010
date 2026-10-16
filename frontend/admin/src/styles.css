@@ -252,3 +252,50 @@ fieldset.checks { border: 1px solid var(--gray-200); border-radius: 10px; paddin
 fieldset.checks legend { font-size: 12px; font-weight: 700; color: var(--gray-700); padding: 0 4px; }
 .pre { white-space: pre-wrap; font-size: 12px; margin-top: 4px; }
 fieldset.checks label { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; }
+
+/* ---------- 알뜰AI (CT-01 · CT-02) ---------- */
+.ai-editor { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; }
+.ai-side { position: sticky; top: 76px; }
+.ai-editor .form-grid { grid-template-columns: 200px 1fr; }
+.ai-editor .form-grid label.span2 { grid-column: span 2; }
+.ai-editor .form-grid.one { grid-template-columns: 1fr; }
+.ai-editor .form-grid label .small { font-weight: 500; }
+.ai-title-input { font-size: 17px !important; font-weight: 700; }
+.ai-toolbar { display: flex; gap: 4px; flex-wrap: wrap; }
+.ai-toolbar button { padding: 4px 9px; font-size: 12px; }
+.ai-body-input { width: 100%; font-family: ui-monospace, Consolas, 'D2Coding', monospace; font-size: 13px; line-height: 1.7; resize: vertical; }
+.ai-body { min-height: 420px; max-height: 70vh; overflow-y: auto; border: 1px solid var(--gray-200); border-radius: 8px; padding: 18px 22px; font-size: 15px; line-height: 1.8; }
+.ai-body h2 { font-size: 19px; font-weight: 800; margin: 22px 0 8px; }
+.ai-body h3 { font-size: 16px; font-weight: 800; margin: 18px 0 6px; }
+.ai-body p, .ai-body ul, .ai-body ol, .ai-body table, .ai-body blockquote { margin-bottom: 12px; }
+.ai-body ul, .ai-body ol { padding-left: 20px; }
+.ai-body img { max-width: 100%; border-radius: 10px; }
+.ai-body table { border-collapse: collapse; }
+.ai-body th, .ai-body td { border: 1px solid var(--gray-200); padding: 6px 10px; }
+.ai-body blockquote { border-left: 3px solid var(--coral); padding-left: 12px; color: var(--gray-700); }
+.ai-body a { color: var(--coral-dark); text-decoration: underline; }
+.ai-lines { display: flex; flex-direction: column; gap: 6px; }
+.ai-sources { display: flex; flex-direction: column; gap: 6px; }
+.ai-source-row { display: grid; grid-template-columns: 140px 1fr 110px 1fr 32px; gap: 6px; }
+.ai-picker { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.pick-list button.on { border-color: var(--coral); background: var(--coral-tint); }
+.chips .mini { display: inline-flex; align-items: center; gap: 2px; }
+.chips .mini button.icon { font-size: 11px; padding: 0 2px 0 6px; }
+.ai-publish { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.ai-thumb-large { width: 100%; border-radius: 10px; margin: 8px 0; border: 1px solid var(--gray-200); }
+.ai-thumb-cell { width: 56px; }
+.ai-thumb-mini { display: block; width: 48px; height: 36px; border-radius: 6px; object-fit: cover; border: 1px solid var(--gray-200); }
+/* 프런트 목록 카드와 같은 모양 (높이 112 · 둥근 20 · 오른쪽 썸네일 아래 잘림) */
+.ai-card-preview { display: flex; justify-content: space-between; gap: 12px; height: 112px; padding: 16px 14px 0 18px; border-radius: 20px; overflow: hidden; border: 2px solid; }
+.ai-card-preview .text { display: flex; flex-direction: column; justify-content: space-between; padding-bottom: 14px; min-width: 0; }
+.ai-card-preview h3 { font-size: 15px; font-weight: 700; line-height: 1.38; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ai-card-preview .meta { font-size: 12px; color: var(--gray-700); white-space: nowrap; }
+.ai-card-preview .ad { font-size: 10px; font-weight: 700; border: 1px solid var(--gray-500); border-radius: 4px; padding: 0 3px; margin-right: 4px; }
+.ai-card-preview .thumb { flex: 0 0 104px; height: 92px; margin-top: 4px; border-radius: 10px; overflow: hidden; background: var(--white); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+.ai-card-preview .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.ai-cat-swatch { display: inline-block; padding: 6px 12px; border-radius: 12px; border: 2px solid; font-size: 12px; color: var(--gray-700); white-space: nowrap; }
+@media (max-width: 1100px) {
+  .ai-editor { grid-template-columns: 1fr; }
+  .ai-side { position: static; }
+  .ai-source-row { grid-template-columns: 1fr 1fr; }
+}

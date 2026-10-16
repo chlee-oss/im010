@@ -49,3 +49,19 @@ export function qs(params: Record<string, string | number | undefined | null>): 
   const s = p.toString()
   return s ? '?' + s : ''
 }
+
+/** 파일 올리기 (multipart). 서버가 파일 내용으로 형식을 다시 확인한다 */
+export async function upload<T>(path: string, file: File): Promise<T> {
+  const form = new FormData()
+  form.append('file', file)
+  const headers: Record<string, string> = { Accept: 'application/json' }
+  const token = xsrfToken()
+  if (token) headers['X-XSRF-TOKEN'] = token
+  const res = await fetch('/admin/api' + path, { method: 'POST', headers, body: form, credentials: 'same-origin' })
+  const data = await res.json().catch(() => null)
+  if (!res.ok) {
+    if (res.status === 401) window.dispatchEvent(new Event('im010:unauthorized'))
+    throw new ApiError(res.status, data?.code, data?.detail ?? (res.status === 413 ? '파일이 너무 큽니다' : '올리지 못했습니다 (' + res.status + ')'))
+  }
+  return data as T
+}

@@ -71,6 +71,11 @@ public interface PlanAdminMapper {
     /** 판매 재개 · 비노출 해제: 게시된 버전이 있으면 게시 중, 없으면 게시 대기. */
     void restoreStatus(@Param("planId") long planId);
 
+    /** 메인 "제휴사별 요금제" 노출 순서 */
+    void clearMainPick(@Param("partnerCode") String partnerCode, @Param("mainPick") int mainPick, @Param("exceptId") long exceptId);
+
+    void setMainPick(@Param("planId") long planId, @Param("mainPick") Integer mainPick);
+
     void setActivationUrlIfEmpty(@Param("planId") long planId, @Param("url") String url);
 
     void updateActivationUrl(@Param("planId") long planId, @Param("url") String url);

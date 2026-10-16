@@ -14,6 +14,10 @@ server:
 spring:
   application:
     name: im010-admin
+  servlet:
+    multipart:
+      max-file-size: 5MB                 # 알뜰AI 이미지 업로드
+      max-request-size: 6MB
   datasource:
     url: ${IM010_DB_URL:jdbc:postgresql://localhost:5432/im010}
     username: ${IM010_DB_USER:im010}
@@ -29,6 +33,8 @@ im010:
   admin:
     bootstrap-login-id: ${IM010_ADMIN_BOOTSTRAP_LOGIN_ID:admin}
     bootstrap-password: ${IM010_ADMIN_BOOTSTRAP_PASSWORD:}
+  upload:
+    dir: ${IM010_UPLOAD_DIR:/opt/im010/uploads}   # 알뜰AI 이미지 (api 와 같은 경로)
 
 management:
   endpoints:

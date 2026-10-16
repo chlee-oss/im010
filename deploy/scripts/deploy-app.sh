@@ -62,6 +62,13 @@ for d in web admin-web; do
 done
 restorecon -R /opt/im010/web /opt/im010/admin-web
 
+echo "== 3-1. 알뜰AI 이미지 폴더 /opt/im010/uploads (앱이 쓰고 nginx 가 읽는다)"
+install -d -o im010 -g im010 -m 755 /opt/im010/uploads
+if ! semanage fcontext -l | grep -qF '/opt/im010/uploads(/.*)?'; then
+    semanage fcontext -a -t httpd_sys_content_t '/opt/im010/uploads(/.*)?'
+fi
+restorecon -R /opt/im010/uploads
+
 echo "== 4. api (DB 마이그레이션 Flyway 포함) → admin → batch"
 for m in api admin batch; do
     install -o im010 -g im010 -m 640 "$REL/im010-$m.jar" "/opt/im010/$m/im010-$m.jar"

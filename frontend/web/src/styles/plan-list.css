@@ -1,0 +1,42 @@
+/* 제휴사별 요금제 카드 (im010_요금제리스트_목업.html): 제휴사마다 2개씩 한 줄 */
+.lp-group { margin-bottom: 26px; }
+.lp-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.lp-head .brand-chip { margin-bottom: 0; font-size: 13px; padding: 5px 11px; }
+.lp-all { font: inherit; font-size: 13px; font-weight: 600; color: var(--gray-700); background: none; border: none; cursor: pointer; }
+.lp-all:hover { color: var(--coral-dark); }
+.lp-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+
+.lp-card { display: flex; flex-direction: column; background: #fff; border-radius: 18px; box-shadow: 0 2px 10px rgba(31, 36, 48, 0.06); overflow: hidden; color: inherit; transition: box-shadow .15s, transform .15s; }
+.lp-card:hover { box-shadow: 0 10px 26px rgba(31, 36, 48, 0.10); transform: translateY(-2px); }
+.lp-main { display: flex; flex-direction: column; gap: 6px; padding: 22px 26px 18px; }
+.lp-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 4px; }
+.lp-top-left { display: flex; align-items: center; gap: 10px; white-space: nowrap; font-size: 13px; color: var(--gray-700); }
+.lp-top-left .brand-chip { margin-bottom: 0; }
+.lp-badges { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.lp-badge { font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 7px; white-space: nowrap; }
+.lp-badge.coral { background: #FDEBDD; color: #D2621B; }
+.lp-badge.navy { background: #EBEEFA; color: #2440A8; }
+.lp-badge.pink { background: #FFE9F3; color: #E0368A; }
+.lp-badge.green { background: #E6F6EC; color: #1E8E4E; }
+.lp-name { font-size: 14px; color: var(--gray-500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lp-headline { font-size: 21px; font-weight: 800; letter-spacing: -0.5px; }
+.lp-specs { display: flex; gap: 16px; color: var(--gray-700); font-size: 14px; flex-wrap: wrap; }
+.lp-specs span { display: inline-flex; align-items: center; gap: 5px; }
+.lp-specs svg { width: 15px; height: 15px; fill: var(--gray-700); }
+.lp-price { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-top: 10px; padding-top: 12px; border-top: 1px solid #F4F5F7; }
+.lp-price b { font-size: 23px; font-weight: 800; letter-spacing: -0.5px; }
+.lp-price small { font-size: 13px; color: var(--gray-500); white-space: nowrap; }
+.lp-foot { position: relative; display: flex; justify-content: flex-end; align-items: center; padding: 12px 26px 14px; }
+.lp-foot::before { content: ''; position: absolute; top: 0; left: 22px; right: 22px; border-top: 1.5px dashed var(--gray-200); }
+.lp-save { font-size: 13.5px; font-weight: 700; white-space: nowrap; }
+.lp-save em { font-style: normal; color: #E8403A; }
+
+@media (max-width: 760px) {
+  .lp-pair { grid-template-columns: 1fr; gap: 12px; }
+  .lp-main { padding: 18px 18px 14px; }
+  .lp-top { flex-direction: column; align-items: flex-start; }
+  .lp-badges { justify-content: flex-start; }
+  .lp-headline { font-size: 19px; }
+  .lp-foot { padding: 12px 18px 14px; }
+  .lp-foot::before { left: 14px; right: 14px; }
+}

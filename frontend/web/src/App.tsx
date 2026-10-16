@@ -3,6 +3,8 @@ import Footer from './components/Footer'
 import Header from './components/Header'
 import { PartnerProvider } from './lib/partners'
 import { ToastProvider } from './lib/toast'
+import AiListPage from './pages/AiListPage'
+import AiPostPage from './pages/AiPostPage'
 import FaqPage from './pages/FaqPage'
 import HomePage from './pages/HomePage'
 import NotFoundPage from './pages/NotFoundPage'
@@ -20,6 +22,9 @@ export default function App() {
             <Route path="/plans/:id" element={<PlanDetailPage />} />
             <Route path="/terms/:slug" element={<TermsPage />} />
             <Route path="/faq" element={<FaqPage />} />
+            <Route path="/ai" element={<AiListPage />} />
+            <Route path="/ai/posts/:id/:slug?" element={<AiPostPage />} />
+            <Route path="/ai/:category" element={<AiListPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </main>

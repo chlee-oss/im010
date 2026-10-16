@@ -64,7 +64,8 @@ public class PlanAdminService {
         String type = "PREPAID".equals(planType) ? "PREPAID" : "POSTPAID";
         int p = Math.max(page, 1);
         String partnerCode = Texts.trim(partner);
-        String st = Texts.trim(state);
+        // 상태를 고르지 않으면 판매 종료는 뺀다 (판매 종료는 [상태] 에서 따로 골라 본다)
+        String st = Texts.trim(state) == null ? "ACTIVE" : Texts.trim(state);
         String net = Texts.trim(network);
         String query = Texts.trim(q);
         List<ListItem> items = planMapper.findPlans(type, partnerCode, st, net, query, PAGE_SIZE, (p - 1) * PAGE_SIZE)
@@ -217,6 +218,30 @@ public class PlanAdminService {
             planMapper.restoreStatus(id);
         }
         audit.action(PROGRAM, hidden ? "HIDE" : "UNHIDE", "plan " + id, null);
+        return detail(id);
+    }
+
+    /**
+     * 메인 "제휴사별 요금제"에 먼저 보여 줄 순서 (1 · 2, null 이면 해제). 후불만.
+     * 같은 제휴사에서 같은 순서를 쓰던 요금제는 해제된다. 게시 중이 아니면 메인에는 보이지 않는다.
+     */
+    @Transactional
+    public Detail setMainPick(long id, Integer mainPick) {
+        PlanAdminRow plan = find(id);
+        if (!"POSTPAID".equals(plan.planType())) {
+            throw ApiException.badRequest("메인 노출은 후불 요금제만 지정할 수 있습니다");
+        }
+        if (mainPick != null && mainPick != 1 && mainPick != 2) {
+            throw ApiException.badRequest("메인 노출 순서는 1 또는 2입니다");
+        }
+        if (mainPick != null && plan.status().equals("ENDED")) {
+            throw ApiException.conflict("판매 종료된 요금제입니다");
+        }
+        if (mainPick != null) {
+            planMapper.clearMainPick(plan.partnerCode(), mainPick, id);
+        }
+        planMapper.setMainPick(id, mainPick);
+        audit.action(PROGRAM, "MAIN_PICK", "plan " + id, mainPick == null ? "해제" : plan.partnerName() + " " + mainPick + "번째");
         return detail(id);
     }
 

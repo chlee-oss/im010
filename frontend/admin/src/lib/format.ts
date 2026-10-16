@@ -157,3 +157,5 @@ export function addDays(date: string, days: number): string {
 
 export const CHANNEL_KIND: Record<string, string> = { SLACK: 'Slack · Mattermost', TEAMS: 'Microsoft Teams', JANDI: '잔디', WEBHOOK: '일반 웹훅' }
 export const NOTIFY_STATUS: Record<string, string> = { PENDING: '발송 대기', SENT: '발송 완료', PARTIAL: '일부 실패', FAILED: '실패', NO_TARGET: '받을 곳 없음' }
+
+export const AI_STATE: Record<string, string> = { DRAFT: '작성 중', SCHEDULED: '게시 예약', PUBLISHED: '게시 중', HIDDEN: '비노출' }
