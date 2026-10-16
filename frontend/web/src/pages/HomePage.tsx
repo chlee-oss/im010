@@ -7,6 +7,7 @@ import { InternetBanner, InternetProducts } from '../components/Internet'
 import { MonthlyPlans, PartnerPlans, PrepaidPlans } from '../components/PlanSections'
 import { won } from '../lib/format'
 import { BrandChip } from '../lib/partners'
+import { heroPicks } from '../lib/planRules'
 import { useApi } from '../lib/useApi'
 import { usePageTitle } from '../lib/usePageTitle'
 import { useToast } from '../lib/toast'
@@ -59,13 +60,10 @@ export default function HomePage() {
   )
 }
 
-/** Hero 카드 기준: 데이터를 다 쓴 뒤에도 5Mbps 로 쓸 수 있는 요금제 */
-const HERO_QOS = /(^|[^d.])5s*Mbps/i
-
-// Hero 플로팅 카드 — 게시 중인 후불 요금제 중 QoS 5Mbps 요금제를 월 요금이 낮은 순으로 3개. 없으면 비워 둔다
+// Hero 플로팅 카드 — 게시 중인 후불 요금제 중 QoS 5Mbps 요금제를 월 요금이 낮은 순으로 3개 (같은 요금제는 하나만, lib/planRules). 없으면 비워 둔다
 function HeroCards() {
   const { data } = useApi((signal) => api.plans('POSTPAID', undefined, signal), [])
-  const plans = (data ?? []).filter((p) => HERO_QOS.test(p.qos ?? '')).slice(0, 3)
+  const plans = heroPicks(data ?? [])
   return (
     <div className="hero-visual">
       {plans.map((p, i) => (

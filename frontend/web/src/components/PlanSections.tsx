@@ -1,32 +1,27 @@
 import { useMemo, useState } from 'react'
 import { api } from '../api/client'
-import { pickMonthlyFallback } from '../lib/monthlyFallback'
 import { BrandChip, usePartners } from '../lib/partners'
 import { pickTwo } from '../lib/planPicks'
+import { cleanMonthly, heroPicks, is5Mbps, pickMonthlyFallback, uniquePlans } from '../lib/planRules'
 import { useApi } from '../lib/useApi'
-import { PlanCard } from './PlanCard'
 import { PlanListCard } from './PlanListCard'
 import StateMessage from './StateMessage'
 
 /**
- * 이달의 요금제 — 제휴사 "이달의 요금제" URL 수집 결과 (제휴사 이름순 → 사이트 순서, 배지 없음).
- * 수집 결과가 없으면 후불 QoS 5Mbps 요금제(5G 먼저, 모자라면 LTE)에서 제휴사를 돌아가며 무작위 6개를 대신 보여 준다.
+ * 이달의 요금제 — 제휴사 "이달의 요금제" URL 수집 결과 (제휴사 이름순 → 사이트 순서).
+ * 같은 요금제 · Hero 카드와 겹치는 요금제는 빼고, 남는 것이 없으면 후불 요금제에서 6개를 대신 고른다 (lib/planRules).
+ * 카드는 제휴사별 요금제와 같은 리스트 카드 2개씩 한 줄.
  */
 export function MonthlyPlans() {
   const monthly = useApi((signal) => api.monthlyPlans(signal), [])
-  const empty = !!monthly.data && monthly.data.length === 0
-  const all = useApi((signal) => (empty ? api.plans('POSTPAID', undefined, signal) : Promise.resolve(null)), [empty])
-  // 대신 보여 줄 때는 고른 기준(망 · 5G · 소진 후 속도)을 태그로 보여 준다
-  const fallback = useMemo(
-    () =>
-      (all.data ? pickMonthlyFallback(all.data) : []).map((p) =>
-        p.tags.length > 0 ? p : { ...p, tags: [`${p.networkLabel}망`, p.generation, `소진 후 ${p.qos}`] },
-      ),
-    [all.data],
-  )
-  const data = empty ? (all.data ? fallback : null) : monthly.data
-  const loading = monthly.loading || (empty && all.loading)
-  const error = monthly.error ?? (empty ? all.error : null)
+  const postpaid = useApi((signal) => api.plans('POSTPAID', undefined, signal), [])
+  const hero = useMemo(() => heroPicks(postpaid.data ?? []), [postpaid.data])
+  const picked = useMemo(() => cleanMonthly(monthly.data ?? [], hero), [monthly.data, hero])
+  const fallback = useMemo(() => pickMonthlyFallback(postpaid.data ?? [], hero), [postpaid.data, hero])
+  const ready = !!monthly.data && !!postpaid.data
+  const useFallback = ready && picked.length === 0
+  const data = !ready ? null : useFallback ? fallback : picked
+  const all5Mbps = fallback.length > 0 && fallback.every(is5Mbps)
   const [month] = useState(() => new Date().getMonth() + 1)
   return (
     <section id="month">
@@ -35,8 +30,10 @@ export function MonthlyPlans() {
           <div>
             <h2>이달의 요금제비교</h2>
             <div className="sub">
-              {empty
-                ? `${fallback.length > 0 && fallback.every((p) => p.generation === '5G') ? '5G · ' : ''}데이터 소진 후 5Mbps 요금제를 제휴사별로 골라 봤어요`
+              {useFallback
+                ? all5Mbps
+                  ? '데이터 소진 후 5Mbps 요금제를 제휴사별로 골라 봤어요'
+                  : '제휴사 요금제를 골고루 골라 봤어요'
                 : `${month}월, 제휴사가 추천하는 이달의 요금제 모음`}
             </div>
           </div>
@@ -44,8 +41,12 @@ export function MonthlyPlans() {
             전체 요금제 보기 →
           </a>
         </div>
-        <StateMessage loading={loading && !data} error={error} empty={data?.length === 0} />
-        <div className="month-scroll">{data?.map((p) => <PlanCard key={p.id} plan={p} />)}</div>
+        <StateMessage loading={!data && (monthly.loading || postpaid.loading)} error={monthly.error ?? postpaid.error} empty={data?.length === 0} />
+        <div className="lp-pair">
+          {data?.map((p) => (
+            <PlanListCard key={p.id} plan={p} />
+          ))}
+        </div>
       </div>
     </section>
   )
@@ -140,7 +141,9 @@ export function PartnerPlans() {
 
 /** 선불요금제 — 카드만, 어떤 비교에도 넣지 않는다. */
 export function PrepaidPlans() {
-  const { data, loading, error } = useApi((signal) => api.plans('PREPAID', undefined, signal), [])
+  const prepaid = useApi((signal) => api.plans('PREPAID', undefined, signal), [])
+  const { loading, error } = prepaid
+  const data = useMemo(() => (prepaid.data ? uniquePlans(prepaid.data) : null), [prepaid.data])
   return (
     <section id="prepaid">
       <div className="wrap">
@@ -151,7 +154,11 @@ export function PrepaidPlans() {
           </div>
         </div>
         <StateMessage loading={loading && !data} error={error} empty={data?.length === 0} />
-        <div className="month-scroll">{data?.map((p) => <PlanCard key={p.id} plan={p} />)}</div>
+        <div className="lp-pair">
+          {data?.map((p) => (
+            <PlanListCard key={p.id} plan={p} />
+          ))}
+        </div>
       </div>
     </section>
   )

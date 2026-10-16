@@ -33,22 +33,26 @@ function badges(p: PlanSummary): [string, string][] {
   return out.slice(0, 2)
 }
 
-/** "월 7GB + 1Mbps" — 데이터 제공량 + 다 쓴 뒤 속도 */
+/** "월 7GB + 1Mbps" — 데이터 제공량 + 다 쓴 뒤 속도 (선불은 "월" 없이) */
 function headline(p: PlanSummary): string {
   if (p.unlimited) return '데이터 무제한'
-  const data = p.dataText.replace(/^데이터\s*/, '')
-  return `${/^\d/.test(data) ? '월 ' : ''}${data}${p.qos ? ' + ' + p.qos : ''}`
+  // "데이터 0GB + 매일 5GB" 처럼 기본 제공량이 0 으로 수집된 경우 "매일 5GB" 만
+  const data = p.dataText.replace(/^데이터\s*/, '').replace(/^0\s*GB\s*\+\s*/i, '')
+  const monthly = p.planType === 'POSTPAID' && /^\d/.test(data)
+  return `${monthly ? '월 ' : ''}${data}${p.qos ? ' + ' + p.qos : ''}`
 }
 
 /**
- * 제휴사별 요금제 카드 (im010_요금제리스트_목업.html): 위 정보 영역 + 점선 + 아래 할인 안내.
- * 누르면 S2 요금제 상세.
+ * 요금제 리스트 카드 (im010_요금제리스트_목업.html): 위 정보 영역 + 점선 + 아래 할인 안내.
+ * 제휴사별 요금제 · 이달의 요금제비교 · 선불요금제가 같은 카드를 쓴다. 누르면 S2 요금제 상세.
  */
 export function PlanListCard({ plan: p }: { plan: PlanSummary }) {
-  const after = p.discountMonths && p.priceAfterDiscount != null ? p.priceAfterDiscount : null
+  const prepaid = p.planType === 'PREPAID'
+  const after = !prepaid && p.discountMonths && p.priceAfterDiscount != null ? p.priceAfterDiscount : null
   const saved = after != null && p.monthlyPrice != null ? (after - p.monthlyPrice) * (p.discountMonths ?? 0) : 0
+  const priceLabel = prepaid ? `충전 ${won(p.chargePrice)}원` : `월 ${won(p.monthlyPrice)}원`
   return (
-    <Link className="lp-card" to={`/plans/${p.id}`} aria-label={`${p.partnerName} ${p.name}, 월 ${won(p.monthlyPrice)}원`}>
+    <Link className="lp-card" to={`/plans/${p.id}`} aria-label={`${p.partnerName} ${p.name}, ${priceLabel}`}>
       <div className="lp-main">
         <div className="lp-top">
           <div className="lp-top-left">
@@ -79,10 +83,17 @@ export function PlanListCard({ plan: p }: { plan: PlanSummary }) {
             {p.generation}
           </span>
         </p>
-        <div className="lp-price">
-          <b className="num">월 {won(p.monthlyPrice)}원</b>
-          <small>{after != null ? `${p.discountMonths}개월 이후 ${won(after)}원` : '할인 기간 없음'}</small>
-        </div>
+        {prepaid ? (
+          <div className="lp-price">
+            <b className="num">{won(p.chargePrice)}원</b>
+            <small>{p.validDays ? `충전 · ${p.validDays}일 사용` : '충전 금액'}</small>
+          </div>
+        ) : (
+          <div className="lp-price">
+            <b className="num">월 {won(p.monthlyPrice)}원</b>
+            <small>{after != null ? `${p.discountMonths}개월 이후 ${won(after)}원` : '할인 기간 없음'}</small>
+          </div>
+        )}
       </div>
       <div className="lp-foot">
         {saved > 0 ? (
