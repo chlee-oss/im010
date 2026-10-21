@@ -37,50 +37,35 @@ function shuffle<T>(list: T[], random: () => number): T[] {
   return a
 }
 
-/** 무작위로 count 개까지. 한 제휴사에 몰리지 않게 제휴사를 돌아가며 하나씩 (제휴사 순서 · 제휴사 안 순서 모두 무작위) */
-function roundRobin(plans: PlanSummary[], count: number, random: () => number): PlanSummary[] {
-  const byPartner = new Map<string, PlanSummary[]>()
+/** 제휴사마다 한 묶음 (처음 나온 순서) */
+function byPartner(plans: PlanSummary[]): PlanSummary[][] {
+  const groups = new Map<string, PlanSummary[]>()
   for (const p of plans) {
-    byPartner.set(p.partnerCode, [...(byPartner.get(p.partnerCode) ?? []), p])
+    groups.set(p.partnerCode, [...(groups.get(p.partnerCode) ?? []), p])
   }
-  const queues = shuffle([...byPartner.values()], random).map((list) => shuffle(list, random))
-  const out: PlanSummary[] = []
-  while (out.length < count && queues.some((q) => q.length > 0)) {
-    for (const q of queues) {
-      const next = q.shift()
-      if (next && out.length < count) out.push(next)
-    }
-  }
-  return out
+  return [...groups.values()]
 }
 
 /**
- * 이달의 요금제가 없을 때 대신 보여 줄 후불 요금제 count 개.
- * Hero 카드에 나온 요금제(같은 요금제 포함)는 빼고, 같은 요금제는 하나만.
- * 5G · 5Mbps → 다른 5Mbps → 나머지 후불 요금제 순서로 자리를 채운다.
+ * 이달의 요금제가 없을 때 대신 보여 줄 후불 요금제 — 제휴사마다 1개 (제휴사 순서는 무작위).
+ * Hero 카드에 나온 요금제(같은 요금제 포함)는 빼고, 제휴사 안에서는 5G · 5Mbps → 다른 5Mbps → 나머지 순으로 무작위 1개.
  */
 export function pickMonthlyFallback(
   postpaid: PlanSummary[],
   exclude: PlanSummary[] = [],
-  count = 6,
   random: () => number = Math.random,
 ): PlanSummary[] {
   const excluded = new Set(exclude.map(samePlanKey))
   const pool = uniquePlans(postpaid.filter((p) => p.planType === 'POSTPAID' && !excluded.has(samePlanKey(p))))
-  const tiers = [
-    pool.filter((p) => is5Mbps(p) && p.generation === '5G'),
-    pool.filter((p) => is5Mbps(p) && p.generation !== '5G'),
-    pool.filter((p) => !is5Mbps(p)),
-  ]
-  const out: PlanSummary[] = []
-  for (const tier of tiers) {
-    out.push(...roundRobin(tier, count - out.length, random))
-  }
-  return out
+  return shuffle(byPartner(pool), random).map((own) => {
+    const tier =
+      [own.filter((p) => is5Mbps(p) && p.generation === '5G'), own.filter((p) => is5Mbps(p)), own].find((t) => t.length > 0) ?? own
+    return tier[Math.floor(random() * tier.length)]
+  })
 }
 
-/** 제휴사 수집 "이달의 요금제": 같은 요금제 · Hero 카드와 겹치는 요금제는 뺀다 */
+/** 제휴사 수집 "이달의 요금제": Hero 카드와 겹치는 요금제 · 같은 요금제는 빼고, 제휴사마다 1개 (사이트 순서 첫 번째) */
 export function cleanMonthly(monthly: PlanSummary[], exclude: PlanSummary[] = []): PlanSummary[] {
   const excluded = new Set(exclude.map(samePlanKey))
-  return uniquePlans(monthly.filter((p) => !excluded.has(samePlanKey(p))))
+  return byPartner(uniquePlans(monthly.filter((p) => !excluded.has(samePlanKey(p))))).map((own) => own[0])
 }
