@@ -23,7 +23,8 @@ public class RatePlanParser {
     private static final Pattern TAB_HREF = Pattern.compile("rate_plan\\.do(;jsessionid=[^?]*)?\\?type=(T\\d+)$", Pattern.CASE_INSENSITIVE);
     private static final Pattern DECORATION = Pattern.compile("^\\[[^\\]가-힣0-9]*\\]\\s*");
     private static final Pattern FIVE_G = Pattern.compile("(?<![0-9.])5G(?![A-Z0-9])", Pattern.CASE_INSENSITIVE);
-    private static final String NETWORK_BADGES = ".badge_SKT, .badge_KT, .badge_KTF, .badge_LGT, .badge_LGU";
+    private static final Pattern NETWORK_TEXT = Pattern.compile("(?i)(SKT?|KT|LG ?U\\+?|LG)(망)?");
+    private static final String NETWORK_BADGES =".badge_SKT, .badge_KT, .badge_KTF, .badge_LGT, .badge_LGU";
 
     /**
      * @param tabLabel 수집 URL 에 등록한 탭 이름 (세대 판단 보조, 없으면 null)
@@ -112,7 +113,20 @@ public class RatePlanParser {
                 discount != null ? discount.price() : null,
                 detailUrl,
                 sourceUrl,
-                order);
+                order,
+                badges(card));
+    }
+
+    /** 카드 위쪽 배지 (5G · 무제한 ...) — 망 배지는 망 항목으로 따로 읽으므로 뺀다. */
+    static List<String> badges(Element card) {
+        List<String> tags = new ArrayList<>();
+        for (Element b : card.select(".badge_wrap .badge")) {
+            String t = b.text().replaceAll("\\s+", " ").trim();
+            if (!t.isEmpty() && !b.is(NETWORK_BADGES) && !NETWORK_TEXT.matcher(t).matches() && !tags.contains(t)) {
+                tags.add(t);
+            }
+        }
+        return List.copyOf(tags);
     }
 
     private List<ParsedPage.Tab> tabs(Document doc) {

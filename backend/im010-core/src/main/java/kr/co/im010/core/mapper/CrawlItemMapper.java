@@ -28,6 +28,9 @@ public interface CrawlItemMapper {
 
     void supersedeItems(@Param("ids") List<Long> ids);
 
+    /** 같은 값으로 점검 · 승인 대기 중인 건의 혜택 태그를 이번 수집의 배지로 맞춘다 (태그는 변경 감지 대상이 아님). */
+    void refreshOpenTags(@Param("runId") long runId);
+
     void touchCollected(@Param("planIds") List<Long> planIds, @Param("collectedOn") LocalDate collectedOn);
 
     void endPlans(@Param("planIds") List<Long> planIds, @Param("endedOn") LocalDate endedOn);

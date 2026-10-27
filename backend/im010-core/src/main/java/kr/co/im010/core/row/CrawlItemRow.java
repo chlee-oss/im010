@@ -30,6 +30,7 @@ public record CrawlItemRow(
         String[] changedFields,
         String[] warnings,
         String valueHash,
-        LocalDate collectedOn
+        LocalDate collectedOn,
+        String[] tags
 ) {
 }

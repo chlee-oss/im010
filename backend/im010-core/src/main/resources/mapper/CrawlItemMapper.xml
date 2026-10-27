@@ -33,18 +33,29 @@
         INSERT INTO crawl_item (run_id, partner_code, url_type, item_key, partner_plan_code, plan_id, change_type, status,
                                 name, data_text, data_gb, qos_text, voice_text, sms_text, network, generation,
                                 price, discount_months, price_after_discount, detail_url, source_url, site_order,
-                                changed_fields, warnings, value_hash, collected_on)
+                                changed_fields, warnings, value_hash, collected_on, tags)
         VALUES (#{runId}, #{partnerCode}, #{urlType}, #{itemKey}, #{partnerPlanCode}, #{planId}, #{changeType}, #{status},
                 #{name}, #{dataText}, #{dataGb}, #{qosText}, #{voiceText}, #{smsText}, #{network}, #{generation},
                 #{price}, #{discountMonths}, #{priceAfterDiscount}, #{detailUrl}, #{sourceUrl}, #{siteOrder},
                 #{changedFields,typeHandler=org.apache.ibatis.type.ArrayTypeHandler},
                 #{warnings,typeHandler=org.apache.ibatis.type.ArrayTypeHandler},
-                #{valueHash}, #{collectedOn})
+                #{valueHash}, #{collectedOn},
+                #{tags,typeHandler=org.apache.ibatis.type.ArrayTypeHandler})
     </insert>
 
     <update id="supersedeItems">
         UPDATE crawl_item SET status = 'SUPERSEDED', updated_at = now()
         WHERE id IN <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+    </update>
+
+    <update id="refreshOpenTags">
+        UPDATE crawl_item o SET tags = n.tags, updated_at = now()
+        FROM crawl_item n
+        WHERE n.run_id = #{runId} AND n.status = 'RECORDED'
+          AND o.partner_code = n.partner_code AND o.url_type = n.url_type AND o.item_key = n.item_key
+          AND o.value_hash = n.value_hash AND o.id &lt;&gt; n.id
+          AND o.status IN ('REVIEW_PENDING', 'APPROVAL_REQUESTED')
+          AND o.tags IS DISTINCT FROM n.tags
     </update>
 
     <update id="touchCollected">

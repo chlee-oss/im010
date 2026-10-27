@@ -38,6 +38,12 @@ public class ApprovalService {
 
     static final String PROGRAM = "BA-03";
 
+    /** 선불 사용 기간을 수집하지 못하면 채우는 기본값 */
+    static final int PREPAID_DEFAULT_DAYS = 30;
+    /** 선불 혜택 태그: 수집한 배지 뒤에 항상 붙인다 */
+    static final List<String> PREPAID_TAGS = List.of("선불", "안면인증필수");
+    private static final int MAX_TAGS = 6;
+
     public record Approved(long id, Long planId, Long versionId, boolean replacedSchedule, String note) {
     }
 
@@ -154,13 +160,21 @@ public class ApprovalService {
                 pick(values.discountMonths(), prev == null ? null : prev.discountMonths(), "discountMonths", prevSupplemented, carried),
                 pick(values.priceAfterDiscount(), prev == null ? null : prev.priceAfterDiscount(), "priceAfterDiscount", prevSupplemented, carried));
         // 수집하지 않는 항목 (선불 사용 기간 · 혜택 태그)은 그대로 이어받는다
+        boolean prepaid = type.equals("PREPAID");
         Integer validDays = prev == null ? null : prev.validDays();
         if (validDays != null && prevSupplemented.contains("validDays")) {
             carried.add("validDays");
         }
+        if (prepaid && validDays == null) {
+            validDays = PREPAID_DEFAULT_DAYS;
+        }
         String[] tags = prev == null ? new String[0] : Texts.split(prev.tags()).toArray(String[]::new);
+        if (prevSupplemented.contains("tags")) {
+            carried.add("tags");   // 운영자가 고친 태그는 수집값으로 덮지 않는다
+        } else if (prepaid) {
+            tags = prepaidTags(Texts.split(row.tags()));
+        }
         List<String> changed = prev == null ? List.of() : Fields.diff(PlanAdminService.values(prev), merged);
-        boolean prepaid = type.equals("PREPAID");
 
         long versionId = planMapper.insertVersion(new NewPlanVersion(planId, planMapper.nextVersionNo(planId),
                 merged.name(), merged.dataText(), merged.dataGb(), merged.qosText(), merged.voiceText(), merged.smsText(),
@@ -205,6 +219,19 @@ public class ApprovalService {
                     row.partnerPlanCode(), row.id(), row.collectedOn());
         }
         return new Approved(row.id(), planId, null, false, note);
+    }
+
+    /** 수집 배지 + 선불 · 안면인증필수 (중복 제거, 최대 6개 — 넘치면 수집 배지를 줄인다) */
+    static String[] prepaidTags(List<String> collected) {
+        List<String> badges = collected.stream()
+                .map(Texts::trim)
+                .filter(t -> t != null && t.length() <= 20 && !t.contains("|") && !PREPAID_TAGS.contains(t))
+                .distinct()
+                .limit(MAX_TAGS - PREPAID_TAGS.size())
+                .toList();
+        List<String> tags = new ArrayList<>(badges);
+        tags.addAll(PREPAID_TAGS);
+        return tags.toArray(String[]::new);
     }
 
     private static <T> T pick(T collected, T previous, String field, Set<String> prevSupplemented, Set<String> carried) {
