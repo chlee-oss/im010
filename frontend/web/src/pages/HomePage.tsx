@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { api } from '../api/client'
 import Calculator from '../components/Calculator'
-import { Analysis, TrustRow } from '../components/Insights'
+import { Analysis } from '../components/Insights'
 import { InternetBanner, InternetProducts } from '../components/Internet'
 import { MonthlyPlans, PartnerPlans, PrepaidPlans } from '../components/PlanSections'
 import { won } from '../lib/format'
@@ -55,7 +55,6 @@ export default function HomePage() {
       <InternetBanner />
       <InternetProducts />
       <Analysis />
-      <TrustRow />
     </>
   )
 }
