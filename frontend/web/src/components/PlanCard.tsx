@@ -8,6 +8,7 @@ export function PlanCard({ plan }: { plan: PlanSummary }) {
   return (
     <div className="plan-card">
       <BrandChip code={plan.partnerCode} name={plan.partnerName} />
+      {plan.planType === 'PREPAID' && <div className="name">{plan.name}</div>}
       <div className="data">{plan.dataText}</div>
       <div className="price-line num">
         {won(planPrice(plan))}

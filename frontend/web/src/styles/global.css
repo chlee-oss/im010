@@ -180,6 +180,7 @@ section{padding:56px 0;}
   position:absolute; top:16px; right:16px; background:var(--gold); color:#3A2A00; font-size:11px; font-weight:800;
   padding:4px 9px; border-radius:100px;
 }
+.plan-card .name{font-size:16px; font-weight:800; color:var(--navy); margin-top:10px; line-height:1.35;}
 .plan-card .data{font-size:14px; color:var(--gray-700); margin-bottom:2px; font-weight:600;}
 .plan-card .price-line{font-size:26px; font-weight:700; margin:6px 0 10px;}
 .plan-card .price-line span{font-size:13px; color:var(--gray-500); font-weight:500;}
