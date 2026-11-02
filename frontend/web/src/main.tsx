@@ -6,9 +6,11 @@ import './styles/pages.css'
 import './styles/plan-list.css'
 import './styles/ai.css'
 import App from './App.tsx'
+import EnvBadge from './components/EnvBadge'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <EnvBadge />
     <BrowserRouter>
       <App />
     </BrowserRouter>
