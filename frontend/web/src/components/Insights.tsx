@@ -1,5 +1,3 @@
-import { api } from '../api/client'
-import { useApi } from '../lib/useApi'
 
 // 요금제분석 수치는 배치 집계(월 1회)가 생기기 전까지 예시 값. (백오피스 · 배치 단계에서 API로 교체)
 const GB_PRICE = [
@@ -60,31 +58,3 @@ export function Analysis() {
 }
 
 /** 신뢰 지표 — "비교 가능한 요금제"만 실데이터(게시 중 후불 요금제 수), 나머지는 예시 값. */
-export function TrustRow() {
-  const { data } = useApi((signal) => api.statsSummary(signal), [])
-  return (
-    <section>
-      <div className="wrap">
-        <div className="trust-row">
-          <div>
-            <div className="num">128,940</div>
-            <div className="lbl">누적 개통 건수</div>
-          </div>
-          <div>
-            <div className="num">4.8</div>
-            <div className="lbl">평균 이용 만족도</div>
-          </div>
-          <div>
-            <div className="num">7개사</div>
-            <div className="lbl">제휴 통신사</div>
-          </div>
-          <div>
-            <div className="num">{data ? data.comparablePlanCount : '—'}개</div>
-            <div className="lbl">비교 가능한 요금제</div>
-          </div>
-        </div>
-        <p className="trust-note">※ 비교 가능한 요금제는 게시 중인 후불 요금제 수입니다. 나머지 지표는 예시 값입니다.</p>
-      </div>
-    </section>
-  )
-}
