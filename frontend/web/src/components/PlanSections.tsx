@@ -9,7 +9,7 @@ import StateMessage from './StateMessage'
 
 /**
  * 이달의 요금제 — 제휴사 "이달의 요금제" URL 수집 결과 (제휴사 이름순 → 사이트 순서).
- * 같은 요금제 · Hero 카드와 겹치는 요금제는 빼고, 남는 것이 없으면 후불 요금제에서 6개를 대신 고른다 (lib/planRules).
+ * 제휴사마다 1개. 같은 요금제 · Hero 카드와 겹치는 요금제는 빼고, 남는 것이 없으면 후불 요금제에서 제휴사마다 1개를 대신 고른다 (lib/planRules).
  * 카드는 제휴사별 요금제와 같은 리스트 카드 2개씩 한 줄.
  */
 export function MonthlyPlans() {
@@ -32,8 +32,8 @@ export function MonthlyPlans() {
             <div className="sub">
               {useFallback
                 ? all5Mbps
-                  ? '데이터 소진 후 5Mbps 요금제를 제휴사별로 골라 봤어요'
-                  : '제휴사 요금제를 골고루 골라 봤어요'
+                  ? '데이터 소진 후 5Mbps 요금제를 제휴사마다 하나씩 골라 봤어요'
+                  : '제휴사마다 요금제를 하나씩 골라 봤어요'
                 : `${month}월, 제휴사가 추천하는 이달의 요금제 모음`}
             </div>
           </div>
