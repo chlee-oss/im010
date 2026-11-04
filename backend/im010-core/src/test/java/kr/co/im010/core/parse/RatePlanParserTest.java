@@ -44,8 +44,10 @@ class RatePlanParserTest {
         assertThat(p1.priceAfterDiscount()).isEqualTo(18900);
         assertThat(p1.detailUrl()).isEqualTo("https://partner.example.com/rateplan_view.do?type=T007&no=2506");
         assertThat(p1.siteOrder()).isEqualTo(1);
+        assertThat(p1.tags()).containsExactly("7개월 할인 요금제");   // 카드 배지 → 혜택 태그
 
         ParsedPlan p2 = plans.get(1);
+        assertThat(p2.tags()).containsExactly("인터넷 결합 가능");
         assertThat(p2.generation()).isEqualTo("5G");
         assertThat(p2.dataText()).isEqualTo("데이터 11GB + 매일 2GB");
         assertThat(p2.qosText()).isEqualTo("3Mbps");          // 안내 문구 "소진 후 최대 3Mbps"
@@ -57,6 +59,7 @@ class RatePlanParserTest {
         ParsedPlan p3 = plans.get(2);
         assertThat(p3.name()).isEqualTo("[평생할인] 예시 200분 10GB");   // 장식 배지만 제거
         assertThat(p3.network()).isEqualTo("SKT");            // 망 배지
+        assertThat(p3.tags()).isEmpty();                      // 망 배지는 태그로 넣지 않는다
         assertThat(p3.voiceText()).isEqualTo("200분");
         assertThat(p3.smsText()).isEqualTo("100건");
         assertThat(p3.price()).isEqualTo(10);
@@ -91,9 +94,11 @@ class RatePlanParserTest {
         assertThat(p1.price()).isEqualTo(22000);
         assertThat(p1.discountMonths()).isEqualTo(24);
         assertThat(p1.priceAfterDiscount()).isEqualTo(49500);
+        assertThat(p1.tags()).containsExactly("24개월할인");   // LGU+ 망 배지는 빼고
 
         ParsedPlan p2 = page.plans().get(1);
         assertThat(p2.network()).isEqualTo("KT");
+        assertThat(p2.tags()).isEmpty();
         assertThat(p2.dataGb()).isEqualByComparingTo("5.4");
         assertThat(p2.qosText()).isEqualTo("1Mbps");
         assertThat(p2.price()).isEqualTo(16500);

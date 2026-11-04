@@ -1,6 +1,7 @@
 package kr.co.im010.core.parse;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 제휴사 요금제 페이지에서 추출한 요금제 한 건. 추출하지 못한 항목은 null.
@@ -11,6 +12,7 @@ import java.math.BigDecimal;
  * @param price           후불은 월 요금, 선불은 충전 금액
  * @param detailUrl       제휴사 요금제 상세 페이지 (개통 URL 기본값)
  * @param siteOrder       제휴사 페이지의 순서 (1부터)
+ * @param tags            카드 배지 (5G · 무제한 ...). 망 배지는 뺀다
  */
 public record ParsedPlan(
         String partnerPlanCode,
@@ -27,7 +29,8 @@ public record ParsedPlan(
         Integer priceAfterDiscount,
         String detailUrl,
         String sourceUrl,
-        int siteOrder
+        int siteOrder,
+        List<String> tags
 ) {
 
     /** 같은 요금제 판단 키: 제휴사 요금제 코드, 없으면 요금제명|망 (BA-02). */

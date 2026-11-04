@@ -20,7 +20,7 @@ class ChangeDetectorTest {
 
     private static ParsedPlan plan(String code, String name, Integer price) {
         return new ParsedPlan(code, name, "LGU", "LTE", "데이터 7GB", new BigDecimal("7"), "1Mbps", "무제한", "무제한",
-                price, null, null, "https://p.example.com/rateplan_view.do?no=" + code, "https://p.example.com/rate_plan.do", 1);
+                price, null, null, "https://p.example.com/rateplan_view.do?no=" + code, "https://p.example.com/rate_plan.do", 1, List.of());
     }
 
     private static PlanBaselineRow baseline(long id, String code, String status, String name, Integer price, String supplemented) {
@@ -66,9 +66,9 @@ class ChangeDetectorTest {
     @Test
     void 일_데이터만_있는_요금제는_기본_제공량_경고() {
         ParsedPlan daily = new ParsedPlan("7", "매일 5GB", "LGU", "LTE", "데이터 0GB + 매일 5GB", BigDecimal.ZERO, "5Mbps",
-                "기본 제공", "기본 제공", 26400, null, null, null, null, 1);
+                "기본 제공", "기본 제공", 26400, null, null, null, null, 1, List.of());
         ParsedPlan unlimited = new ParsedPlan("8", "무제한", "LGU", "5G", "데이터 무제한", null, null,
-                "기본 제공", "기본 제공", 49000, null, null, null, null, 2);
+                "기본 제공", "기본 제공", 49000, null, null, null, null, 2, List.of());
 
         assertThat(ChangeDetector.warnings(daily)).contains("MISSING_DATA");
         assertThat(ChangeDetector.warnings(unlimited)).doesNotContain("MISSING_DATA");
@@ -87,7 +87,7 @@ class ChangeDetectorTest {
     @Test
     void 운영자가_보완한_항목은_수집되지_않아도_변경이_아니다() {
         ParsedPlan noQos = new ParsedPlan("2", "B", "LGU", "LTE", "데이터 7GB", new BigDecimal("7"), null, "무제한", "무제한",
-                20000, null, null, null, null, 1);
+                20000, null, null, null, null, 1, List.of());
         Result r = detect(List.of(noQos), List.of(baseline(11, "2", "PUBLISHED", "B", 20000, "qos")));
 
         assertThat(item(r, "2").change()).isEqualTo(Change.UNCHANGED);

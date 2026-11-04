@@ -40,6 +40,7 @@ public record ReviewItemRow(
         LocalDate collectedOn,
         OffsetDateTime reviewedAt,
         String approver,
-        OffsetDateTime approvedAt
+        OffsetDateTime approvedAt,
+        String tags
 ) {
 }

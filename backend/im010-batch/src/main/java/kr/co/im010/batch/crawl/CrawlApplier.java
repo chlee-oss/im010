@@ -79,6 +79,7 @@ public class CrawlApplier {
         if (!r.supersededItemIds().isEmpty()) {
             itemMapper.supersedeItems(r.supersededItemIds());
         }
+        itemMapper.refreshOpenTags(runId);
         if (!r.touchedPlanIds().isEmpty()) {
             itemMapper.touchCollected(r.touchedPlanIds(), job.runOn());
         }
@@ -180,7 +181,8 @@ public class CrawlApplier {
             String key = pick.partnerPlanCode() != null ? pick.partnerPlanCode() : "pick:" + pick.id();
             itemMapper.insertItem(new CrawlItemRow(runId, partner, type, key, pick.partnerPlanCode(), pick.planId(),
                     Change.ENDED.name(), Status.AUTO_APPLIED.name(), null, null, null, null, null, null, null, null,
-                    null, null, null, null, null, pick.siteOrder(), new String[0], new String[0], null, job.runOn()));
+                    null, null, null, null, null, pick.siteOrder(), new String[0], new String[0], null, job.runOn(),
+                    new String[0]));
         }
         if (!hiddenIds.isEmpty()) {
             itemMapper.hidePicks(hiddenIds);
@@ -204,12 +206,12 @@ public class CrawlApplier {
             return new CrawlItemRow(runId, job.partnerCode(), urlType, item.key(), b.partnerPlanCode(), item.planId(),
                     item.change().name(), item.status().name(), b.name(), b.dataText(), b.dataGb(), b.qosText(),
                     b.voiceText(), b.smsText(), b.network(), b.generation(), b.price(), b.discountMonths(),
-                    b.priceAfterDiscount(), null, null, null, changed, warnings, null, job.runOn());
+                    b.priceAfterDiscount(), null, null, null, changed, warnings, null, job.runOn(), new String[0]);
         }
         return new CrawlItemRow(runId, job.partnerCode(), urlType, item.key(), p.partnerPlanCode(), item.planId(),
                 item.change().name(), item.status().name(), p.name(), p.dataText(), p.dataGb(), p.qosText(),
                 p.voiceText(), p.smsText(), p.network(), p.generation(), p.price(), p.discountMonths(),
                 p.priceAfterDiscount(), p.detailUrl(), p.sourceUrl(), siteOrder != null ? siteOrder : p.siteOrder(),
-                changed, warnings, item.valueHash(), job.runOn());
+                changed, warnings, item.valueHash(), job.runOn(), p.tags().toArray(String[]::new));
     }
 }

@@ -9,7 +9,8 @@
         array_to_string(i.changed_fields, '|') AS changed_fields,
         array_to_string(i.warnings, '|') AS warnings,
         array_to_string(i.edited_fields, '|') AS edited_fields,
-        i.value_hash, i.reviewer, i.reason, i.memo, i.collected_on, i.reviewed_at, i.approver, i.approved_at
+        i.value_hash, i.reviewer, i.reason, i.memo, i.collected_on, i.reviewed_at, i.approver, i.approved_at,
+        array_to_string(i.tags, '|') AS tags
     </sql>
 
     <sql id="viewFilter">
