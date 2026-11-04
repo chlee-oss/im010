@@ -23,12 +23,25 @@ export function uniquePlans(plans: PlanSummary[]): PlanSummary[] {
   })
 }
 
-/** Hero 카드: 게시 중인 선불 요금제를 제휴사마다 무작위 1개씩, 제휴사 순서도 무작위로 최대 3개 (같은 요금제는 하나만) */
+export const HERO_CARDS = 4
+
+/**
+ * Hero 카드: 게시 중인 선불 요금제에서 4개 (같은 요금제는 하나만).
+ * 제휴사를 무작위 순서로 돌아가며 1개씩 골라 제휴사마다 고르게 나눈다 — 제휴사가 4곳 이상이면 무작위 4곳에서 1개씩,
+ * 2곳이면 2개씩, 3곳이면 한 곳만 2개. 제휴사 안에서도 무작위이고, 요금제가 모자란 제휴사의 몫은 다른 제휴사가 채운다.
+ */
 export function heroPicks(prepaid: PlanSummary[], random: () => number = Math.random): PlanSummary[] {
   const pool = uniquePlans(prepaid.filter((p) => p.planType === 'PREPAID'))
-  return shuffle(byPartner(pool), random)
-    .slice(0, 3)
-    .map((own) => own[Math.floor(random() * own.length)])
+  const queues = shuffle(byPartner(pool), random).map((own) => shuffle(own, random))
+  const picks: PlanSummary[] = []
+  while (picks.length < HERO_CARDS && queues.some((q) => q.length > 0)) {
+    for (const q of queues) {
+      if (picks.length === HERO_CARDS) break
+      const next = q.shift()
+      if (next) picks.push(next)
+    }
+  }
+  return picks
 }
 
 function shuffle<T>(list: T[], random: () => number): T[] {

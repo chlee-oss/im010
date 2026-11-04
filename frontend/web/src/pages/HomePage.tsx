@@ -59,7 +59,7 @@ export default function HomePage() {
   )
 }
 
-// Hero 플로팅 카드 — 게시 중인 선불 요금제를 제휴사마다 무작위 1개씩 최대 3개 (같은 요금제는 하나만, lib/planRules). 화면을 열 때마다 바뀌고, 없으면 비워 둔다
+// Hero 플로팅 카드 — 게시 중인 선불 요금제 4개를 제휴사마다 고르게 무작위로 (lib/planRules heroPicks). 화면을 열 때마다 바뀌고, 없으면 비워 둔다
 function HeroCards() {
   const { data } = useApi((signal) => api.plans('PREPAID', undefined, signal), [])
   const plans = useMemo(() => heroPicks(data ?? []), [data])
