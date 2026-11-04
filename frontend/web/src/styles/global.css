@@ -228,7 +228,26 @@ section{padding:56px 0;}
 .internet-banner .btn-primary{background:#fff; color:var(--navy); box-shadow:none;}
 
 
-.isp-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:18px;}
+/* 인터넷 상품: 단독 · 결합 줄을 나눈다. PC 3개씩, 4개 이상이면 롤링 / 모바일 2개씩 */
+.isp-group + .isp-group{margin-top:30px;}
+.isp-group-title{font-size:15px; font-weight:800; color:var(--navy); margin-bottom:12px;}
+.isp-row{position:relative;}
+.isp-track{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
+/* 롤링: 보이는 창(viewport) 안에서 카드 줄을 --i 칸만큼 옮긴다 (카드 폭 = (100% - 간격 2개) / 3) */
+.isp-row.rolling .isp-viewport{overflow:hidden; padding:6px 0 10px; margin:-6px 0 -10px;}
+.isp-row.rolling .isp-track{
+  grid-template-columns:none; grid-auto-flow:column; grid-auto-columns:calc((100% - 36px) / 3);
+  transform:translateX(calc(var(--i, 0) * (100% + 18px) / -3)); transition:transform .5s ease;
+}
+.isp-roll{
+  position:absolute; top:50%; transform:translateY(-50%); z-index:2; width:40px; height:40px; border-radius:50%;
+  background:#fff; border:1px solid var(--gray-200); box-shadow:0 6px 16px rgba(31,36,48,0.12);
+  font-size:24px; line-height:1; color:var(--navy); cursor:pointer; font-family:inherit;
+}
+.isp-roll:hover{border-color:var(--navy);}
+.isp-roll.prev{left:-20px;}
+.isp-roll.next{right:-20px;}
+@media (prefers-reduced-motion: reduce){ .isp-row.rolling .isp-track{transition:none;} }
 .isp-card{background:#fff; border:1px solid var(--gray-200); border-radius:16px; padding:22px; transition:transform .18s, box-shadow .18s; display:flex; flex-direction:column;}
 .isp-card:hover{transform:translateY(-4px); box-shadow:0 14px 28px rgba(31,36,48,0.10);}
 .isp-chip{display:inline-block; font-size:12px; font-weight:800; padding:4px 10px; border-radius:6px; margin-bottom:12px; color:#fff;}
@@ -313,7 +332,13 @@ footer{background:var(--navy); color:#B7BBC6; padding:48px 0 28px; margin-top:24
   .menu-btn{display:inline-block;}
   .partner-grid{grid-template-columns:repeat(2,1fr);}
   .internet-banner{flex-direction:column; align-items:flex-start; gap:20px; padding:32px 28px;}
-  .isp-grid{grid-template-columns:1fr;}
+  .isp-track, .isp-row.rolling .isp-track{
+    grid-template-columns:repeat(2,1fr); grid-auto-flow:row; grid-auto-columns:auto; transform:none; transition:none; gap:12px;
+  }
+  .isp-row.rolling .isp-viewport{overflow:visible; padding:0; margin:0;}
+  .isp-roll{display:none;}
+  .isp-card{padding:16px;}
+  .isp-card .price-line{font-size:20px;}
   .prepaid-layout{flex-direction:column;}
   .pay-card{width:100%;}
   .analysis-grid{grid-template-columns:1fr;}
