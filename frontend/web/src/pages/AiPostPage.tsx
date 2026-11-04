@@ -2,7 +2,7 @@ import { useEffect, type CSSProperties } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { ApiError, api } from '../api/client'
 import { AiCard, AiDefaultThumb } from '../components/AiCard'
-import { aiDate, aiPostPath } from '../lib/aiFormat'
+import { aiCompareLink, aiDate, aiPostPath } from '../lib/aiFormat'
 import { PlanCard } from '../components/PlanCard'
 import StateMessage from '../components/StateMessage'
 import { won } from '../lib/format'
@@ -61,6 +61,7 @@ export default function AiPostPage() {
 
   const style = { '--ai-bg': p.bgColor, '--ai-ac': p.accentColor } as CSSProperties
   const sources = p.sources.filter((s) => s.name || s.title)
+  const compare = aiCompareLink(p, data.relatedPlans)
   return (
     <section className="ai-page ai-detail" style={style}>
       <article className="wrap narrow">
@@ -95,7 +96,7 @@ export default function AiPostPage() {
         <div className="ai-body" dangerouslySetInnerHTML={{ __html: p.bodyHtml }} />
 
         <p className="ai-note">
-          {aiDate(p.contentUpdatedAt ?? p.publishedAt)} 기준 정보예요. 요금 · 혜택은 바뀔 수 있으니 최신 요금은 <a href="/#calc">요금제 비교하기</a>에서 확인하세요.
+          {aiDate(p.contentUpdatedAt ?? p.publishedAt)} 기준 정보예요. 요금 · 혜택은 바뀔 수 있으니 최신 요금은 <a href={compare.href}>{compare.label}</a>에서 확인하세요.
         </p>
         {sources.length > 0 && (
           <ul className="ai-sources">
