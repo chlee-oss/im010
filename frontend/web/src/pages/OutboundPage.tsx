@@ -2,17 +2,16 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { planPrice, won } from '../lib/format'
-import { OUTBOUND_DELAY_MS, safeGoPath } from '../lib/outbound'
+import { INTERNET_PARTNER, OUTBOUND_DELAY_MS, safeGoPath } from '../lib/outbound'
 import { BrandChip } from '../lib/partners'
 import { useApi } from '../lib/useApi'
 import { usePageTitle } from '../lib/usePageTitle'
 import NotFoundPage from './NotFoundPage'
 
-const ISP_CHIP: Record<string, string> = { SKT: 'skt', KT: 'kt', LGU: 'lgu', SKB: 'skb' }
 
 /**
  * 제휴사 · 협력사 페이지로 이동하기 전 안내 화면 (/out?kind=plan|internet&id=&to=/go/…).
- * im010 ≫ 제휴사 · 요금제(상품) · 요금 · 진행 막대를 보여 주고 잠시 뒤 /go 로 넘어간다. 검색엔진에는 노출하지 않는다.
+ * im010 ≫ 제휴사(인터넷은 아정당) · 요금제(상품) · 요금 · 진행 막대를 보여 주고 잠시 뒤 /go 로 넘어간다. 검색엔진에는 노출하지 않는다.
  */
 export default function OutboundPage() {
   const [search] = useSearchParams()
@@ -47,7 +46,7 @@ export default function OutboundPage() {
 
   const p = plan.data?.plan
   const product = internet.data?.find((x) => x.id === id)
-  const partnerName = p?.partnerName ?? product?.carrierLabel
+  const partnerName = kind === 'internet' ? INTERNET_PARTNER : p?.partnerName
   const title = p?.name ?? product?.name
   const price = p
     ? p.planType === 'PREPAID'
@@ -69,8 +68,8 @@ export default function OutboundPage() {
           </span>
           {p ? (
             <BrandChip code={p.partnerCode} name={p.partnerName} />
-          ) : product ? (
-            <span className={`isp-chip ${ISP_CHIP[product.carrier] ?? ''}`}>{product.carrierLabel}</span>
+          ) : kind === 'internet' ? (
+            <span className="brand-chip outbound-ajd">{INTERNET_PARTNER}</span>
           ) : (
             <span className="outbound-partner-blank" />
           )}
@@ -88,7 +87,7 @@ export default function OutboundPage() {
         <p className="outbound-msg">
           {kind === 'plan'
             ? `${partnerName ?? '제휴사'} 공식 홈페이지로 이동 중입니다.`
-            : `${partnerName ?? ''} 인터넷 상품 신청 페이지로 이동 중입니다.`}
+            : `${INTERNET_PARTNER} 인터넷 상품 신청 페이지로 이동 중입니다.`}
           <br />
           잠시만 기다려 주세요.
         </p>
@@ -99,7 +98,7 @@ export default function OutboundPage() {
         <p className="outbound-note">
           {kind === 'plan'
             ? `im010은 요금제 비교 정보를 제공하며, 가입 · 개통은 ${partnerName ?? '제휴사'}에서 진행됩니다.`
-            : 'im010은 인터넷 상품 비교 정보를 제공하며, 신청 · 상담은 제휴업체에서 진행됩니다.'}
+            : `im010은 인터넷 상품 비교 정보를 제공하며, 신청 · 상담은 ${INTERNET_PARTNER}에서 진행됩니다.`}
         </p>
       </div>
     </div>

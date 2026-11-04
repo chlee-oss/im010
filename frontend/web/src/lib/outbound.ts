@@ -3,6 +3,9 @@
 
 export type OutboundKind = 'plan' | 'internet'
 
+/** 인터넷 상품 신청처 — 현재 인터넷 상품은 모두 아정당(ajd.co.kr)에서 수집하고 신청도 아정당으로 연결한다 */
+export const INTERNET_PARTNER = '아정당'
+
 /** 이동 안내 화면에서 기다리는 시간 (ms) */
 export const OUTBOUND_DELAY_MS = 1200
 

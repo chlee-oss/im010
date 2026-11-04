@@ -40,6 +40,7 @@
 .outbound-route { display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 28px; }
 .outbound-route .logo { font-size: 26px; }
 .outbound-route .brand-chip, .outbound-route .isp-chip { margin: 0; font-size: 15px; padding: 6px 14px; }
+.outbound-ajd { background: #E8F0FE; color: #1E4FC2; }
 .outbound-arrow { font-size: 26px; color: var(--gray-700); letter-spacing: -4px; }
 .outbound-partner-blank { display: inline-block; width: 90px; height: 30px; border-radius: 100px; background: var(--gray-200); }
 .outbound-title { font-size: 20px; color: var(--gray-700); line-height: 1.5; min-height: 30px; margin-bottom: 28px; word-break: keep-all; }
