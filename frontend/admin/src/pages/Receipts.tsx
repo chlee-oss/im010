@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Badge, Empty, Loading, PageHead, Pager } from '../components/ui'
 import { get, qs } from '../lib/api'
-import { RECEIPT_CATEGORY, RECEIPT_RESULT, fullDateTime, today } from '../lib/format'
+import { INTERNET_CARRIER, RECEIPT_CATEGORY, RECEIPT_RESULT, fullDateTime, today } from '../lib/format'
 import { useMe } from '../lib/me'
 import type { ReceiptPage } from '../lib/types'
 import { useLoad } from '../lib/useLoad'
@@ -143,7 +143,7 @@ export default function Receipts({ kind }: { kind: 'plans' | 'internet' }) {
                   {r.id}
                 </td>
                 <td>{fullDateTime(r.createdAt)}</td>
-                {kind === 'internet' && <td>{r.carrier === 'LGU' ? 'LG U+' : r.carrier ?? '–'}</td>}
+                {kind === 'internet' && <td>{r.carrier ? INTERNET_CARRIER[r.carrier] ?? r.carrier : '–'}</td>}
                 <td>{r.partnerName ?? '–'}</td>
                 <td>{r.category ? RECEIPT_CATEGORY[r.category] ?? r.category : '–'}</td>
                 <td>

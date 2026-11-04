@@ -24,8 +24,16 @@ public record InternetProduct(
         List<String> benefits = r.benefits() == null || r.benefits().isBlank()
                 ? List.of()
                 : Arrays.stream(r.benefits().split("\\|")).filter(s -> !s.isBlank()).toList();
-        String label = "LGU".equals(r.carrier()) ? "LG U+" : Network.labelOf(r.carrier());
-        return new InternetProduct(r.id(), r.carrier(), label, r.productType(), r.name(), r.monthlyPrice(),
+        return new InternetProduct(r.id(), r.carrier(), carrierLabel(r.carrier()), r.productType(), r.name(), r.monthlyPrice(),
                 benefits, "/go/internet/" + r.id() + "?from=MAIN");
+    }
+
+    /** 인터넷 통신사 표기: LGU → LG U+, SKB → SKB(알뜰, 휴대폰 통신망에는 없는 인터넷 전용 코드) */
+    static String carrierLabel(String carrier) {
+        return switch (carrier) {
+            case "LGU" -> "LG U+";
+            case "SKB" -> "SKB(알뜰)";
+            default -> Network.labelOf(carrier);
+        };
     }
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Badge, Empty, Loading, Modal } from '../components/ui'
 import { get, post, put } from '../lib/api'
-import { NETWORK } from '../lib/format'
+import { INTERNET_CARRIER } from '../lib/format'
 import { useMe } from '../lib/me'
 import { useNotify, useRun } from '../lib/notice'
 import type { InternetPartner } from '../lib/types'
@@ -63,7 +63,7 @@ export default function InternetPartners() {
             {data.map((p) => (
               <tr key={p.id}>
                 <td>{p.name}</td>
-                <td>{NETWORK[p.carrier]}</td>
+                <td>{INTERNET_CARRIER[p.carrier]}</td>
                 <td className="url">
                   {p.applyUrl ? (
                     <a className="link" href={p.applyUrl} target="_blank" rel="noopener noreferrer">
@@ -94,7 +94,7 @@ export default function InternetPartners() {
             <label>
               통신사
               <select value={form.carrier} onChange={(e) => setForm({ ...form, carrier: e.target.value })}>
-                {Object.entries(NETWORK).map(([k, v]) => (
+                {Object.entries(INTERNET_CARRIER).map(([k, v]) => (
                   <option key={k} value={k}>
                     {v}
                   </option>

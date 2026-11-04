@@ -4,7 +4,7 @@ import { won } from '../lib/format'
 import { useApi } from '../lib/useApi'
 import StateMessage from './StateMessage'
 
-const CHIP: Record<string, string> = { SKT: 'skt', KT: 'kt', LGU: 'lgu' }
+const CHIP: Record<string, string> = { SKT: 'skt', KT: 'kt', LGU: 'lgu', SKB: 'skb' }
 const TABS = [
   { key: 'all', label: '전체' },
   { key: 'SINGLE', label: '인터넷 단독' },
@@ -18,7 +18,7 @@ export function InternetBanner() {
         <div className="internet-banner">
           <div>
             <h3>인터넷도 im010에서 한 번에</h3>
-            <p>SKT · KT · LG U+ 인터넷 상품을 비교하고, 마음에 드는 상품은 제휴업체 신청 페이지로 바로 연결해 드려요.</p>
+            <p>SKT · KT · LG U+ · SKB(알뜰) 인터넷 상품을 비교하고, 마음에 드는 상품은 제휴업체 신청 페이지로 바로 연결해 드려요.</p>
             <a className="btn-primary" href="#internet-compare">
               인터넷 상품 보러가기
             </a>
@@ -41,7 +41,7 @@ export function InternetProducts() {
         <div className="sec-head">
           <div>
             <h2>인터넷 상품 비교</h2>
-            <div className="sub">SKT · KT · LG U+ 인터넷 상품을 통신사별로 비교해보세요</div>
+            <div className="sub">SKT · KT · LG U+ · SKB(알뜰) 인터넷 상품을 통신사별로 비교해보세요</div>
           </div>
         </div>
         <div className="partner-tabs" role="tablist" aria-label="인터넷 상품 유형">

@@ -228,13 +228,14 @@ section{padding:56px 0;}
 .internet-banner .btn-primary{background:#fff; color:var(--navy); box-shadow:none;}
 
 
-.isp-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
+.isp-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:18px;}
 .isp-card{background:#fff; border:1px solid var(--gray-200); border-radius:16px; padding:22px; transition:transform .18s, box-shadow .18s; display:flex; flex-direction:column;}
 .isp-card:hover{transform:translateY(-4px); box-shadow:0 14px 28px rgba(31,36,48,0.10);}
 .isp-chip{display:inline-block; font-size:12px; font-weight:800; padding:4px 10px; border-radius:6px; margin-bottom:12px; color:#fff;}
 .isp-chip.skt{background:#3B2E86;}
 .isp-chip.kt{background:#E4002B;}
 .isp-chip.lgu{background:#E6007E;}
+.isp-chip.skb{background:#F47725;}
 .isp-type{font-size:11px; font-weight:700; color:var(--gray-500); margin-left:6px;}
 .isp-card h4{font-size:16px; font-weight:700; margin-bottom:6px;}
 .isp-card .price-line{font-size:24px; font-weight:700; margin:6px 0 14px;}

@@ -25,7 +25,7 @@ public class InternetAdminService {
 
     static final String PARTNERS = "PA-01";
     static final String PRODUCTS = "PR-02";
-    private static final Set<String> CARRIERS = Set.of("SKT", "KT", "LGU");
+    private static final Set<String> CARRIERS = Set.of("SKT", "KT", "LGU", "SKB");
     private static final Set<String> TYPES = Set.of("SINGLE", "BUNDLE");
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     private static final int MAX_BENEFITS = 5;
