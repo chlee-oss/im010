@@ -2,22 +2,21 @@ import { useMemo, useState } from 'react'
 import { api } from '../api/client'
 import { BrandChip, usePartners } from '../lib/partners'
 import { pickTwo } from '../lib/planPicks'
-import { cleanMonthly, heroPicks, is5Mbps, pickMonthlyFallback, uniquePlans } from '../lib/planRules'
+import { cleanMonthly, is5Mbps, pickMonthlyFallback, uniquePlans } from '../lib/planRules'
 import { useApi } from '../lib/useApi'
 import { PlanListCard } from './PlanListCard'
 import StateMessage from './StateMessage'
 
 /**
  * 이달의 요금제 — 제휴사 "이달의 요금제" URL 수집 결과 (제휴사 이름순 → 사이트 순서).
- * 제휴사마다 1개. 같은 요금제 · Hero 카드와 겹치는 요금제는 빼고, 남는 것이 없으면 후불 요금제에서 제휴사마다 1개를 대신 고른다 (lib/planRules).
+ * 제휴사마다 1개. 같은 요금제는 빼고 (Hero 카드는 선불이라 겹치지 않음), 남는 것이 없으면 후불 요금제에서 제휴사마다 1개를 대신 고른다 (lib/planRules).
  * 카드는 제휴사별 요금제와 같은 리스트 카드 2개씩 한 줄.
  */
 export function MonthlyPlans() {
   const monthly = useApi((signal) => api.monthlyPlans(signal), [])
   const postpaid = useApi((signal) => api.plans('POSTPAID', undefined, signal), [])
-  const hero = useMemo(() => heroPicks(postpaid.data ?? []), [postpaid.data])
-  const picked = useMemo(() => cleanMonthly(monthly.data ?? [], hero), [monthly.data, hero])
-  const fallback = useMemo(() => pickMonthlyFallback(postpaid.data ?? [], hero), [postpaid.data, hero])
+  const picked = useMemo(() => cleanMonthly(monthly.data ?? []), [monthly.data])
+  const fallback = useMemo(() => pickMonthlyFallback(postpaid.data ?? []), [postpaid.data])
   const ready = !!monthly.data && !!postpaid.data
   const useFallback = ready && picked.length === 0
   const data = !ready ? null : useFallback ? fallback : picked

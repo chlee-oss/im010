@@ -23,9 +23,12 @@ export function uniquePlans(plans: PlanSummary[]): PlanSummary[] {
   })
 }
 
-/** Hero 카드: 게시 중인 후불 요금제 중 QoS 5Mbps 를 월 요금이 낮은 순으로 3개 (같은 요금제는 하나만) */
-export function heroPicks(postpaid: PlanSummary[]): PlanSummary[] {
-  return uniquePlans(postpaid.filter((p) => p.planType === 'POSTPAID' && is5Mbps(p))).slice(0, 3)
+/** Hero 카드: 게시 중인 선불 요금제를 제휴사마다 무작위 1개씩, 제휴사 순서도 무작위로 최대 3개 (같은 요금제는 하나만) */
+export function heroPicks(prepaid: PlanSummary[], random: () => number = Math.random): PlanSummary[] {
+  const pool = uniquePlans(prepaid.filter((p) => p.planType === 'PREPAID'))
+  return shuffle(byPartner(pool), random)
+    .slice(0, 3)
+    .map((own) => own[Math.floor(random() * own.length)])
 }
 
 function shuffle<T>(list: T[], random: () => number): T[] {
