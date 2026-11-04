@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { api } from '../api/client'
 import Calculator from '../components/Calculator'
@@ -59,10 +59,10 @@ export default function HomePage() {
   )
 }
 
-// Hero 플로팅 카드 — 게시 중인 후불 요금제 중 QoS 5Mbps 요금제를 월 요금이 낮은 순으로 3개 (같은 요금제는 하나만, lib/planRules). 없으면 비워 둔다
+// Hero 플로팅 카드 — 게시 중인 선불 요금제 4개를 제휴사마다 고르게 무작위로 (lib/planRules heroPicks). 화면을 열 때마다 바뀌고, 없으면 비워 둔다
 function HeroCards() {
-  const { data } = useApi((signal) => api.plans('POSTPAID', undefined, signal), [])
-  const plans = heroPicks(data ?? [])
+  const { data } = useApi((signal) => api.plans('PREPAID', undefined, signal), [])
+  const plans = useMemo(() => heroPicks(data ?? []), [data])
   return (
     <div className="hero-visual">
       {plans.map((p, i) => (
@@ -70,11 +70,12 @@ function HeroCards() {
           <BrandChip code={p.partnerCode} name={p.partnerName} />
           <h4>{p.name}</h4>
           <div className="price-line num">
-            {won(p.monthlyPrice)}
-            <span>원 / 월</span>
+            {won(p.chargePrice)}
+            <span>{p.validDays ? `원 / ${p.validDays}일` : '원'}</span>
           </div>
           <div className="meta">
-            {p.networkLabel} 망 · {p.generation} · QoS {p.qos}
+            {p.networkLabel} 망 · {p.generation}
+            {p.qos ? ` · QoS ${p.qos}` : ''}
           </div>
         </Link>
       ))}
