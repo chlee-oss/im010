@@ -157,7 +157,7 @@ function IspCard({ p }: { p: InternetProduct }) {
           <li key={b}>{b}</li>
         ))}
       </ul>
-      <a className="card-cta" href={outboundPath('internet', p.id, p.applyPath)} target="_blank" rel="noopener noreferrer">
+      <a className="card-cta" href={outboundPath('internet', p.id, p.applyPath, p.productType === 'SINGLE')} target="_blank" rel="noopener noreferrer">
         상담 신청 ↗
       </a>
     </div>
