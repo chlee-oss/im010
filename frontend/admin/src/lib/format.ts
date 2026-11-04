@@ -2,6 +2,8 @@
 
 export const URL_TYPE: Record<string, string> = { POSTPAID: '후불', PREPAID: '선불', MONTHLY: '이달의 요금제' }
 export const NETWORK: Record<string, string> = { SKT: 'SKT', KT: 'KT', LGU: 'LG U+' }
+/** 인터넷 통신사 (휴대폰 통신망 + SKB 알뜰) */
+export const INTERNET_CARRIER: Record<string, string> = { ...NETWORK, SKB: 'SKB(알뜰)' }
 
 export const CHANGE: Record<string, string> = { NEW: '신규', CHANGED: '변경', UNCHANGED: '변경 없음', ENDED: '판매 종료' }
 

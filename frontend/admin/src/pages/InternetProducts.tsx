@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Badge, Empty, Loading, Modal, PageHead, Tabs } from '../components/ui'
 import { get, post, put } from '../lib/api'
-import { NETWORK, won } from '../lib/format'
+import { INTERNET_CARRIER, won } from '../lib/format'
 import { useMe } from '../lib/me'
 import { useRun } from '../lib/notice'
 import type { InternetPartner, InternetProduct } from '../lib/types'
@@ -91,7 +91,7 @@ export default function InternetProducts() {
               return (
                 <tr key={p.id}>
                   <td className="num">{p.sortOrder}</td>
-                  <td>{NETWORK[p.carrier]}</td>
+                  <td>{INTERNET_CARRIER[p.carrier]}</td>
                   <td>{p.name}</td>
                   <td className="num">{won(p.monthlyPrice)}</td>
                   <td className="muted">{p.benefits.split('|').filter(Boolean).join(' · ')}</td>
@@ -135,7 +135,7 @@ export default function InternetProducts() {
             <label>
               통신사
               <select value={form.carrier} onChange={(e) => setForm({ ...form, carrier: e.target.value, internetPartnerId: '' })}>
-                {Object.entries(NETWORK).map(([k, v]) => (
+                {Object.entries(INTERNET_CARRIER).map(([k, v]) => (
                   <option key={k} value={k}>
                     {v}
                   </option>

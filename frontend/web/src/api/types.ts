@@ -2,6 +2,8 @@
 
 export type PlanType = 'POSTPAID' | 'PREPAID'
 export type NetworkCode = 'SKT' | 'KT' | 'LGU'
+/** 인터넷 통신사: 휴대폰 통신망 + SKB(알뜰) */
+export type InternetCarrier = NetworkCode | 'SKB'
 
 export interface Partner {
   code: string
@@ -50,7 +52,7 @@ export interface PlanDetail {
 
 export interface InternetProduct {
   id: number
-  carrier: NetworkCode
+  carrier: InternetCarrier
   carrierLabel: string
   productType: 'SINGLE' | 'BUNDLE'
   name: string
