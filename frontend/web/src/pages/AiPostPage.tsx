@@ -8,6 +8,7 @@ import StateMessage from '../components/StateMessage'
 import { won } from '../lib/format'
 import { useApi } from '../lib/useApi'
 import { usePageTitle } from '../lib/usePageTitle'
+import { outboundPath } from '../lib/outbound'
 import NotFoundPage from './NotFoundPage'
 
 /** 같은 글은 하루 한 번만 조회 수에 센다 (이 브라우저 기준) */
@@ -147,7 +148,7 @@ export default function AiPostPage() {
                     {won(x.monthlyPrice)}
                     <span>원 / 월</span>
                   </div>
-                  <a className="card-cta" href={x.applyPath} target="_blank" rel="noopener noreferrer">
+                  <a className="card-cta" href={outboundPath('internet', x.id, x.applyPath)} target="_blank" rel="noopener noreferrer">
                     상담 신청 ↗
                   </a>
                 </div>

@@ -34,6 +34,28 @@
 .price-box-note { font-size: 12px; color: var(--gray-500); text-align: center; }
 .similar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 
+/* 제휴사 · 협력사 페이지로 이동 안내 (/out) — 헤더 · 푸터 위를 덮는다 */
+.outbound { position: fixed; inset: 0; z-index: 300; background: #F2F3F7; display: flex; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; }
+.outbound-card { width: 100%; max-width: 760px; background: #fff; border-radius: 4px; padding: 64px 56px 48px; text-align: center; }
+.outbound-route { display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 28px; }
+.outbound-route .logo { font-size: 26px; }
+.outbound-route .brand-chip, .outbound-route .isp-chip { margin: 0; font-size: 15px; padding: 6px 14px; }
+.outbound-arrow { font-size: 26px; color: var(--gray-700); letter-spacing: -4px; }
+.outbound-partner-blank { display: inline-block; width: 90px; height: 30px; border-radius: 100px; background: var(--gray-200); }
+.outbound-title { font-size: 20px; color: var(--gray-700); line-height: 1.5; min-height: 30px; margin-bottom: 28px; word-break: keep-all; }
+.outbound-bar { height: 10px; background: #F2F3F5; margin: 0 auto 32px; max-width: 640px; overflow: hidden; }
+.outbound-bar span { display: block; height: 100%; width: 0; background: var(--navy); animation: outbound-fill linear forwards; }
+@keyframes outbound-fill { from { width: 0; } to { width: 100%; } }
+.outbound-msg { font-size: 17px; color: var(--gray-500); line-height: 1.7; }
+.outbound-now { display: inline-block; margin-top: 14px; font-size: 13px; font-weight: 700; color: var(--coral-dark); }
+.outbound-note { margin-top: 36px; font-size: 13px; color: #C2C6CE; word-break: keep-all; }
+@media (max-width: 600px) {
+  .outbound-card { padding: 44px 20px 32px; }
+  .outbound-title { font-size: 16px; }
+  .outbound-msg { font-size: 15px; }
+}
+@media (prefers-reduced-motion: reduce) { .outbound-bar span { animation: none; width: 100%; } }
+
 /* 404 */
 .not-found { padding: 96px 0; text-align: center; }
 .nf-code { font-size: 72px; font-weight: 700; color: var(--coral); }

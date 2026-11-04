@@ -6,6 +6,7 @@ import { dotDate, planPrice, planPriceUnit, won } from '../lib/format'
 import { BrandChip } from '../lib/partners'
 import { useApi } from '../lib/useApi'
 import { usePageTitle } from '../lib/usePageTitle'
+import { outboundPath } from '../lib/outbound'
 import NotFoundPage from './NotFoundPage'
 
 /** S2 요금제 상세 — 개통하기는 /go/{id} 를 거쳐 제휴사 개통 URL로 포워딩 (RC-01 접수 기록). */
@@ -94,7 +95,7 @@ export default function PlanDetailPage() {
                 판매 종료
               </span>
             ) : (
-              <a className="btn-primary" href={data.activatePath} target="_blank" rel="noopener noreferrer">
+              <a className="btn-primary" href={outboundPath('plan', plan.id, data.activatePath)} target="_blank" rel="noopener noreferrer">
                 개통하기 ↗
               </a>
             )}

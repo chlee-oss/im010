@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { api } from '../api/client'
 import { won } from '../lib/format'
+import { outboundPath } from '../lib/outbound'
 import { useApi } from '../lib/useApi'
 import StateMessage from './StateMessage'
 
@@ -29,7 +30,7 @@ export function InternetBanner() {
   )
 }
 
-/** 인터넷 상품 비교 — 상담 신청은 /go/internet/{id} 를 거쳐 제휴업체 신청 페이지로 포워딩. */
+/** 인터넷 상품 비교 — 상담 신청은 이동 안내 화면(/out) → /go/internet/{id} 를 거쳐 제휴업체 신청 페이지로 포워딩. */
 export function InternetProducts() {
   const [tab, setTab] = useState<(typeof TABS)[number]['key']>('all')
   const { data, loading, error } = useApi((signal) => api.internetProducts(undefined, signal), [])
@@ -76,7 +77,7 @@ export function InternetProducts() {
                   <li key={b}>{b}</li>
                 ))}
               </ul>
-              <a className="card-cta" href={p.applyPath} target="_blank" rel="noopener noreferrer">
+              <a className="card-cta" href={outboundPath('internet', p.id, p.applyPath)} target="_blank" rel="noopener noreferrer">
                 상담 신청 ↗
               </a>
             </div>
