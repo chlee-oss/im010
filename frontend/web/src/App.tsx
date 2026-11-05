@@ -8,6 +8,7 @@ import AiPostPage from './pages/AiPostPage'
 import FaqPage from './pages/FaqPage'
 import HomePage from './pages/HomePage'
 import NotFoundPage from './pages/NotFoundPage'
+import OutboundPage from './pages/OutboundPage'
 import PlanDetailPage from './pages/PlanDetailPage'
 import TermsPage from './pages/TermsPage'
 
@@ -25,6 +26,7 @@ export default function App() {
             <Route path="/ai" element={<AiListPage />} />
             <Route path="/ai/posts/:id/:slug?" element={<AiPostPage />} />
             <Route path="/ai/:category" element={<AiListPage />} />
+            <Route path="/out" element={<OutboundPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </main>

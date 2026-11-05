@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { api } from '../api/client'
 import { won } from '../lib/format'
+import { outboundPath } from '../lib/outbound'
 import { useApi } from '../lib/useApi'
 import StateMessage from './StateMessage'
 
@@ -18,7 +19,7 @@ export function InternetBanner() {
         <div className="internet-banner">
           <div>
             <h3>인터넷도 im010에서 한 번에</h3>
-            <p>SKT · KT · LG U+ · SKB(알뜰) 인터넷 상품을 비교하고, 마음에 드는 상품은 제휴업체 신청 페이지로 바로 연결해 드려요.</p>
+            <p>SKT · KT · LG U+ · SKB(알뜰) 인터넷 상품을 비교하고, 마음에 드는 상품은 아정당 신청 페이지로 바로 연결해 드려요.</p>
             <a className="btn-primary" href="#internet-compare">
               인터넷 상품 보러가기
             </a>
@@ -29,7 +30,7 @@ export function InternetBanner() {
   )
 }
 
-/** 인터넷 상품 비교 — 상담 신청은 /go/internet/{id} 를 거쳐 제휴업체 신청 페이지로 포워딩. */
+/** 인터넷 상품 비교 — 상담 신청은 이동 안내 화면(/out) → /go/internet/{id} 를 거쳐 아정당 신청 페이지로 포워딩 (현재 인터넷 상품은 모두 아정당에서 수집). */
 export function InternetProducts() {
   const [tab, setTab] = useState<(typeof TABS)[number]['key']>('all')
   const { data, loading, error } = useApi((signal) => api.internetProducts(undefined, signal), [])
@@ -76,14 +77,14 @@ export function InternetProducts() {
                   <li key={b}>{b}</li>
                 ))}
               </ul>
-              <a className="card-cta" href={p.applyPath} target="_blank" rel="noopener noreferrer">
+              <a className="card-cta" href={outboundPath('internet', p.id, p.applyPath)} target="_blank" rel="noopener noreferrer">
                 상담 신청 ↗
               </a>
             </div>
           ))}
         </div>
         <p className="isp-disclaimer">
-          ※ 상품명, 요금, 사은품 조건은 통신사 정책에 따라 변경될 수 있으며, 신청 · 상담은 제휴업체 페이지에서 진행됩니다.
+          ※ 상품명, 요금, 사은품 조건은 통신사 정책에 따라 변경될 수 있으며, 신청 · 상담은 아정당 페이지에서 진행됩니다.
         </p>
       </div>
     </section>
