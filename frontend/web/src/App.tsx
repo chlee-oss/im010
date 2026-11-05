@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 import Footer from './components/Footer'
 import Header from './components/Header'
+import ScrollToTop from './components/ScrollToTop'
 import { PartnerProvider } from './lib/partners'
 import { ToastProvider } from './lib/toast'
 import AiListPage from './pages/AiListPage'
@@ -16,6 +17,7 @@ export default function App() {
   return (
     <ToastProvider>
       <PartnerProvider>
+        <ScrollToTop />
         <Header />
         <main>
           <Routes>
