@@ -148,7 +148,7 @@ export default function AiPostPage() {
                     {won(x.monthlyPrice)}
                     <span>원 / 월</span>
                   </div>
-                  <a className="card-cta" href={outboundPath('internet', x.id, x.applyPath)} target="_blank" rel="noopener noreferrer">
+                  <a className="card-cta" href={outboundPath('internet', x.id, x.applyPath, x.productType === 'SINGLE')} target="_blank" rel="noopener noreferrer">
                     상담 신청 ↗
                   </a>
                 </div>

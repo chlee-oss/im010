@@ -48,6 +48,8 @@
 .outbound-bar span { display: block; height: 100%; width: 0; background: var(--navy); animation: outbound-fill linear forwards; }
 @keyframes outbound-fill { from { width: 0; } to { width: 100%; } }
 .outbound-msg { font-size: 17px; color: var(--gray-500); line-height: 1.7; }
+.outbound-guide { margin: 18px auto 0; max-width: 520px; background: var(--coral-tint); color: var(--navy); border-radius: 12px; padding: 14px 16px; font-size: 15px; line-height: 1.6; word-break: keep-all; }
+.outbound-guide b { color: var(--coral-dark); }
 .outbound-now { display: inline-block; margin-top: 14px; font-size: 13px; font-weight: 700; color: var(--coral-dark); }
 .outbound-note { margin-top: 36px; font-size: 13px; color: #C2C6CE; word-break: keep-all; }
 @media (max-width: 600px) {

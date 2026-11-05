@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import { planPrice, won } from '../lib/format'
-import { INTERNET_PARTNER, OUTBOUND_DELAY_MS, safeGoPath } from '../lib/outbound'
+import { INTERNET_PARTNER, OUTBOUND_DELAY_MS, OUTBOUND_SINGLE_DELAY_MS, safeGoPath } from '../lib/outbound'
 import { BrandChip } from '../lib/partners'
 import { useApi } from '../lib/useApi'
 import { usePageTitle } from '../lib/usePageTitle'
@@ -18,6 +18,9 @@ export default function OutboundPage() {
   const to = safeGoPath(search.get('to'))
   const kind = search.get('kind') === 'internet' ? 'internet' : 'plan'
   const id = Number(search.get('id'))
+  // 인터넷 단독: 아정당에서 "인터넷 단독"을 직접 골라야 해서 안내를 보여 주고 더 기다린다
+  const single = kind === 'internet' && search.get('single') === '1'
+  const delay = single ? OUTBOUND_SINGLE_DELAY_MS : OUTBOUND_DELAY_MS
   const plan = useApi((signal) => (kind === 'plan' && id ? api.planDetail(id, signal) : Promise.resolve(null)), [kind, id])
   const internet = useApi(
     (signal) => (kind === 'internet' ? api.internetProducts(undefined, signal) : Promise.resolve(null)),
@@ -38,9 +41,9 @@ export default function OutboundPage() {
   // 안내 정보를 못 불러와도 이동은 한다
   useEffect(() => {
     if (!to) return
-    const t = window.setTimeout(() => window.location.replace(to), Math.max(0, OUTBOUND_DELAY_MS - (Date.now() - started)))
+    const t = window.setTimeout(() => window.location.replace(to), Math.max(0, delay - (Date.now() - started)))
     return () => window.clearTimeout(t)
-  }, [to, started])
+  }, [to, started, delay])
 
   if (!to) return <NotFoundPage />
 
@@ -81,7 +84,7 @@ export default function OutboundPage() {
         </p>
 
         <div className="outbound-bar" aria-hidden="true">
-          <span style={{ animationDuration: `${OUTBOUND_DELAY_MS}ms` }} />
+          <span style={{ animationDuration: `${delay}ms` }} />
         </div>
 
         <p className="outbound-msg">
@@ -91,6 +94,13 @@ export default function OutboundPage() {
           <br />
           잠시만 기다려 주세요.
         </p>
+        {single && (
+          <p className="outbound-guide">
+            {INTERNET_PARTNER} 페이지의 <b>조합 선택</b>에서 <b>인터넷 단독</b>을 눌러 주세요.
+            <br />
+            처음에는 "인터넷 + TV"가 선택되어 열려요.
+          </p>
+        )}
         <a className="outbound-now" href={to}>
           바로 이동하기 →
         </a>
