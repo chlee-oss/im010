@@ -2,42 +2,16 @@ import type { CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import type { AiCard as Card } from '../api/types'
 import { aiPostPath, aiShortDate } from '../lib/aiFormat'
+import Icon from './Icon'
 
-/** 썸네일이 없을 때: 카테고리 강조 색으로 그린 기본 그림 (화면 미리보기 느낌) */
+/** 썸네일이 없을 때: 카테고리에 맞는 Material Symbols 아이콘을 강조 색으로 (알뜰통신 · 인터넷 · 잡식잡식) */
+const THUMB_ICON: Record<string, string> = { mobile: 'smartphone', internet: 'router', misc: 'lightbulb' }
+
 export function AiDefaultThumb({ slug, accent }: { slug: string; accent: string }) {
-  if (slug === 'internet') {
-    return (
-      <svg viewBox="0 0 120 92" aria-hidden="true">
-        <rect width="120" height="92" fill="#fff" />
-        <rect width="120" height="14" fill="#F4F5F7" />
-        <circle cx="8" cy="7" r="2.5" fill="#E2E4E9" />
-        <circle cx="16" cy="7" r="2.5" fill="#E2E4E9" />
-        <path d="M36 48a34 34 0 0 1 48 0" stroke={accent} strokeWidth="6" fill="none" strokeLinecap="round" />
-        <path d="M46 58a20 20 0 0 1 28 0" stroke={accent} strokeWidth="6" fill="none" strokeLinecap="round" opacity=".7" />
-        <circle cx="60" cy="70" r="5" fill={accent} />
-      </svg>
-    )
-  }
-  if (slug === 'mobile') {
-    return (
-      <svg viewBox="0 0 120 92" aria-hidden="true">
-        <rect width="120" height="92" fill="#fff" />
-        <rect x="40" y="10" width="40" height="76" rx="8" fill="#1F2430" />
-        <rect x="44" y="18" width="32" height="56" rx="3" fill={accent} opacity=".85" />
-        <rect x="50" y="30" width="20" height="5" rx="2.5" fill="#fff" />
-        <rect x="50" y="40" width="14" height="5" rx="2.5" fill="#fff" opacity=".7" />
-        <rect x="50" y="56" width="20" height="10" rx="5" fill="#fff" />
-      </svg>
-    )
-  }
   return (
-    <svg viewBox="0 0 120 92" aria-hidden="true">
-      <rect width="120" height="92" fill="#fff" />
-      <circle cx="60" cy="46" r="26" fill={accent} opacity=".2" />
-      <path d="M60 24l5 15 15 5-15 5-5 15-5-15-15-5 15-5z" fill={accent} />
-      <circle cx="92" cy="22" r="5" fill={accent} opacity=".6" />
-      <circle cx="26" cy="70" r="4" fill={accent} opacity=".5" />
-    </svg>
+    <div className="ai-default-thumb" style={{ color: accent }}>
+      <Icon name={THUMB_ICON[slug] ?? 'article'} />
+    </div>
   )
 }
 

@@ -10,6 +10,7 @@ import { useApi } from '../lib/useApi'
 import { usePageTitle } from '../lib/usePageTitle'
 import { outboundPath } from '../lib/outbound'
 import NotFoundPage from './NotFoundPage'
+import Icon from '../components/Icon'
 
 /** 같은 글은 하루 한 번만 조회 수에 센다 (이 브라우저 기준) */
 function countView(id: number) {
@@ -67,7 +68,7 @@ export default function AiPostPage() {
     <section className="ai-page ai-detail" style={style}>
       <article className="wrap narrow">
         <nav className="ai-crumb" aria-label="위치">
-          <Link to="/ai">알뜰AI</Link> › <Link to={`/ai/${p.categorySlug}`}>{p.categoryName}</Link>
+          <Link to="/ai">알뜰AI</Link> <Icon name="chevron_right" /> <Link to={`/ai/${p.categorySlug}`}>{p.categoryName}</Link>
         </nav>
         <h1>{p.title}</h1>
         <p className="ai-meta">
@@ -106,7 +107,7 @@ export default function AiPostPage() {
                 출처: {s.name} {s.title && `「${s.title}」`} {s.date && `(${s.date})`}{' '}
                 {s.url && (
                   <a href={s.url} target="_blank" rel="noopener noreferrer nofollow">
-                    원문 ↗
+                    원문 <Icon name="arrow_outward" />
                   </a>
                 )}
               </li>
@@ -149,7 +150,7 @@ export default function AiPostPage() {
                     <span>원 / 월</span>
                   </div>
                   <a className="card-cta" href={outboundPath('internet', x.id, x.applyPath, x.productType === 'SINGLE')} target="_blank" rel="noopener noreferrer">
-                    상담 신청 ↗
+                    상담 신청 <Icon name="arrow_outward" />
                   </a>
                 </div>
               ))}
@@ -160,7 +161,7 @@ export default function AiPostPage() {
         <nav className="ai-pager" aria-label="이전 · 다음 글">
           {data.older ? (
             <Link to={aiPostPath(data.older)} title={data.older.title}>
-              ‹ 이전 글
+              <Icon name="chevron_left" /> 이전 글
             </Link>
           ) : (
             <span />
@@ -168,7 +169,7 @@ export default function AiPostPage() {
           <Link to={`/ai/${p.categorySlug}`}>목록</Link>
           {data.newer ? (
             <Link to={aiPostPath(data.newer)} title={data.newer.title}>
-              다음 글 ›
+              다음 글 <Icon name="chevron_right" />
             </Link>
           ) : (
             <span />

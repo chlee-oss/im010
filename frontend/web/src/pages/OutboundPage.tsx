@@ -7,6 +7,7 @@ import { BrandChip } from '../lib/partners'
 import { useApi } from '../lib/useApi'
 import { usePageTitle } from '../lib/usePageTitle'
 import NotFoundPage from './NotFoundPage'
+import Icon from '../components/Icon'
 
 
 /**
@@ -67,7 +68,7 @@ export default function OutboundPage() {
             im<span>010</span>
           </span>
           <span className="outbound-arrow" aria-hidden="true">
-            ≫
+            <Icon name="keyboard_double_arrow_right" />
           </span>
           {p ? (
             <BrandChip code={p.partnerCode} name={p.partnerName} />
@@ -102,7 +103,7 @@ export default function OutboundPage() {
           </p>
         )}
         <a className="outbound-now" href={to}>
-          바로 이동하기 →
+          바로 이동하기 <Icon name="arrow_forward" />
         </a>
 
         <p className="outbound-note">

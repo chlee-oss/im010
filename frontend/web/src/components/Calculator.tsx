@@ -5,6 +5,7 @@ import type { NetworkCode } from '../api/types'
 import { won } from '../lib/format'
 import { BrandChip } from '../lib/partners'
 import { useApi } from '../lib/useApi'
+import Icon from './Icon'
 
 // 슬라이더 단계 (null = 무제한). 기본값 11GB · SKT (목업 · 기획서 3.2)
 const STEPS: (number | null)[] = [1, 2, 3, 5, 7, 11, 30, null]
@@ -78,7 +79,7 @@ export default function Calculator() {
           <Link className="result-plan" to={`/plans/${plan.id}`}>
             <BrandChip code={plan.partnerCode} name={plan.partnerName} />
             <span className="result-name">{plan.dataText}</span>
-            <span className="result-go">요금제 보기 →</span>
+            <span className="result-go">요금제 보기 <Icon name="arrow_forward" /></span>
           </Link>
         ) : (
           !loading && (

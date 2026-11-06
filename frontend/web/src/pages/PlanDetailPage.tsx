@@ -8,6 +8,7 @@ import { useApi } from '../lib/useApi'
 import { usePageTitle } from '../lib/usePageTitle'
 import { outboundPath } from '../lib/outbound'
 import NotFoundPage from './NotFoundPage'
+import Icon from '../components/Icon'
 
 /** S2 요금제 상세 — 개통하기는 /go/{id} 를 거쳐 제휴사 개통 URL로 포워딩 (RC-01 접수 기록). */
 export default function PlanDetailPage() {
@@ -41,7 +42,7 @@ export default function PlanDetailPage() {
     <section className="detail">
       <div className="wrap">
         <nav className="breadcrumb" aria-label="현재 위치">
-          <Link to="/">홈</Link> › <a href="/#partners">요금제</a> › {plan.partnerName} › {plan.name}
+          <Link to="/">홈</Link> <Icon name="chevron_right" /> <a href="/#partners">요금제</a> <Icon name="chevron_right" /> {plan.partnerName} <Icon name="chevron_right" /> {plan.name}
         </nav>
 
         {ended && <div className="notice ended">판매가 종료된 요금제예요. 아래 비슷한 요금제를 확인해 보세요.</div>}
@@ -96,7 +97,7 @@ export default function PlanDetailPage() {
               </span>
             ) : (
               <a className="btn-primary" href={outboundPath('plan', plan.id, data.activatePath)} target="_blank" rel="noopener noreferrer">
-                개통하기 ↗
+                개통하기 <Icon name="arrow_outward" />
               </a>
             )}
             <p className="price-box-note">{plan.partnerName} 사이트로 이동해요</p>

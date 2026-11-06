@@ -22,7 +22,7 @@
 .lp-headline { font-size: 21px; font-weight: 800; letter-spacing: -0.5px; }
 .lp-specs { display: flex; gap: 16px; color: var(--gray-700); font-size: 14px; flex-wrap: wrap; }
 .lp-specs span { display: inline-flex; align-items: center; gap: 5px; }
-.lp-specs svg { width: 15px; height: 15px; fill: var(--gray-700); }
+.lp-specs .msi { font-size: 18px; color: var(--gray-700); vertical-align: 0; }
 .lp-price { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-top: 10px; padding-top: 12px; border-top: 1px solid #F4F5F7; }
 .lp-price b { font-size: 23px; font-weight: 800; letter-spacing: -0.5px; }
 .lp-price small { font-size: 13px; color: var(--gray-500); white-space: nowrap; }
