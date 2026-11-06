@@ -144,6 +144,7 @@ export default function BatchItems() {
               <th>데이터</th>
               <th>망</th>
               <th>세대</th>
+              <th>QoS</th>
               <th>변경 내용</th>
               <th>상태</th>
             </tr>
@@ -167,6 +168,7 @@ export default function BatchItems() {
                 <td>{i.values.dataText ?? '–'}</td>
                 <td>{itemValueText('network', i.values as unknown as Record<string, unknown>)}</td>
                 <td>{itemValueText('generation', i.values as unknown as Record<string, unknown>)}</td>
+                <td>{itemValueText('qosText', i.values as unknown as Record<string, unknown>)}</td>
                 <td>
                   {i.changeType === 'CHANGED' ? i.changedFields.map((f) => FIELD[f] ?? f).join(' · ') || '판매 재개' : CHANGE[i.changeType]}
                   {i.warnings.map((w) => (
