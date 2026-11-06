@@ -11,7 +11,7 @@ REL=${1:-/home/im010oper/im010-deploy/release}
 STAMP=$(date +%Y%m%d-%H%M%S)
 BACKUP=/opt/im010/backup/$STAMP
 
-for f in im010-api.jar im010-admin.jar im010-batch.jar web/index.html admin-web/index.html \
+for f in im010-api.jar im010-admin.jar im010-batch.jar web/index.html web/404.html web/sitemap.xml admin-web/index.html \
          systemd/im010-api.service systemd/im010-admin.service systemd/im010-batch.service; do
     [[ -f "$REL/$f" ]] || { echo "릴리스 파일이 없습니다: $REL/$f" >&2; exit 1; }
 done
