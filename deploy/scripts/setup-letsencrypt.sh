@@ -5,12 +5,12 @@
 #
 # 80 은 외부에 닫아 둔다. Let's Encrypt 확인(HTTP-01)은 80 으로만 오므로, 발급 · 갱신하는 1분 남짓만
 # iptables 에 임시 규칙(IM010_ACME_TMP, 저장하지 않음)을 넣었다가 바로 뺀다 (/usr/local/sbin/im010-acme-port80).
-# 인증서 하나에 www · admin 을 함께 넣고(cert-name im010), nginx 가 보는 /etc/pki/nginx/<도메인>.crt|key 를 그 파일로 연결한다.
+# 인증서 하나에 www · admin · im010.co.kr 을 함께 넣고(도메인이 늘면 --expand 로 다시 받음)(cert-name im010), nginx 가 보는 /etc/pki/nginx/<도메인>.crt|key 를 그 파일로 연결한다.
 set -euo pipefail
 
 [[ $EUID -eq 0 ]] || { echo "root 권한이 필요합니다: sudo bash $0 <메일>" >&2; exit 1; }
 EMAIL=${1:?"인증서 만료 알림 받을 메일을 인자로 주세요"}
-DOMAINS=(www.im010.co.kr admin.im010.co.kr)
+DOMAINS=(www.im010.co.kr admin.im010.co.kr im010.co.kr)   # im010.co.kr 은 www 로 301 (nginx)
 WEBROOT=/var/www/letsencrypt
 LIVE=/etc/letsencrypt/live/im010
 STAMP=$(date +%Y%m%d-%H%M%S)
@@ -63,7 +63,7 @@ for d in "${DOMAINS[@]}"; do args+=(-d "$d"); done
 trap '/usr/local/sbin/im010-acme-port80 close' EXIT
 /usr/local/sbin/im010-acme-port80 open
 certbot certonly --webroot -w "$WEBROOT" --cert-name im010 "${args[@]}" \
-    --email "$EMAIL" --agree-tos --no-eff-email --non-interactive --keep-until-expiring
+    --email "$EMAIL" --agree-tos --no-eff-email --non-interactive --keep-until-expiring --expand
 /usr/local/sbin/im010-acme-port80 close
 trap - EXIT
 iptables -S INPUT | grep -q IM010_ACME_TMP && { echo "80 임시 규칙이 남아 있습니다" >&2; exit 1; }
