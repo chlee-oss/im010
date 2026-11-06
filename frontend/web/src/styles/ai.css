@@ -34,6 +34,12 @@
 .ai-thumb { flex: 0 0 120px; height: 92px; margin-top: 4px; border-radius: 10px; overflow: hidden; background: var(--white); box-shadow: 0 1px 0 rgba(0,0,0,.04), 0 0 0 1px rgba(31,36,48,.06); }
 .ai-thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
 .ai-thumb svg { display: block; width: 100%; height: 100%; }
+/* 기본 썸네일: 카테고리 아이콘 (Material Symbols weight 100) */
+.ai-default-thumb { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; background: var(--white); }
+.ai-default-thumb .msi { font-size: 64px; vertical-align: 0; }
+.ai-hero .ai-default-thumb { height: 280px; }
+.ai-hero .ai-default-thumb .msi { font-size: 160px; }
+.ai-featured .ai-default-thumb .msi { font-size: 110px; }
 
 .ai-featured { display: grid; grid-template-columns: 1fr 260px; gap: 24px; padding: 26px 26px 0 30px; height: auto; min-height: 196px; margin-bottom: 16px; }
 .ai-featured h3 { font-size: 22px; }
@@ -95,4 +101,6 @@
   .ai-detail h1 { font-size: 24px; }
   .ai-body { font-size: 16px; }
   .ai-hero svg { height: 200px; }
+  .ai-hero .ai-default-thumb { height: 200px; }
+  .ai-hero .ai-default-thumb .msi { font-size: 120px; }
 }

@@ -5,6 +5,7 @@ import { won } from '../lib/format'
 import { outboundPath } from '../lib/outbound'
 import { useApi } from '../lib/useApi'
 import StateMessage from './StateMessage'
+import Icon from './Icon'
 
 const CHIP: Record<string, string> = { SKT: 'skt', KT: 'kt', LGU: 'lgu', SKB: 'skb' }
 const TABS = [
@@ -121,7 +122,7 @@ function IspRow({ items, label }: { items: InternetProduct[]; label: string }) {
     >
       {rolling && (
         <button type="button" className="isp-roll prev" aria-label={`${label} 이전 상품`} onClick={() => go(-1)}>
-          ‹
+          <Icon name="chevron_left" />
         </button>
       )}
       <div className="isp-viewport">
@@ -133,7 +134,7 @@ function IspRow({ items, label }: { items: InternetProduct[]; label: string }) {
       </div>
       {rolling && (
         <button type="button" className="isp-roll next" aria-label={`${label} 다음 상품`} onClick={() => go(1)}>
-          ›
+          <Icon name="chevron_right" />
         </button>
       )}
     </div>
@@ -158,7 +159,7 @@ function IspCard({ p }: { p: InternetProduct }) {
         ))}
       </ul>
       <a className="card-cta" href={outboundPath('internet', p.id, p.applyPath, p.productType === 'SINGLE')} target="_blank" rel="noopener noreferrer">
-        상담 신청 ↗
+        상담 신청 <Icon name="arrow_outward" />
       </a>
     </div>
   )

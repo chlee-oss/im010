@@ -6,6 +6,7 @@ import { cleanMonthly, is5Mbps, pickMonthlyFallback, uniquePlans } from '../lib/
 import { useApi } from '../lib/useApi'
 import { PlanListCard } from './PlanListCard'
 import StateMessage from './StateMessage'
+import Icon from './Icon'
 
 /**
  * 이달의 요금제 — 제휴사 "이달의 요금제" URL 수집 결과 (제휴사 이름순 → 사이트 순서).
@@ -37,7 +38,7 @@ export function MonthlyPlans() {
             </div>
           </div>
           <a className="see-all" href="#partners">
-            전체 요금제 보기 →
+            전체 요금제 보기 <Icon name="arrow_forward" />
           </a>
         </div>
         <StateMessage loading={!data && (monthly.loading || postpaid.loading)} error={monthly.error ?? postpaid.error} empty={data?.length === 0} />
@@ -118,7 +119,7 @@ export function PartnerPlans() {
                 <BrandChip code={g.partner.code} name={g.partner.name} />
                 {g.total > g.plans.length && (
                   <button type="button" className="lp-all" onClick={() => openPartner(g.partner.code)}>
-                    {g.partner.name} 요금제 {g.total}개 전체 보기 ›
+                    {g.partner.name} 요금제 {g.total}개 전체 보기 <Icon name="chevron_right" />
                   </button>
                 )}
               </div>

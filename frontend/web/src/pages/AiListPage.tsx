@@ -7,6 +7,7 @@ import StateMessage from '../components/StateMessage'
 import { useApi } from '../lib/useApi'
 import { usePageTitle } from '../lib/usePageTitle'
 import NotFoundPage from './NotFoundPage'
+import Icon from '../components/Icon'
 
 /** 알뜰AI 목록 (/ai, /ai/{카테고리}) — 탭 · 검색 · 정렬 · 상단 고정 · 카드 2열 · 더 보기 */
 export default function AiListPage() {
@@ -110,7 +111,7 @@ function AiList() {
           <p className="ai-filter">
             {tag ? `#${tag}` : `"${q}"`} 검색 결과 {data ? data.total.toLocaleString() + '건' : ''}{' '}
             <button type="button" onClick={() => setParams(sort === 'popular' ? { sort } : {})}>
-              ✕ 지우기
+              <Icon name="close" /> 지우기
             </button>
           </p>
         )}

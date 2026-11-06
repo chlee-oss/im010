@@ -2,24 +2,7 @@ import { Link } from 'react-router-dom'
 import type { PlanSummary } from '../api/types'
 import { won } from '../lib/format'
 import { BrandChip } from '../lib/partners'
-
-const CallIcon = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z" />
-  </svg>
-)
-const SmsIcon = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm0 4.2V18h16V8.2l-8 5-8-5zM4.5 6l7.5 4.7L19.5 6z" />
-  </svg>
-)
-const NetIcon = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true">
-    <rect x="4" y="14" width="3.2" height="6" rx="1" />
-    <rect x="10.4" y="9" width="3.2" height="11" rx="1" />
-    <rect x="16.8" y="4" width="3.2" height="16" rx="1" />
-  </svg>
-)
+import Icon from './Icon'
 
 const unlimitedVoice = (v: string | null) => !!v && (v.includes('무제한') || v.replace(/\s/g, '') === '기본제공')
 
@@ -71,15 +54,15 @@ export function PlanListCard({ plan: p }: { plan: PlanSummary }) {
         <p className="lp-headline">{headline(p)}</p>
         <p className="lp-specs">
           <span>
-            <CallIcon />
+            <Icon name="call" />
             {p.voice ?? '–'}
           </span>
           <span>
-            <SmsIcon />
+            <Icon name="sms" />
             {p.sms ?? '–'}
           </span>
           <span>
-            <NetIcon />
+            <Icon name="signal_cellular_alt" />
             {p.generation}
           </span>
         </p>
@@ -101,7 +84,7 @@ export function PlanListCard({ plan: p }: { plan: PlanSummary }) {
             할인으로 최대 <em>{won(saved)}원</em> 아껴요
           </span>
         ) : (
-          <span className="lp-save">요금제 자세히 보기 ›</span>
+          <span className="lp-save">요금제 자세히 보기 <Icon name="chevron_right" /></span>
         )}
       </div>
     </Link>

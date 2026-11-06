@@ -11,6 +11,7 @@ import { heroPicks } from '../lib/planRules'
 import { useApi } from '../lib/useApi'
 import { usePageTitle } from '../lib/usePageTitle'
 import { useToast } from '../lib/toast'
+import Icon from '../components/Icon'
 
 export default function HomePage() {
   usePageTitle()
@@ -33,7 +34,7 @@ export default function HomePage() {
       <section className="hero">
         <div className="wrap">
           <div>
-            <span className="eyebrow">● 7개 제휴사 요금제 한눈에 비교</span>
+            <span className="eyebrow"><Icon name="compare_arrows" /> 7개 제휴사 요금제 한눈에 비교</span>
             <h1 className="hero-title">
               매달 통신비,
               <br />

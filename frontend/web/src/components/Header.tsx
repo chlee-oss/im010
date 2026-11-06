@@ -4,6 +4,7 @@ import { api } from '../api/client'
 import { useApi } from '../lib/useApi'
 import { usePartners } from '../lib/partners'
 import { useToast } from '../lib/toast'
+import Icon from './Icon'
 
 // 1차: 마이페이지 · 로그인 · 선불 충전 메뉴 없음. 섹션 이동은 메인(/)의 앵커로.
 const SECTIONS = [
@@ -36,7 +37,7 @@ export default function Header() {
             <div className="nav-item" key={s.href}>
               <a className="top-link" href={s.href}>
                 {s.label}
-                {s.dropdown ? ' ▾' : ''}
+                {s.dropdown && <Icon name="expand_more" />}
               </a>
               {s.dropdown && (
                 <div className="dropdown">
@@ -53,7 +54,7 @@ export default function Header() {
           {/* 알뜰AI: 업계 소식 · 정보 콘텐츠 (im010_알뜰AI_기획서.md) */}
           <div className="nav-item">
             <Link className={'top-link' + (aiOn ? ' on' : '')} to="/ai" aria-current={aiOn ? 'page' : undefined}>
-              알뜰AI ▾<span className="new-badge">N</span>
+              알뜰AI <Icon name="expand_more" /><span className="new-badge">N</span>
             </Link>
             <div className="dropdown">
               <Link to="/ai">전체 보기</Link>
@@ -82,7 +83,7 @@ export default function Header() {
             aria-controls="mobileNav"
             onClick={() => setOpen(!open)}
           >
-            {open ? '✕' : '☰'}
+            <Icon name={open ? 'close' : 'menu'} />
           </button>
         </div>
       </div>
