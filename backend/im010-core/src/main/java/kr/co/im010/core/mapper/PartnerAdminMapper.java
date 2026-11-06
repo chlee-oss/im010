@@ -46,6 +46,9 @@ public interface PartnerAdminMapper {
                        @Param("chipFg") String chipFg, @Param("homepageUrl") String homepageUrl,
                        @Param("exposed") boolean exposed, @Param("sortOrder") int sortOrder);
 
+    /** 로고 바꾸기 · 지우기 (logoUrl null) */
+    int updateLogo(@Param("code") String code, @Param("logoUrl") String logoUrl);
+
     int updatePartner(@Param("code") String code, @Param("name") String name, @Param("chipBg") String chipBg,
                       @Param("chipFg") String chipFg, @Param("homepageUrl") String homepageUrl,
                       @Param("exposed") boolean exposed, @Param("sortOrder") int sortOrder);

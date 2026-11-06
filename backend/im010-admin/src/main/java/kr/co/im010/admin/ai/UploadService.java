@@ -16,9 +16,9 @@ import kr.co.im010.admin.web.ApiException;
 import kr.co.im010.core.content.UploadProperties;
 
 /**
- * 이미지 업로드 (알뜰AI 썸네일 · 본문). 파일 앞부분(시그니처)으로 형식을 확인하고 jpg · png · webp · gif 만 받는다
+ * 이미지 업로드 (알뜰AI 썸네일 · 본문, 제휴사 로고). 파일 앞부분(시그니처)으로 형식을 확인하고 jpg · png · webp · gif 만 받는다
  * (SVG 는 스크립트를 담을 수 있어 받지 않음). 저장 이름은 무작위라 원래 파일 이름은 쓰지 않는다.
- * 저장 위치: {im010.upload.dir}/ai/yyyy/MM/{uuid}.{ext} → 주소 /uploads/ai/yyyy/MM/{uuid}.{ext}
+ * 저장 위치: {im010.upload.dir}/{folder}/yyyy/MM/{uuid}.{ext} → 주소 /uploads/{folder}/yyyy/MM/{uuid}.{ext} (folder: ai · partners)
  */
 @Service
 public class UploadService {
@@ -31,7 +31,16 @@ public class UploadService {
         this.audit = audit;
     }
 
+    /** 알뜰AI 이미지: {dir}/ai/yyyy/MM/... */
     public String saveImage(MultipartFile file) {
+        return saveImage(file, "ai", AiPostAdminService.PROGRAM, "AI_IMAGE_UPLOAD");
+    }
+
+    /**
+     * 이미지 저장. folder 아래 yyyy/MM/{uuid}.{ext} 로 저장하고 /uploads/... 주소를 돌려준다.
+     * 같은 형식 검사 · 크기 제한을 쓰고, 감사 기록은 부르는 화면(program)과 action 으로 남긴다.
+     */
+    public String saveImage(MultipartFile file, String folder, String program, String auditAction) {
         if (file == null || file.isEmpty()) {
             throw ApiException.badRequest("파일을 골라 주세요");
         }
@@ -46,11 +55,11 @@ public class UploadService {
                 throw ApiException.badRequest("jpg · png · webp · gif 이미지만 올릴 수 있습니다");
             }
             LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
-            String rel = "ai/%d/%02d/%s.%s".formatted(today.getYear(), today.getMonthValue(), UUID.randomUUID(), ext);
+            String rel = "%s/%d/%02d/%s.%s".formatted(folder, today.getYear(), today.getMonthValue(), UUID.randomUUID(), ext);
             Path target = Path.of(props.dir()).toAbsolutePath().normalize().resolve(rel);
             Files.createDirectories(target.getParent());
             file.transferTo(target);
-            audit.action(AiPostAdminService.PROGRAM, "AI_IMAGE_UPLOAD", "/uploads/" + rel, file.getSize() + " bytes");
+            audit.action(program, auditAction, "/uploads/" + rel, file.getSize() + " bytes");
             return "/uploads/" + rel;
         } catch (IOException e) {
             throw ApiException.badRequest("파일을 저장하지 못했습니다");
