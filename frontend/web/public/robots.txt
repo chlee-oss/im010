@@ -1,0 +1,7 @@
+# im010 — https://www.im010.co.kr
+User-agent: *
+Disallow: /go/
+Disallow: /out
+Disallow: /api/
+
+Sitemap: https://www.im010.co.kr/sitemap.xml

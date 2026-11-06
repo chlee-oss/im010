@@ -201,11 +201,39 @@ im010/
 - 백오피스 첫 계정: `IM010_ADMIN_BOOTSTRAP_PASSWORD`를 넣고 시작 → 첫 로그인(OTP · 비밀번호 변경) 후 값을 지운다
 - 운영 DB에는 `db/seed`(예시 데이터)가 실행되지 않는다 — `local` 프로필에서만 포함
 
-## 검색 노출 (React SPA)
+## 검색 노출 (React SPA + 빌드 시 미리 렌더링)
 
-고객 화면은 React SPA라 검색엔진이 요금제 목록 · 상세를 읽기 어렵다. 1차 오픈 전에 아래 중 하나를 적용한다.
-1. 메인 · 요금제 상세 · 알뜰AI 글을 빌드 시 미리 렌더링 (pre-render) — 알뜰AI는 검색 유입이 목적이라 오픈 전 필수
-2. 필요하면 Next.js(SSR)로 전환 — API는 그대로 사용 가능
+고객 화면은 React SPA라 빈 `#root` 만으로는 검색엔진 · 링크 미리보기가 내용을 읽지 못한다. 그래서 **빌드할 때 운영 API에서 데이터를 받아 경로별 정적 HTML을 만든다** ([`scripts/prerender.mjs`](frontend/web/scripts/prerender.mjs), `npm run build` 마지막 단계).
+
+- 만드는 페이지 (`dist/<경로>/index.html`): `/` · `/faq` · `/ai` · `/ai/<카테고리>` · `/ai/posts/<id>/<slug>` · `/plans/<id>`(게시 중) · `/terms/service|privacy` · `/out`(noindex,nofollow)
+  - 각 HTML: 페이지별 `<title>` · `meta description` · `link rel=canonical`(https://www.im010.co.kr 기준) · `og:title/description/url/image/type` · 본문 텍스트(요금제 목록 · 사양 · 글 본문 · FAQ, 내부 링크) · JSON-LD(WebSite · FAQPage · Article)
+  - 본문은 `#root` 안에 넣는다. 브라우저에서는 React(`createRoot`)가 그 자리를 새로 그리므로 사람에게는 지금과 같은 화면이 보인다
+  - `_gone/plans/<id>/index.html`: 판매 종료 요금제(번호를 차례로 조회해 찾음) → nginx가 **410** + 종료 안내 · 비슷한 요금제 링크(noindex)
+  - `404.html`: 없는 경로 → nginx가 **404** (noindex, SPA가 떠서 404 화면이 보임)
+  - `_shell.html`: 기본 메타만 있는 SPA 틀. **빌드 뒤에 새로 게시된 요금제 · 알뜰AI 글**은 미리 만든 HTML이 없어 이 틀로 200 응답 (Google은 JS를 실행해 읽는다)
+  - `sitemap.xml`: 메인 · FAQ · 알뜰AI 목록 · 글 · 게시 중 요금제, `lastmod` = 글 수정일/게시일 · 요금 기준일 · 빌드일. `robots.txt`(`public/`): `/go/` · `/out` · `/api/` 제외 + Sitemap
+  - 기본 공유 이미지 `public/og-default.png`(1200x630, 임시 디자인 — 확정본으로 같은 이름 교체). 글에 썸네일이 있으면 그 이미지
+- **데이터 출처 = 빌드 시점의 운영 API** (`PRERENDER_API`, 기본 `https://www.im010.co.kr`). 서버에는 Node가 없어서 배포 후 주기 재생성 대신 이 방식을 골랐다
+  - API를 못 받으면 빌드가 멈춘다. 인터넷 없이 확인만 할 때 `PRERENDER_OFFLINE=1 npm run build` (데이터 없는 화면 — **운영 배포 금지**)
+  - 로컬 API로 만들어 볼 때: `PRERENDER_API=http://localhost:8080 npm run build`
+  - **새 글 · 요금제를 검색에 빨리 반영하려면 고객 화면만 다시 빌드해 올린다** (알뜰AI 게시 후 · 요금제 수집 변동이 큰 날). 화면만 바꿀 때는 jar 재시작 없이 `web/`만 교체하면 된다:
+    `npm run build` → `dist/` 를 서버 `~/im010-deploy/release/web/` 로 올림 → `sudo bash deploy-web.sh` ([`deploy-web.sh`](deploy/scripts/deploy-web.sh), 이전 화면 백업 · 상태 코드 확인)
+  - 데이터가 날마다 크게 바뀌거나 글이 많아지면: API에 `/sitemap.xml` 엔드포인트를 두거나 서버에서 주기 재생성(Node 설치) · Next.js(SSR) 전환을 검토
+- nginx ([`im010.conf`](deploy/nginx/im010.conf)): 미리 만든 HTML이 있는 경로만 200, 없는 경로는 404 / 판매 종료 요금제 410 / 빌드 뒤 새 요금제 · 글은 SPA 틀 200. `sitemap.xml` 은 `application/xml`, `robots.txt` 는 `text/plain`. 설정 변경 반영: `sudo bash deploy/scripts/setup-nginx.sh` (`nginx -t` 실패 시 되돌림)
+- 확인: `curl -s https://www.im010.co.kr/faq | grep -E '<title>|canonical|description'` · `curl -sI https://www.im010.co.kr/없는주소` (404) · `curl -sI https://www.im010.co.kr/sitemap.xml` (application/xml)
+- 검색엔진 등록: Google Search Console · 네이버 서치어드바이저에 `https://www.im010.co.kr/sitemap.xml` 제출
+
+### www 없는 주소 (https://im010.co.kr)
+
+nginx 443 server 블록이 `https://www.im010.co.kr$request_uri` 로 301 한다. 인증서(cert-name `im010`)에 `im010.co.kr` SAN이 있어야 하고, DNS에 `im010.co.kr` A 레코드(이 서버)가 있어야 한다. `setup-letsencrypt.sh` 가 www · admin · im010.co.kr 을 함께 발급한다. 이미 발급된 인증서에 apex만 더할 때:
+
+```bash
+sudo /usr/local/sbin/im010-acme-port80 open
+sudo certbot certonly --webroot -w /var/www/letsencrypt --cert-name im010 --expand \
+  -d www.im010.co.kr -d admin.im010.co.kr -d im010.co.kr
+sudo /usr/local/sbin/im010-acme-port80 close
+sudo nginx -t && sudo systemctl reload nginx
+```
 
 ## 다음 단계
 
@@ -215,5 +243,5 @@ im010/
 4. ~~3-2 백오피스: ST-01~07, RC-01 · RC-02, PR-02 · PA-01 [인터넷], 게시 일정 달력, 엑셀 다운로드, 사내 IP 제한, 기존 요금제와 연결~~
 5. ~~알림: 메신저 채널(Slack · Teams · 잔디 · 웹훅) · 메일, 관리자별 수신 설정~~
 6. ~~알뜰AI 1차: 프런트 `/ai` 목록 · 상세, 백오피스 CT-01 · CT-02~~ (기획: `im010_알뜰AI_기획서.md`) — 2차: AI 요약 초안 만들기, 메인 노출, 검색 노출용 미리 렌더링
-7. 오픈 준비: Footer 실제 사업자 정보 · 약관 본문 등록, 검색 노출(미리 렌더링), 운영 서버 배포 · TLS
+7. 오픈 준비: Footer 실제 사업자 정보 · 약관 본문 등록, ~~검색 노출(미리 렌더링 · sitemap · robots · 404)~~, 운영 서버 배포 · TLS
 8. 보류 · 1차 오픈 후: PR-03 프로모션관리(이달의 요금제 순서 · 배지, Hero, 이벤트), 회원 기능(MB-01 · 1:1 문의)
