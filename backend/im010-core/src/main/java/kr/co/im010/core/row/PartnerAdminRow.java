@@ -10,6 +10,8 @@ public record PartnerAdminRow(
         String chipBg,
         String chipFg,
         String homepageUrl,
+        /** 로고 이미지 주소 (/uploads/partners/...), 없으면 null */
+        String logoUrl,
         boolean exposed,
         int sortOrder,
         int postpaidUrls,

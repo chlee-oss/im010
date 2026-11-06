@@ -3,7 +3,7 @@
 <mapper namespace="kr.co.im010.core.mapper.PartnerMapper">
 
     <select id="findExposed" resultType="kr.co.im010.core.row.PartnerRow">
-        SELECT code, name, chip_bg, chip_fg, homepage_url
+        SELECT code, name, chip_bg, chip_fg, homepage_url, logo_url
         FROM partner
         WHERE exposed
         ORDER BY sort_order, code
