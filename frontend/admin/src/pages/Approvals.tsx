@@ -83,6 +83,9 @@ export default function Approvals() {
               <th>구분</th>
               <th>요금제</th>
               <th className="num">요금</th>
+              <th>망</th>
+              <th>세대</th>
+              <th>QoS</th>
               <th>변경 요약</th>
               <th>요청자 · 일시</th>
             </tr>
@@ -111,6 +114,9 @@ export default function Approvals() {
                   {i.values.name} {i.changeType === 'NEW' && <Badge tone="coral">신규</Badge>}
                 </td>
                 <td className="num">{itemValueText('price', i.values as unknown as Record<string, unknown>)}</td>
+                <td>{itemValueText('network', i.values as unknown as Record<string, unknown>)}</td>
+                <td>{itemValueText('generation', i.values as unknown as Record<string, unknown>)}</td>
+                <td>{itemValueText('qosText', i.values as unknown as Record<string, unknown>)}</td>
                 <td>
                   {i.changeType === 'ENDED'
                     ? '판매 재개'
