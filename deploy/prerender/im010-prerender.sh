@@ -21,7 +21,7 @@ API=${PRERENDER_API:-http://127.0.0.1:8080}
 MIN_RATIO=${PRERENDER_MIN_RATIO:-50}   # 직전 대비 최소 % (요금제 · 글)
 NODE=${NODE:-/usr/bin/node}
 # 미리 렌더링이 만드는 것 — 새 폴더에서 이것만 지우고 다시 넣는다
-GENERATED=(index.html 404.html _shell.html faq ai plans _gone terms out sitemap.xml)
+GENERATED=(index.html 404.html _shell.html faq postpaid prepaid internet ai plans _gone terms out sitemap.xml)
 
 log() { echo "[im010-prerender] $*"; }
 fail() { log "중단: $* — 기존 화면을 그대로 둡니다"; exit 1; }
