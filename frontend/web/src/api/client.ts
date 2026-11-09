@@ -31,6 +31,51 @@ async function getJson<T>(path: string, signal?: AbortSignal): Promise<T | null>
   return (await res.json()) as T
 }
 
+/**
+ * 같은 주소를 여러 화면 조각이 동시에 부를 때 요청 한 번을 나눠 쓴다 (메인의 후불 목록을 3곳에서 쓰는 등).
+ * 결과는 SHARE_MS 동안 재사용하고, 실패하면 바로 버려 다음 호출이 다시 요청한다.
+ * 받은 배열 · 객체는 여러 곳이 같이 보므로 고치지 말 것 (정렬은 복사본에서).
+ * 한 곳이 취소(abort)해도 공유 요청은 계속되고, 취소한 쪽만 AbortError 로 끝난다.
+ */
+const SHARE_MS = 30_000
+const shared = new Map<string, { at: number; promise: Promise<unknown> }>()
+
+function getShared<T>(path: string, signal?: AbortSignal): Promise<T | null> {
+  const now = Date.now()
+  let entry = shared.get(path)
+  if (!entry || now - entry.at > SHARE_MS) {
+    const promise = getJson<T>(path)
+    promise.catch(() => {
+      if (shared.get(path)?.promise === promise) shared.delete(path)
+    })
+    entry = { at: now, promise }
+    shared.set(path, entry)
+  }
+  return withAbort(entry.promise as Promise<T | null>, signal)
+}
+
+function withAbort<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return promise
+  return new Promise<T>((resolve, reject) => {
+    const abort = () => reject(new DOMException('Aborted', 'AbortError'))
+    if (signal.aborted) {
+      abort()
+      return
+    }
+    signal.addEventListener('abort', abort, { once: true })
+    promise.then(
+      (v) => {
+        signal.removeEventListener('abort', abort)
+        resolve(v)
+      },
+      (e: unknown) => {
+        signal.removeEventListener('abort', abort)
+        reject(e)
+      },
+    )
+  })
+}
+
 function qs(params: Record<string, string | number | undefined | null>): string {
   const sp = new URLSearchParams()
   for (const [k, v] of Object.entries(params)) {
@@ -44,7 +89,7 @@ export const api = {
   partners: (signal?: AbortSignal) => getJson<Partner[]>('/api/partners', signal),
 
   plans: (type: PlanType, partner?: string, signal?: AbortSignal) =>
-    getJson<PlanSummary[]>(`/api/plans${qs({ type, partner })}`, signal),
+    getShared<PlanSummary[]>(`/api/plans${qs({ type, partner })}`, signal),
 
   /** dataGb 가 null 이면 무제한. 조건에 맞는 요금제가 없으면 null. */
   cheapest: (network: NetworkCode, dataGb: number | null, signal?: AbortSignal) =>
