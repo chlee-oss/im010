@@ -244,6 +244,11 @@ im010/
   - 30일이 지난 종료 요금제가 아직 검색에 보이면 Google Search Console 「삭제」(URL 일시 삭제) · 네이버 서치어드바이저 「웹 페이지 수집 요청」/「콘텐츠 삭제 요청」으로 직접 요청한다
   - `lastmod`: 요금제 = 요금 수집일, 글 = 본문 수정일(없으면 게시일), 카테고리 · 목록 = 그 안 최신 글, 메인 = 최신 수집일 · 최신 글 중 늦은 날, FAQ = 마지막 수정일 (한국 날짜)
   - 주소 기준 = `IM010_FRONT_BASE_URL`(운영 `https://www.im010.co.kr`), 글 주소의 slug 는 프런트 canonical 과 같은 인코딩(encodeURIComponent)
+- **메인 · 기본 틀의 제목 · 설명 · og:title · og:description = 백오피스 환경설정 > 검색엔진설정(ST-08, `admin_setting` `seo_*`)**
+  - nginx 가 `/` 와 기본 틀(`@shell`, 미리 렌더링 뒤 새 요금제 · 글)을 api `/api/site-html/home|shell` 로 넘기고, api([`SiteMetaService`](backend/im010-api/src/main/java/kr/co/im010/api/seo/SiteMetaService.java))가 배포된 정적 HTML(`IM010_WEB_DIR`, 기본 `/opt/im010/web`)의 네 값만 바꿔 응답한다 — **저장 후 1분 안에 반영** (설정 1분 캐시). api 가 404 · 5xx · 5초 초과면 nginx 가 정적 파일 그대로
+  - 미리 렌더링(빌드 · 매일 05:00)도 `/api/site-meta` 를 읽어 메인 · `_shell.html` 에 같은 값을 넣는다 (이 API 가 없는 예전 api 면 기본값). 고객 화면 탭 제목(메인)도 같은 API
+  - 하위 페이지(요금제 · 알뜰AI 글 · 서비스 랜딩 · FAQ)는 각자 제목 · 설명. OG 제목 · 설명을 비우면 사이트 제목 · 설명. 제목 60자 · 설명 80자 이내, `< >` 불가
+  - 확인: `curl -s https://www.im010.co.kr/ | grep -E '<title>|description|og:title'`
 - nginx ([`im010.conf`](deploy/nginx/im010.conf)): 미리 만든 HTML이 있는 경로만 200, 없는 경로는 404 / 판매 종료 요금제 410 / 빌드 뒤 새 요금제 · 글은 SPA 틀 200. `sitemap.xml` → api (`application/xml`), `robots.txt` 는 `text/plain`. 설정 변경 반영: `sudo bash deploy/scripts/setup-nginx.sh` (`nginx -t` 실패 시 되돌림). **api 를 먼저 배포한 뒤** nginx 를 반영한다 (예전 api 는 `/sitemap.xml` 이 없어 404)
 - 확인: `curl -s https://www.im010.co.kr/faq | grep -E '<title>|canonical|description'` · `curl -sI https://www.im010.co.kr/없는주소` (404) · `curl -sI https://www.im010.co.kr/sitemap.xml` (application/xml)
 - 검색엔진 등록: Google Search Console · 네이버 서치어드바이저에 `https://www.im010.co.kr/sitemap.xml` 제출

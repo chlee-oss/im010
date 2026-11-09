@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Param;
 import kr.co.im010.core.row.AdminListRow;
 import kr.co.im010.core.row.AuditListRow;
 import kr.co.im010.core.row.GroupRow;
+import kr.co.im010.core.row.SettingRow;
 
 /** 환경설정: ST-01 프로그램 · ST-02 관리자 · ST-03 권한 그룹 · ST-05 접속이력 · 백오피스 설정(IP 제한). */
 @Mapper
@@ -47,6 +48,9 @@ public interface SettingsMapper {
     String findSetting(@Param("key") String key);
 
     void updateSetting(@Param("key") String key, @Param("value") String value, @Param("by") String by);
+
+    /** 여러 설정을 저장자 · 저장 일시와 함께 (없는 키는 빠진다) */
+    List<SettingRow> findSettings(@Param("keys") List<String> keys);
 
     // ---------- ST-03 ----------
 

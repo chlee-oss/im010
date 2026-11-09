@@ -15,6 +15,8 @@
 //   _gone/plans/<id>/index.html    판매 종료 요금제 → nginx 가 410 으로 내려준다 (noindex)
 //   ai/posts/<id>/index.html       알뜰AI 글 (주소의 slug 부분은 nginx 가 무시, canonical 은 정식 slug)
 //   _shell.html                    빌드 뒤 새로 생긴 요금제 · 글에 쓰는 SPA 틀 (기본 메타)
+//   메인 · _shell.html 의 제목 · 설명 · og:title · og:description = 백오피스 검색엔진설정(/api/site-meta).
+//   운영에서는 nginx 가 이 두 화면을 api(/api/site-html/*)로 넘겨 저장 1분 안에 최신 값으로 바꿔 응답한다
 //   404.html                       없는 경로 (noindex, 상태 코드 404)
 //   robots.txt 는 public/ 그대로. sitemap.xml 은 im010-api 가 DB 기준으로 그때그때 만든다 (SitemapController)
 
@@ -128,16 +130,18 @@ const stripped = template
  * @param {string} [o.image]
  * @param {object[]} [o.jsonLd]
  * @param {string} [o.extraHead]
+ * @param {string} [o.ogTitle]        없으면 title (메인만 검색엔진설정의 OG 값을 따로 준다)
+ * @param {string} [o.ogDescription]  없으면 description
  */
-function page({ path, title, description, body, noindex = false, type = 'website', image, jsonLd = [], extraHead = '' }) {
+function page({ path, title, description, body, noindex = false, type = 'website', image, jsonLd = [], extraHead = '', ogTitle, ogDescription }) {
   const url = path == null ? null : `${SITE}${path}`
   const head = [
     `<title>${esc(title)}</title>`,
     `<meta name="description" content="${esc(description)}" />`,
     noindex ? '<meta name="robots" content="noindex,nofollow" />' : '',
     url && !noindex ? `<link rel="canonical" href="${esc(url)}" />` : '',
-    `<meta property="og:title" content="${esc(title)}" />`,
-    `<meta property="og:description" content="${esc(description)}" />`,
+    `<meta property="og:title" content="${esc(ogTitle || title)}" />`,
+    `<meta property="og:description" content="${esc(ogDescription || description)}" />`,
     url ? `<meta property="og:url" content="${esc(url)}" />` : '',
     `<meta property="og:type" content="${esc(type)}" />`,
     `<meta property="og:image" content="${esc(image || OG_IMAGE)}" />`,
@@ -232,12 +236,17 @@ async function loadAll() {
   const terms = {}
   for (const [slug, [type]] of Object.entries(TERMS)) terms[slug] = await getJson(`/api/terms/${type}`, { allow404: true })
 
-  return { partners, postpaid, prepaid, monthly, internet, faqs, categories, cards, posts, plans, ended, terms }
+  // 검색엔진설정(백오피스 ST-08). 아직 이 API 가 없는 api(배포 전 운영)면 기본값
+  const siteMeta = { ...DEFAULT_META, ...((await getJson('/api/site-meta', { allow404: true })) ?? {}) }
+
+  return { partners, postpaid, prepaid, monthly, internet, faqs, categories, cards, posts, plans, ended, terms, siteMeta }
 }
+
+const DEFAULT_META = { title: BASE_TITLE, description: BASE_DESC, ogTitle: BASE_TITLE, ogDescription: BASE_DESC }
 
 const EMPTY = {
   partners: [], postpaid: [], prepaid: [], monthly: [], internet: [], faqs: [], categories: [],
-  cards: [], posts: [], plans: [], ended: [], terms: {},
+  cards: [], posts: [], plans: [], ended: [], terms: {}, siteMeta: DEFAULT_META,
 }
 
 let data
@@ -278,10 +287,13 @@ const { categories } = data
     'index.html',
     page({
       path: '/',
-      title: BASE_TITLE,
-      description: BASE_DESC,
+      // 검색엔진설정 값 — 운영에서는 api 가 응답할 때 최신 값으로 한 번 더 바꿔 끼운다 (SiteMetaService)
+      title: data.siteMeta.title,
+      description: data.siteMeta.description,
+      ogTitle: data.siteMeta.ogTitle,
+      ogDescription: data.siteMeta.ogDescription,
       body: layout(main, categories),
-      jsonLd: [{ '@context': 'https://schema.org', '@type': 'WebSite', name: SITE_NAME, alternateName: BASE_TITLE, url: `${SITE}/` }],
+      jsonLd: [{ '@context': 'https://schema.org', '@type': 'WebSite', name: SITE_NAME, alternateName: data.siteMeta.title, url: `${SITE}/` }],
     }),
   ])
 }
@@ -537,8 +549,17 @@ files.push([
   }),
 ])
 
-// 빌드 뒤 새로 생긴 요금제 · 글용 SPA 틀 (기본 메타, canonical 없음)
-files.push(['_shell.html', template])
+// 빌드 뒤 새로 생긴 요금제 · 글용 SPA 틀 (기본 메타 = 검색엔진설정 값, canonical 없음).
+// 매일 재생성이 이 파일을 다시 틀로 읽으므로 태그 모양은 그대로 두고 값만 바꾼다 (#root 는 비워 둔다)
+{
+  const m = data.siteMeta
+  const shell = template
+    .replace(/<title>[\s\S]*?<\/title>/, () => `<title>${esc(m.title)}</title>`)
+    .replace(/(<meta\s+name="description"\s+content=")[^"]*(")/, (_, a, b) => `${a}${esc(m.description)}${b}`)
+    .replace(/(<meta\s+property="og:title"\s+content=")[^"]*(")/, (_, a, b) => `${a}${esc(m.ogTitle)}${b}`)
+    .replace(/(<meta\s+property="og:description"\s+content=")[^"]*(")/, (_, a, b) => `${a}${esc(m.ogDescription)}${b}`)
+  files.push(['_shell.html', shell])
+}
 
 
 for (const [rel, html] of files) {

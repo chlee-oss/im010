@@ -607,3 +607,19 @@ export interface DashContent {
   categories: { categoryName: string; posts: number; views: number; completes: number; planClicks: number }[]
   internet: Record<string, DashInterestRow[]>
 }
+
+// ---------- 환경설정 > 검색엔진설정 (ST-08) ----------
+
+export interface SeoSettings {
+  title: string
+  description: string
+  /** 빈 문자열 = 사이트 제목 사용 */
+  ogTitle: string
+  /** 빈 문자열 = 사이트 설명 사용 */
+  ogDescription: string
+  defaultTitle: string
+  defaultDescription: string
+  limits: { titleMax: number; descriptionMax: number }
+  updatedBy: string | null
+  updatedAt: string | null
+}

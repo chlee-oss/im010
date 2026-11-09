@@ -11,6 +11,8 @@ spring:
 im010:
   upload:
     dir: ${user.home}/im010-uploads
+  web:
+    dir: ../../frontend/web/dist   # npm run build 결과 (bootRun 작업 폴더 = backend/im010-api). 없으면 /api/site-html 은 404
 
 logging:
   level:

@@ -68,6 +68,11 @@
         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_by = EXCLUDED.updated_by, updated_at = now()
     </update>
 
+    <select id="findSettings" resultType="kr.co.im010.core.row.SettingRow">
+        SELECT key, value, updated_by, updated_at FROM admin_setting
+        WHERE key IN <foreach collection="keys" item="k" open="(" separator="," close=")">#{k}</foreach>
+    </select>
+
     <select id="findGroups" resultType="kr.co.im010.core.row.GroupRow">
         SELECT g.id, g.code, g.name, g.system, (SELECT count(*) FROM admin_user u WHERE u.group_id = g.id) AS admin_count
         FROM admin_group g
