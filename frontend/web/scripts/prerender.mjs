@@ -16,7 +16,7 @@
 //   ai/posts/<id>/index.html       알뜰AI 글 (주소의 slug 부분은 nginx 가 무시, canonical 은 정식 slug)
 //   _shell.html                    빌드 뒤 새로 생긴 요금제 · 글에 쓰는 SPA 틀 (기본 메타)
 //   404.html                       없는 경로 (noindex, 상태 코드 404)
-//   sitemap.xml · robots.txt
+//   robots.txt 는 public/ 그대로. sitemap.xml 은 im010-api 가 DB 기준으로 그때그때 만든다 (SitemapController)
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
@@ -32,7 +32,6 @@ const BASE_TITLE = 'im010 — 알뜰폰 요금비교'
 const BASE_DESC =
   '마블링 · 토리모바일 · 위너스텔 · 슈가모바일 · 인스모바일 · 조이M · 시월모바일 알뜰폰 요금제를 한눈에 비교하고 최저가 요금제를 찾아보세요.'
 const TERMS = { service: ['SERVICE', '이용약관'], privacy: ['PRIVACY', '개인정보처리방침'] }
-const today = new Date().toISOString().slice(0, 10)
 
 // ---------- 공통 ----------
 
@@ -56,8 +55,6 @@ const kDate = (iso) => {
   const p = Object.fromEntries(ymd.formatToParts(new Date(iso)).map((x) => [x.type, x.value]))
   return `${p.year}.${p.month}.${p.day}`
 }
-/** ISO(시각 포함 가능) → 2026-10-15 (sitemap lastmod, 한국 날짜) */
-const isoDay = (iso) => (iso ? kDate(iso).replaceAll('.', '-') : today)
 
 const planPrice = (p) => (p.planType === 'POSTPAID' ? p.monthlyPrice : p.chargePrice)
 const planUnit = (p) => (p.planType === 'POSTPAID' ? '원 / 월' : p.validDays ? `원 / ${p.validDays}일` : '원')
@@ -222,7 +219,6 @@ if (OFFLINE) {
 // ---------- 페이지 ----------
 
 const files = [] // [경로(dist 기준), html]
-const sitemap = [] // { loc, lastmod }
 const { categories } = data
 
 // 메인
@@ -249,7 +245,6 @@ const { categories } = data
       jsonLd: [{ '@context': 'https://schema.org', '@type': 'WebSite', name: SITE_NAME, alternateName: BASE_TITLE, url: `${SITE}/` }],
     }),
   ])
-  sitemap.push({ loc: '/', lastmod: today })
 }
 
 // FAQ
@@ -279,7 +274,6 @@ const { categories } = data
         : [],
     }),
   ])
-  sitemap.push({ loc: '/faq', lastmod: today })
 }
 
 // 알뜰AI 목록 (/ai, /ai/<카테고리>)
@@ -307,8 +301,6 @@ for (const cat of [null, ...categories]) {
       body: layout(main, categories),
     }),
   ])
-  const lastmod = list.length ? isoDay(list[0].publishedAt) : today
-  sitemap.push({ loc: path, lastmod })
 }
 
 // 알뜰AI 글
@@ -361,7 +353,6 @@ for (const d of data.posts) {
       }],
     }),
   ])
-  sitemap.push({ loc: path, lastmod: isoDay(p.contentUpdatedAt || p.publishedAt) })
 }
 
 // 요금제 상세 (게시 중 · 판매 종료)
@@ -405,7 +396,6 @@ function planPage(d, ended) {
 }
 for (const d of data.plans) {
   files.push([`plans/${d.plan.id}/index.html`, planPage(d, false)])
-  sitemap.push({ loc: `/plans/${d.plan.id}`, lastmod: isoDay(d.basisDate) })
 }
 for (const d of data.ended) files.push([`_gone/plans/${d.plan.id}/index.html`, planPage(d, true)])
 
@@ -452,13 +442,6 @@ files.push([
 // 빌드 뒤 새로 생긴 요금제 · 글용 SPA 틀 (기본 메타, canonical 없음)
 files.push(['_shell.html', template])
 
-// sitemap.xml · robots.txt
-const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${sitemap.map((u) => `  <url><loc>${esc(SITE + u.loc)}</loc><lastmod>${u.lastmod}</lastmod></url>`).join('\n')}
-</urlset>
-`
-files.push(['sitemap.xml', sitemapXml])
 
 for (const [rel, html] of files) {
   const out = join(DIST, rel)
@@ -467,5 +450,5 @@ for (const [rel, html] of files) {
 }
 
 console.log(
-  `[prerender] ${API} → dist: 페이지 ${files.length - 2}개 (요금제 ${data.plans.length} · 판매 종료 ${data.ended.length} · 알뜰AI 글 ${data.posts.length}), sitemap URL ${sitemap.length}개`,
+  `[prerender] ${API} → dist: 페이지 ${files.length - 1}개 (요금제 ${data.plans.length} · 판매 종료 ${data.ended.length} · 알뜰AI 글 ${data.posts.length})`,
 )

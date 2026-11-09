@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# im010 고객 화면(frontend/web/dist)만 교체 — jar 재시작 없음. 알뜰AI 새 글 · 요금제 변동을 미리 렌더링 HTML · sitemap 에 반영할 때.
+# im010 고객 화면(frontend/web/dist)만 교체 — jar 재시작 없음. 알뜰AI 새 글 · 요금제 변동을 미리 렌더링 HTML 에 반영할 때 (sitemap.xml 은 api 가 만든다).
 #   사용: sudo bash deploy-web.sh [화면 폴더, 기본 = ~im010oper/im010-deploy/release/web]
 # 화면 폴더 = 로컬에서 `npm run build`(운영 API로 미리 렌더링)한 dist/ 를 그대로 올린 것.
 # 이전 화면은 /opt/im010/backup/<시각>/web 에 보관한다.
@@ -10,7 +10,7 @@ set -euo pipefail
 SRC=${1:-/home/im010oper/im010-deploy/release/web}
 BACKUP=/opt/im010/backup/$(date +%Y%m%d-%H%M%S)
 
-for f in index.html 404.html _shell.html sitemap.xml robots.txt; do
+for f in index.html 404.html _shell.html robots.txt; do
     [[ -f "$SRC/$f" ]] || { echo "화면 파일이 없습니다: $SRC/$f (npm run build 결과인지 확인)" >&2; exit 1; }
 done
 

@@ -105,6 +105,13 @@
         WHERE p.id = #{id} AND <include refid="visible"/>
     </select>
 
+    <select id="findSitemapEntries" resultType="kr.co.im010.core.row.AiSitemapRow">
+        SELECT p.id, p.slug, c.slug AS category_slug, p.publish_at, p.content_updated_at
+        FROM ai_post p JOIN ai_category c ON c.code = p.category_code
+        WHERE <include refid="visible"/>
+        ORDER BY p.publish_at DESC, p.id DESC
+    </select>
+
     <select id="findOlder" resultType="kr.co.im010.core.row.AiPostListRow">
         SELECT <include refid="listColumns"/>
         FROM ai_post p JOIN ai_category c ON c.code = p.category_code
