@@ -1,11 +1,13 @@
 package kr.co.im010.core.mapper;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import kr.co.im010.core.row.PlanEndedRow;
 import kr.co.im010.core.row.PlanForwardTarget;
 import kr.co.im010.core.row.PlanRow;
 
@@ -14,6 +16,12 @@ public interface PlanMapper {
 
     /** 게시 중인 요금제 목록. partnerCode 가 null 이면 전체. 가격 오름차순. */
     List<PlanRow> findPublished(@Param("planType") String planType, @Param("partnerCode") String partnerCode);
+
+    /**
+     * sitemap.xml — since(포함) 이후 판매 종료된 요금제. 고객에게 게시된 적이 있는 것만 (게시 버전 있음 · 노출 제휴사).
+     * 종료일 = ended_on (수집 배치 · 종료 SQL 이 넣음), 비어 있으면 마지막 변경일(한국 날짜).
+     */
+    List<PlanEndedRow> findEndedSince(@Param("since") LocalDate since);
 
     /**
      * 계산기: 게시 중인 후불 요금제 중 망 + 기본 제공량 조건을 만족하는 최저가.

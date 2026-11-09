@@ -1,6 +1,7 @@
 package kr.co.im010.api.seo;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -19,17 +20,24 @@ import kr.co.im010.core.mapper.PlanMapper;
 import kr.co.im010.core.row.AiCategoryRow;
 import kr.co.im010.core.row.AiSitemapRow;
 import kr.co.im010.core.row.FaqRow;
+import kr.co.im010.core.row.PlanEndedRow;
 import kr.co.im010.core.row.PlanRow;
 
 /**
  * sitemap.xml (https://www.sitemaps.org/protocol.html) — 요청할 때마다 DB 기준으로 만든다 (게시 · 판매 종료 즉시 반영).
- * 담는 주소: 메인 · FAQ · 알뜰AI 목록 · 노출 카테고리 · 고객에게 보이는 글 · 게시 중 요금제(후불 · 선불).
- * 판매 종료 · 숨김 요금제와 게시 전 글은 넣지 않는다. 주소 모양은 프런트 미리 렌더링(frontend/web/scripts/prerender.mjs)의 canonical 과 같다.
+ * 담는 주소: 메인 · FAQ · 알뜰AI 목록 · 노출 카테고리 · 고객에게 보이는 글 · 게시 중 요금제(후불 · 선불)
+ * + 최근 {@value #ENDED_KEEP_DAYS}일 안에 판매 종료된 요금제(lastmod = 종료일) — 검색엔진이 다시 방문해 410 을 빨리 확인하게.
+ * 숨김 · 게시 전 요금제와 게시 전 글은 넣지 않는다. 주소 모양은 프런트 미리 렌더링(frontend/web/scripts/prerender.mjs)의 canonical 과 같다.
  */
 @Service
 public class SitemapService {
 
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    /** 판매 종료 요금제를 sitemap 에 남겨 두는 기간 (종료일 포함 오늘까지) */
+    static final int ENDED_KEEP_DAYS = 30;
+
+    /** 테스트에서 날짜를 고정할 때만 바꾼다 */
+    Clock clock = Clock.system(KST);
 
     record Url(String path, LocalDate lastmod) {
     }
@@ -83,6 +91,11 @@ public class SitemapService {
         }
         for (PlanRow p : plans) {
             urls.add(new Url("/plans/" + p.id(), p.collectedOn()));
+        }
+        // 판매 종료(410) — 종료일이 최근 30일 안인 것만, 종료일을 lastmod 로
+        LocalDate since = LocalDate.now(clock.withZone(KST)).minusDays(ENDED_KEEP_DAYS - 1L);
+        for (PlanEndedRow e : planMapper.findEndedSince(since)) {
+            urls.add(new Url("/plans/" + e.id(), e.endedOn()));
         }
         return urls;
     }

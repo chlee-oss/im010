@@ -2,9 +2,12 @@ package kr.co.im010.api.seo;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -19,6 +22,7 @@ import kr.co.im010.core.mapper.PlanMapper;
 import kr.co.im010.core.row.AiCategoryRow;
 import kr.co.im010.core.row.AiSitemapRow;
 import kr.co.im010.core.row.FaqRow;
+import kr.co.im010.core.row.PlanEndedRow;
 import kr.co.im010.core.row.PlanRow;
 
 class SitemapServiceTest {
@@ -80,6 +84,31 @@ class SitemapServiceTest {
         assertThat(xml).contains("<url><loc>https://www.im010.co.kr/ai/misc</loc></url>");
         assertThat(xml).contains("<loc>https://www.im010.co.kr/plans/29</loc><lastmod>2026-11-08</lastmod>");
         assertThat(xml).doesNotContain("&ED").doesNotContain(" & ");
+    }
+
+    @Test
+    void recentlyEndedPlansStayWithEndDateAsLastmod() {
+        givenData();
+        // 2026-12-04 23:30 KST (= 14:30 UTC) — 30일 = 11/05 ~ 12/04
+        service.clock = Clock.fixed(Instant.parse("2026-12-04T14:30:00Z"), ZoneOffset.UTC);
+        when(planMapper.findEndedSince(LocalDate.of(2026, 11, 5))).thenReturn(List.of(
+                new PlanEndedRow(4, LocalDate.of(2026, 11, 20)), new PlanEndedRow(1, LocalDate.of(2026, 11, 5))));
+
+        List<SitemapService.Url> urls = service.urls();
+
+        assertThat(urls.subList(urls.size() - 2, urls.size())).containsExactly(
+                new SitemapService.Url("/plans/4", LocalDate.of(2026, 11, 20)),
+                new SitemapService.Url("/plans/1", LocalDate.of(2026, 11, 5)));
+        verify(planMapper).findEndedSince(LocalDate.of(2026, 11, 5));
+    }
+
+    @Test
+    void endedWindowMovesWithKoreanDate() {
+        givenData();
+        // 12/05 00:10 KST (= 12/04 15:10 UTC) 이면 11/05 종료 건은 빠진다 → 기준일 11/06
+        service.clock = Clock.fixed(Instant.parse("2026-12-04T15:10:00Z"), ZoneOffset.UTC);
+        service.urls();
+        verify(planMapper).findEndedSince(LocalDate.of(2026, 11, 6));
     }
 
     @Test
