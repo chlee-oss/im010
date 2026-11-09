@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 import Footer from './components/Footer'
 import Header from './components/Header'
+import PageTracker from './components/PageTracker'
 import ScrollToTop from './components/ScrollToTop'
 import { PartnerProvider } from './lib/partners'
 import { ToastProvider } from './lib/toast'
@@ -18,6 +19,7 @@ export default function App() {
     <ToastProvider>
       <PartnerProvider>
         <ScrollToTop />
+        <PageTracker />
         <Header />
         <main>
           <Routes>

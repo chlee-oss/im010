@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.im010.core.mapper.AnalyticsMapper">
+
+    <!-- ===================== api: 수집 ===================== -->
+
+    <insert id="insertEvents">
+        INSERT INTO analytics_event (day, visitor_id, session_id, new_visitor, name, page_type, path, ref_type, device,
+                                     plan_id, post_id, duration_ms, props)
+        VALUES
+        <foreach collection="events" item="e" separator=",">
+            (#{e.day}, #{e.visitorId}, #{e.sessionId}, #{e.newVisitor}, #{e.name}, #{e.pageType}, #{e.path}, #{e.refType},
+             #{e.device}, #{e.planId}, #{e.postId}, #{e.durationMs}, CAST(#{e.propsJson} AS JSONB))
+        </foreach>
+    </insert>
+
+    <!-- ===================== batch: 집계 (그날 원본 → 일별 집계) ===================== -->
+
+    <delete id="deleteStats">
+        DELETE FROM stat_daily_visit WHERE day = #{day};
+        DELETE FROM stat_daily_page WHERE day = #{day};
+        DELETE FROM stat_daily_plan WHERE day = #{day};
+        DELETE FROM stat_daily_interest WHERE day = #{day};
+        DELETE FROM stat_daily_content WHERE day = #{day}
+    </delete>
+
+    <!-- 기기 × 유입, 기기 합계, 유입 합계, 전체 합계 -->
+    <insert id="aggregateVisit">
+        INSERT INTO stat_daily_visit (day, device, ref_type, visitors, new_visitors, sessions, page_views)
+        SELECT #{day}, COALESCE(device, 'ALL'), COALESCE(ref_type, 'ALL'),
+               count(DISTINCT visitor_id),
+               count(DISTINCT visitor_id) FILTER (WHERE new_visitor),
+               count(DISTINCT session_id),
+               count(*) FILTER (WHERE name = 'page_view')
+        FROM analytics_event
+        WHERE day = #{day}
+        GROUP BY GROUPING SETS ((device, ref_type), (device), (ref_type), ())
+        HAVING count(*) > 0
+    </insert>
+
+    <insert id="aggregatePage">
+        INSERT INTO stat_daily_page (day, device, page_type, views, visitors, engage_ms, engage_count)
+        SELECT #{day}, COALESCE(device, 'ALL'), page_type,
+               count(*) FILTER (WHERE name = 'page_view'),
+               count(DISTINCT visitor_id) FILTER (WHERE name = 'page_view'),
+               COALESCE(sum(duration_ms) FILTER (WHERE name = 'engage'), 0),
+               count(*) FILTER (WHERE name = 'engage')
+        FROM analytics_event
+        WHERE day = #{day} AND name IN ('page_view', 'engage')
+        GROUP BY GROUPING SETS ((device, page_type), (page_type))
+    </insert>
+
+    <!-- 조회 = 상세 화면, 클릭 = 카드 · 링크 클릭, 개통하기 = 이동 안내 화면(/out, kind=plan) -->
+    <insert id="aggregatePlan">
+        INSERT INTO stat_daily_plan (day, device, plan_id, views, visitors, clicks, outbounds)
+        SELECT #{day}, COALESCE(device, 'ALL'), plan_id,
+               count(*) FILTER (WHERE name = 'page_view' AND page_type = 'PLAN'),
+               count(DISTINCT visitor_id) FILTER (WHERE name = 'page_view' AND page_type = 'PLAN'),
+               count(*) FILTER (WHERE name = 'click'),
+               count(*) FILTER (WHERE name = 'page_view' AND page_type = 'OUT')
+        FROM analytics_event
+        WHERE day = #{day} AND plan_id IS NOT NULL AND name IN ('page_view', 'click')
+        GROUP BY GROUPING SETS ((device, plan_id), (plan_id))
+    </insert>
+
+    <!--
+      관심사 (dim):
+        CALC_DATA · CALC_NETWORK · CALC_ZERO   계산기 입력 · 결과 0건 조건
+        PARTNER_TAB · INTERNET_TAB             탭 선택
+        CLICK_POS                              클릭한 위치 (HERO · MONTHLY · PARTNER · PREPAID · SIMILAR · AI_POST …)
+        VIEW_NETWORK · VIEW_GEN · VIEW_TYPE · VIEW_PARTNER · VIEW_DATA · VIEW_PRICE   본 요금제의 조건
+        INTERNET_CARRIER · INTERNET_TYPE       인터넷 상담 신청 이동 (/out, kind=internet)
+    -->
+    <insert id="aggregateInterest">
+        INSERT INTO stat_daily_interest (day, device, dim, value, cnt)
+        WITH e AS (
+            SELECT * FROM analytics_event WHERE day = #{day}
+        ), base AS (
+            SELECT device, 'CALC_DATA' AS dim, props->>'gb' AS value FROM e WHERE name = 'calc'
+            UNION ALL
+            SELECT device, 'CALC_NETWORK', props->>'network' FROM e WHERE name = 'calc'
+            UNION ALL
+            SELECT device, 'CALC_ZERO', (props->>'gb') || '|' || (props->>'network') FROM e
+            WHERE name = 'calc' AND props->>'found' = 'false'
+            UNION ALL
+            SELECT device, 'PARTNER_TAB', props->>'value' FROM e WHERE name = 'filter' AND props->>'dim' = 'partner_tab'
+            UNION ALL
+            SELECT device, 'INTERNET_TAB', props->>'value' FROM e WHERE name = 'filter' AND props->>'dim' = 'internet_tab'
+            UNION ALL
+            SELECT device, 'CLICK_POS', props->>'pos' FROM e WHERE name = 'click'
+            UNION ALL
+            SELECT x.device, d.dim, d.value
+            FROM e x
+            JOIN plan p ON p.id = x.plan_id
+            JOIN plan_version v ON v.id = p.published_version_id
+            CROSS JOIN LATERAL (VALUES
+                ('VIEW_NETWORK', v.network),
+                ('VIEW_GEN', v.generation),
+                ('VIEW_TYPE', p.plan_type),
+                ('VIEW_PARTNER', p.partner_code),
+                ('VIEW_DATA', CASE WHEN v.data_gb IS NULL THEN 'U'
+                                   WHEN v.data_gb &lt; 5 THEN 'LT5'
+                                   WHEN v.data_gb &lt; 10 THEN '5_10'
+                                   WHEN v.data_gb &lt; 30 THEN '10_30'
+                                   WHEN v.data_gb &lt; 100 THEN '30_100'
+                                   ELSE 'GE100' END),
+                ('VIEW_PRICE', CASE WHEN COALESCE(v.monthly_price, v.charge_price) &lt; 10000 THEN 'LT1'
+                                    WHEN COALESCE(v.monthly_price, v.charge_price) &lt; 20000 THEN '1_2'
+                                    WHEN COALESCE(v.monthly_price, v.charge_price) &lt; 30000 THEN '2_3'
+                                    WHEN COALESCE(v.monthly_price, v.charge_price) &lt; 40000 THEN '3_4'
+                                    ELSE 'GE4' END)
+            ) AS d(dim, value)
+            WHERE x.name = 'page_view' AND x.page_type = 'PLAN'
+            UNION ALL
+            SELECT x.device, d.dim, d.value
+            FROM e x
+            JOIN internet_product ip ON ip.id = (x.props->>'id')::BIGINT
+            CROSS JOIN LATERAL (VALUES ('INTERNET_CARRIER', ip.carrier), ('INTERNET_TYPE', ip.product_type)) AS d(dim, value)
+            WHERE x.name = 'page_view' AND x.page_type = 'OUT' AND x.props->>'kind' = 'internet'
+              AND x.props->>'id' ~ '^[0-9]{1,18}$'
+        )
+        SELECT #{day}, COALESCE(device, 'ALL'), dim, left(value, 50), count(*)
+        FROM base
+        WHERE value IS NOT NULL AND value &lt;&gt; ''
+        GROUP BY GROUPING SETS ((device, dim, left(value, 50)), (dim, left(value, 50)))
+    </insert>
+
+    <!-- 알뜰AI 글: 조회 · 끝까지 읽음 · 머문 시간 · 글에서 요금제(비교) 화면으로 이동 -->
+    <insert id="aggregateContent">
+        INSERT INTO stat_daily_content (day, device, post_id, views, visitors, completes, engage_ms, engage_count, plan_clicks)
+        SELECT #{day}, COALESCE(device, 'ALL'), post_id,
+               count(*) FILTER (WHERE name = 'page_view'),
+               count(DISTINCT visitor_id) FILTER (WHERE name = 'page_view'),
+               count(DISTINCT session_id) FILTER (WHERE name = 'read_complete'),
+               COALESCE(sum(duration_ms) FILTER (WHERE name = 'engage'), 0),
+               count(*) FILTER (WHERE name = 'engage'),
+               count(*) FILTER (WHERE name = 'click' AND props->>'target' IN ('plan', 'home'))
+        FROM analytics_event
+        WHERE day = #{day} AND page_type = 'AI_POST' AND post_id IS NOT NULL
+        GROUP BY GROUPING SETS ((device, post_id), (post_id))
+    </insert>
+
+    <delete id="purgeEvents">
+        DELETE FROM analytics_event WHERE day &lt; #{before}
+    </delete>
+
+    <!-- ===================== admin: 조회 ===================== -->
+
+    <select id="visitTotal" resultType="kr.co.im010.core.row.AnalyticsRows$Visit">
+        SELECT 'TOTAL' AS key,
+               COALESCE(sum(visitors), 0)::BIGINT AS visitors,
+               COALESCE(sum(new_visitors), 0)::BIGINT AS new_visitors,
+               COALESCE(sum(sessions), 0)::BIGINT AS sessions,
+               COALESCE(sum(page_views), 0)::BIGINT AS page_views
+        FROM stat_daily_visit
+        WHERE day BETWEEN #{from} AND #{to} AND device = #{device} AND ref_type = 'ALL'
+    </select>
+
+    <select id="visitByRef" resultType="kr.co.im010.core.row.AnalyticsRows$Visit">
+        SELECT ref_type AS key, sum(visitors)::BIGINT AS visitors, sum(new_visitors)::BIGINT AS new_visitors,
+               sum(sessions)::BIGINT AS sessions, sum(page_views)::BIGINT AS page_views
+        FROM stat_daily_visit
+        WHERE day BETWEEN #{from} AND #{to} AND device = #{device} AND ref_type &lt;&gt; 'ALL'
+        GROUP BY ref_type
+        ORDER BY sessions DESC
+    </select>
+
+    <select id="visitByDevice" resultType="kr.co.im010.core.row.AnalyticsRows$Visit">
+        SELECT device AS key, sum(visitors)::BIGINT AS visitors, sum(new_visitors)::BIGINT AS new_visitors,
+               sum(sessions)::BIGINT AS sessions, sum(page_views)::BIGINT AS page_views
+        FROM stat_daily_visit
+        WHERE day BETWEEN #{from} AND #{to} AND device &lt;&gt; 'ALL' AND ref_type = 'ALL'
+        GROUP BY device
+        ORDER BY device
+    </select>
+
+    <select id="daily" resultType="kr.co.im010.core.row.AnalyticsRows$Daily">
+        SELECT d::DATE AS day,
+               COALESCE(v.visitors, 0)::BIGINT AS visitors,
+               COALESCE(v.page_views, 0)::BIGINT AS page_views,
+               COALESCE(p.views, 0)::BIGINT AS plan_views,
+               COALESCE(p.outbounds, 0)::BIGINT AS outbounds
+        FROM generate_series(#{from}::DATE, #{to}::DATE, INTERVAL '1 day') AS d
+        LEFT JOIN stat_daily_visit v ON v.day = d::DATE AND v.device = #{device} AND v.ref_type = 'ALL'
+        LEFT JOIN (
+            SELECT day, sum(views) AS views, sum(outbounds) AS outbounds
+            FROM stat_daily_plan
+            WHERE day BETWEEN #{from} AND #{to} AND device = #{device}
+            GROUP BY day
+        ) p ON p.day = d::DATE
+        ORDER BY d
+    </select>
+
+    <select id="pages" resultType="kr.co.im010.core.row.AnalyticsRows$PageStat">
+        SELECT page_type, sum(views)::BIGINT AS views, sum(visitors)::BIGINT AS visitors,
+               sum(engage_ms)::BIGINT AS engage_ms, sum(engage_count)::BIGINT AS engage_count
+        FROM stat_daily_page
+        WHERE day BETWEEN #{from} AND #{to} AND device = #{device}
+        GROUP BY page_type
+        ORDER BY views DESC
+    </select>
+
+    <select id="plans" resultType="kr.co.im010.core.row.AnalyticsRows$PlanStat">
+        SELECT s.plan_id, COALESCE(v.name, '#' || s.plan_id) AS name, p.partner_code, pt.name AS partner_name, p.plan_type,
+               v.network, v.generation, COALESCE(v.monthly_price, v.charge_price) AS price,
+               s.views, s.visitors, s.clicks, s.outbounds
+        FROM (
+            SELECT plan_id, sum(views)::BIGINT AS views, sum(visitors)::BIGINT AS visitors,
+                   sum(clicks)::BIGINT AS clicks, sum(outbounds)::BIGINT AS outbounds
+            FROM stat_daily_plan
+            WHERE day BETWEEN #{from} AND #{to} AND device = #{device}
+            GROUP BY plan_id
+        ) s
+        LEFT JOIN plan p ON p.id = s.plan_id
+        LEFT JOIN plan_version v ON v.id = p.published_version_id
+        LEFT JOIN partner pt ON pt.code = p.partner_code
+        ORDER BY s.views DESC, s.outbounds DESC, s.plan_id
+        <if test="limit != null">LIMIT #{limit}</if>
+    </select>
+
+    <select id="interests" resultType="kr.co.im010.core.row.AnalyticsRows$Interest">
+        SELECT dim, value, sum(cnt)::BIGINT AS cnt
+        FROM stat_daily_interest
+        WHERE day BETWEEN #{from} AND #{to} AND device = #{device}
+        GROUP BY dim, value
+        ORDER BY dim, cnt DESC
+    </select>
+
+    <select id="posts" resultType="kr.co.im010.core.row.AnalyticsRows$PostStat">
+        SELECT s.post_id, COALESCE(a.title, '#' || s.post_id) AS title, c.name AS category_name,
+               s.views, s.visitors, s.completes, s.engage_ms, s.engage_count, s.plan_clicks
+        FROM (
+            SELECT post_id, sum(views)::BIGINT AS views, sum(visitors)::BIGINT AS visitors, sum(completes)::BIGINT AS completes,
+                   sum(engage_ms)::BIGINT AS engage_ms, sum(engage_count)::BIGINT AS engage_count,
+                   sum(plan_clicks)::BIGINT AS plan_clicks
+            FROM stat_daily_content
+            WHERE day BETWEEN #{from} AND #{to} AND device = #{device}
+            GROUP BY post_id
+        ) s
+        LEFT JOIN ai_post a ON a.id = s.post_id
+        LEFT JOIN ai_category c ON c.code = a.category_code
+        ORDER BY s.views DESC, s.post_id
+        <if test="limit != null">LIMIT #{limit}</if>
+    </select>
+</mapper>

@@ -9,6 +9,9 @@ spring:
 im010:
   crawl:
     scheduler-enabled: false
+  analytics:            # 대시보드 집계는 로컬에서도 돈다 (5분마다)
+    interval: PT5M
+    initial-delay: PT20S
 
 logging:
   level:

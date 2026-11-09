@@ -68,7 +68,7 @@ function AiList() {
   }
 
   return (
-    <section className="ai-page">
+    <section className="ai-page" data-track="AI_LIST">
       <div className="wrap">
         <div className="ai-head">
           <h1>

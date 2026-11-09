@@ -39,7 +39,7 @@ export default function PlanDetailPage() {
   ]
 
   return (
-    <section className="detail">
+    <section className="detail" data-track="DETAIL">
       <div className="wrap">
         <nav className="breadcrumb" aria-label="현재 위치">
           <Link to="/">홈</Link> <Icon name="chevron_right" /> <a href="/#partners">요금제</a> <Icon name="chevron_right" /> {plan.partnerName} <Icon name="chevron_right" /> {plan.name}
@@ -107,7 +107,7 @@ export default function PlanDetailPage() {
         {!prepaid && data.similar.length > 0 && (
           <>
             <h2 className="detail-h">비슷한 요금제</h2>
-            <div className="similar-grid">
+            <div className="similar-grid" data-track="SIMILAR">
               {data.similar.map((p) => (
                 <PlanTile key={p.id} plan={p} />
               ))}

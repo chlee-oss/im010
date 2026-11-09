@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client'
 import type { NetworkCode } from '../api/types'
 import { won } from '../lib/format'
 import { BrandChip } from '../lib/partners'
+import { track } from '../lib/track'
 import { useApi } from '../lib/useApi'
 import Icon from './Icon'
 
@@ -26,6 +27,14 @@ export default function Calculator() {
   const { data: plan, loading, error } = useApi((signal) => api.cheapest(network, gb, signal), [network, gb])
   const networkLabel = NETWORKS.find((n) => n.code === network)!.label
 
+  // 이용 통계: 고객이 조건을 바꾼 뒤 결과가 나오면 1초 머문 조건만 기록 (슬라이더를 끄는 동안의 값은 빼고)
+  const touched = useRef(false)
+  useEffect(() => {
+    if (!touched.current || loading || error) return
+    const t = window.setTimeout(() => track('calc', { props: { gb: gb ?? 'U', network, found: !!plan } }), 1000)
+    return () => clearTimeout(t)
+  }, [gb, network, plan, loading, error])
+
   return (
     <div className="calc-card" id="calc">
       <div className="calc-row">
@@ -45,7 +54,10 @@ export default function Calculator() {
         value={step}
         aria-label="월 데이터 사용량"
         aria-valuetext={stepLabel(gb)}
-        onChange={(e) => setStep(Number(e.target.value))}
+        onChange={(e) => {
+          touched.current = true
+          setStep(Number(e.target.value))
+        }}
       />
       <div className="range-scale" aria-hidden="true">
         <span>1GB</span>
@@ -60,7 +72,10 @@ export default function Calculator() {
             type="button"
             className={n.code === network ? 'active' : ''}
             aria-pressed={n.code === network}
-            onClick={() => setNetwork(n.code)}
+            onClick={() => {
+              touched.current = true
+              setNetwork(n.code)
+            }}
           >
             {n.label}
           </button>

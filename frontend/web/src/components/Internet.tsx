@@ -3,6 +3,7 @@ import { api } from '../api/client'
 import type { InternetProduct } from '../api/types'
 import { won } from '../lib/format'
 import { outboundPath } from '../lib/outbound'
+import { track } from '../lib/track'
 import { useApi } from '../lib/useApi'
 import StateMessage from './StateMessage'
 import Icon from './Icon'
@@ -68,7 +69,10 @@ export function InternetProducts() {
               role="tab"
               className={tab === t.key ? 'active' : ''}
               aria-selected={tab === t.key}
-              onClick={() => setTab(t.key)}
+              onClick={() => {
+                setTab(t.key)
+                track('filter', { props: { dim: 'internet_tab', value: t.key } })
+              }}
             >
               {t.label}
             </button>
