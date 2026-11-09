@@ -9,9 +9,7 @@ spring:
 im010:
   crawl:
     scheduler-enabled: false
-  analytics:            # 대시보드 집계는 로컬에서도 돈다 (5분마다)
-    interval: PT5M
-    initial-delay: PT20S
+  # 대시보드 집계는 로컬에서도 운영과 같이 1시간마다 돈다 (시작 2분 뒤 첫 집계 — 바로 보려면 batch 를 다시 시작)
 
 logging:
   level:
