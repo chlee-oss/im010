@@ -96,3 +96,16 @@
   .doc-page { padding: 28px 0 60px; }
   .doc-body { padding: 18px; font-size: 14px; }
 }
+
+/* 서비스별 랜딩 (/postpaid · /prepaid · /internet) */
+.service-hero { padding: 36px 0 8px; }
+.service-hero h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 10px; }
+.service-hero p { color: var(--gray-700); font-size: 15px; line-height: 1.6; margin-bottom: 18px; }
+.service-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.service-tabs a { padding: 8px 14px; border-radius: 999px; border: 1px solid var(--gray-200); background: var(--white); font-size: 13px; font-weight: 600; color: var(--gray-700); }
+.service-tabs a:hover { border-color: var(--coral); color: var(--coral-dark); }
+.service-tabs a.on { background: var(--coral); border-color: var(--coral); color: var(--white); }
+@media (max-width: 640px) {
+  .service-hero { padding: 24px 0 4px; }
+  .service-hero h1 { font-size: 26px; }
+}

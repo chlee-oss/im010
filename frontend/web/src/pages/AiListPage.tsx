@@ -29,7 +29,11 @@ function AiList() {
   const [moreLoading, setMoreLoading] = useState(false)
   const categories = useApi((signal) => api.aiCategories(signal), [])
   const current = categories.data?.find((c) => c.slug === category)
-  usePageTitle(current ? `${current.name} · 알뜰AI` : '알뜰AI')
+  // 전체 목록(/ai)은 서비스 랜딩 제목 그대로 (미리 렌더링 scripts/prerender.mjs 와 같게)
+  // 카테고리 이름을 받는 동안(null)은 미리 렌더링한 제목을 그대로 둔다
+  usePageTitle(current ? `${current.name} · 알뜰AI` : category ? (categories.data ? '알뜰AI' : null) : 'im010 - 나는 알뜰한 통신경험을 원해!', {
+    raw: !category,
+  })
 
   const first = useApi(
     (signal) => api.aiPosts({ category, q: q || undefined, tag: tag || undefined, sort, page: 1 }, signal),

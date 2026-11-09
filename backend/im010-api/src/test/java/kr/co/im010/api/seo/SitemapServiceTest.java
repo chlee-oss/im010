@@ -62,17 +62,23 @@ class SitemapServiceTest {
         List<SitemapService.Url> urls = service.urls();
 
         assertThat(urls).extracting(SitemapService.Url::path).containsExactly(
-                "/", "/faq", "/ai", "/ai/mobile", "/ai/misc",
+                "/", "/postpaid", "/prepaid", "/internet", "/faq", "/ai", "/ai/mobile", "/ai/misc",
                 "/ai/posts/6/11%EC%9B%94%20%EC%9A%94%EA%B8%88%EC%A0%9C%20%26%20%ED%98%9C%ED%83%9D",
                 "/ai/posts/2/old-post", "/plans/29", "/plans/24");
+        java.util.Map<String, LocalDate> lastmod = new java.util.HashMap<>();
+        urls.forEach(u -> lastmod.put(u.path(), u.lastmod()));
         // 메인 = 요금제 수집일 · 최신 글 중 늦은 날 (한국 날짜)
-        assertThat(urls.get(0).lastmod()).isEqualTo(LocalDate.of(2026, 11, 10));
-        assertThat(urls.get(1).lastmod()).isEqualTo(LocalDate.of(2026, 10, 20));
-        assertThat(urls.get(3).lastmod()).isEqualTo(LocalDate.of(2026, 11, 10));
-        assertThat(urls.get(4).lastmod()).isNull();   // 글 없는 카테고리
+        assertThat(lastmod.get("/")).isEqualTo(LocalDate.of(2026, 11, 10));
+        // 서비스 랜딩 = 그 종류 요금제의 최신 수집일, 인터넷은 없음
+        assertThat(lastmod.get("/postpaid")).isEqualTo(LocalDate.of(2026, 11, 8));
+        assertThat(lastmod.get("/prepaid")).isEqualTo(LocalDate.of(2026, 11, 5));
+        assertThat(lastmod.get("/internet")).isNull();
+        assertThat(lastmod.get("/faq")).isEqualTo(LocalDate.of(2026, 10, 20));
+        assertThat(lastmod.get("/ai/mobile")).isEqualTo(LocalDate.of(2026, 11, 10));
+        assertThat(lastmod.get("/ai/misc")).isNull();   // 글 없는 카테고리
         // 본문 수정일이 있으면 그 날짜
-        assertThat(urls.get(6).lastmod()).isEqualTo(LocalDate.of(2026, 11, 3));
-        assertThat(urls.get(7).lastmod()).isEqualTo(LocalDate.of(2026, 11, 8));
+        assertThat(lastmod.get("/ai/posts/2/old-post")).isEqualTo(LocalDate.of(2026, 11, 3));
+        assertThat(lastmod.get("/plans/29")).isEqualTo(LocalDate.of(2026, 11, 8));
     }
 
     @Test
