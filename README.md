@@ -232,7 +232,8 @@ im010/
 - 수동 1회: `sudo systemctl start im010-prerender.service` · 로그: `journalctl -u im010-prerender -n 50 --no-pager` · 다음 실행: `systemctl list-timers im010-prerender.timer`
 - 감소 검사를 건너뛰고 강제로: `sudo PRERENDER_FORCE=1 /opt/im010/prerender/im010-prerender.sh` (요금제를 대량 종료한 날 등) · 되돌리기: `/opt/im010/web.prev` 를 `deploy-web.sh` 로 다시 배포
 - **`sitemap.xml` = im010-api 가 요청마다 DB 기준으로 만든다** ([`SitemapController`](backend/im010-api/src/main/java/kr/co/im010/api/seo/SitemapController.java), nginx 가 `/sitemap.xml` 만 api 로 넘김). 게시 · 판매 종료 · 글 게시가 **빌드 없이 즉시** 반영된다 (응답 캐시 10분)
-  - 담는 주소: 메인 · FAQ · 알뜰AI 목록 · 노출 카테고리 · 고객에게 보이는 글(게시 · 예약 시각 지남 · 노출 카테고리) · 게시 중 요금제(후불 · 선불). 판매 종료 · 숨김 요금제, 게시 전 글은 넣지 않는다
+  - 담는 주소: 메인 · FAQ · 알뜰AI 목록 · 노출 카테고리 · 고객에게 보이는 글(게시 · 예약 시각 지남 · 노출 카테고리) · 게시 중 요금제(후불 · 선불) · **최근 30일 안에 판매 종료된 요금제**(lastmod = 종료일 `plan.ended_on`, 검색엔진이 다시 와서 410 을 빨리 확인하게 — 30일이 지나면 빠짐). 숨김 · 게시 전 요금제, 게시 전 글은 넣지 않는다
+  - 30일이 지난 종료 요금제가 아직 검색에 보이면 Google Search Console 「삭제」(URL 일시 삭제) · 네이버 서치어드바이저 「웹 페이지 수집 요청」/「콘텐츠 삭제 요청」으로 직접 요청한다
   - `lastmod`: 요금제 = 요금 수집일, 글 = 본문 수정일(없으면 게시일), 카테고리 · 목록 = 그 안 최신 글, 메인 = 최신 수집일 · 최신 글 중 늦은 날, FAQ = 마지막 수정일 (한국 날짜)
   - 주소 기준 = `IM010_FRONT_BASE_URL`(운영 `https://www.im010.co.kr`), 글 주소의 slug 는 프런트 canonical 과 같은 인코딩(encodeURIComponent)
 - nginx ([`im010.conf`](deploy/nginx/im010.conf)): 미리 만든 HTML이 있는 경로만 200, 없는 경로는 404 / 판매 종료 요금제 410 / 빌드 뒤 새 요금제 · 글은 SPA 틀 200. `sitemap.xml` → api (`application/xml`), `robots.txt` 는 `text/plain`. 설정 변경 반영: `sudo bash deploy/scripts/setup-nginx.sh` (`nginx -t` 실패 시 되돌림). **api 를 먼저 배포한 뒤** nginx 를 반영한다 (예전 api 는 `/sitemap.xml` 이 없어 404)

@@ -34,6 +34,14 @@
         JOIN partner pt     ON pt.code = p.partner_code AND pt.exposed
     </sql>
 
+    <select id="findEndedSince" resultType="kr.co.im010.core.row.PlanEndedRow">
+        SELECT p.id, COALESCE(p.ended_on, (p.updated_at AT TIME ZONE 'Asia/Seoul')::date) AS ended_on
+        <include refid="planFrom"/>
+        WHERE p.status = 'ENDED'
+          AND COALESCE(p.ended_on, (p.updated_at AT TIME ZONE 'Asia/Seoul')::date) &gt;= #{since}
+        ORDER BY 2 DESC, p.id
+    </select>
+
     <select id="findPublishedByIds" resultType="kr.co.im010.core.row.PlanRow">
         SELECT <include refid="planColumns"/>
         <include refid="planFrom"/>
