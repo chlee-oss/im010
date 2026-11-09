@@ -28,6 +28,7 @@ import Faq from './pages/settings/Faq'
 import Footer from './pages/settings/Footer'
 import Groups from './pages/settings/Groups'
 import Programs from './pages/settings/Programs'
+import Seo from './pages/settings/Seo'
 import Terms from './pages/settings/Terms'
 
 export default function App() {
@@ -82,6 +83,7 @@ export default function App() {
           <Route path="/settings/audit" element={<Audit />} />
           <Route path="/settings/footer" element={<Footer />} />
           <Route path="/settings/inquiries" element={<Faq />} />
+          <Route path="/settings/seo" element={<Seo />} />
           <Route path="*" element={<NotReady />} />
         </Routes>
       </Layout>

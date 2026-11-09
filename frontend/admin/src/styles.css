@@ -360,3 +360,30 @@ fieldset.checks label { display: inline-flex; align-items: center; gap: 5px; fon
 @media (max-width: 1100px) {
   .dash-grid { grid-template-columns: 1fr; }
 }
+
+/* ---------- 환경설정 > 검색엔진설정 (ST-08) ---------- */
+.seo-layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.seo-layout .panel { margin-bottom: 0; }
+.seo-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.seo-label { display: flex; justify-content: space-between; gap: 10px; font-weight: 700; font-size: 13px; }
+.seo-field input, .seo-field textarea { width: 100%; }
+.seo-field textarea { resize: vertical; line-height: 1.5; }
+.seo-field small { font-size: 12px; }
+.seo-count { font-weight: 500; font-size: 12px; color: var(--gray-500); }
+.seo-count.warn { color: var(--amber); }
+.seo-count.over { color: var(--red); font-weight: 700; }
+.panel h2.seo-sub { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--gray-200); }
+.seo-reset { margin-right: auto; }
+.seo-updated { font-size: 12px; margin-top: 12px; }
+.seo-preview h3 { font-size: 12px; font-weight: 700; color: var(--gray-500); margin: 4px 0 8px; }
+.serp { border: 1px solid var(--gray-200); border-radius: 10px; padding: 14px 16px; margin-bottom: 18px; background: var(--white); }
+.serp-site { font-size: 12px; color: var(--gray-700); margin-bottom: 4px; }
+.serp-title { font-size: 18px; color: #1a0dab; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.serp-desc { font-size: 13px; color: var(--gray-700); line-height: 1.55; margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.og-card { border: 1px solid var(--gray-200); border-radius: 12px; overflow: hidden; max-width: 360px; background: var(--white); }
+.og-card img { display: block; width: 100%; aspect-ratio: 1200 / 630; object-fit: cover; background: var(--gray-100); }
+.og-body { padding: 10px 12px 12px; }
+.og-title { font-weight: 700; font-size: 14px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.og-desc { font-size: 12px; color: var(--gray-700); margin-top: 4px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.og-url { font-size: 11px; color: var(--gray-500); margin-top: 6px; }
+@media (max-width: 1100px) { .seo-layout { grid-template-columns: 1fr; } }
