@@ -11,6 +11,8 @@ export interface Partner {
   chipBg: string
   chipFg: string
   homepageUrl: string | null
+  /** 제휴사관리에서 올린 로고 (/uploads/partners/...), 없으면 null */
+  logoUrl: string | null
 }
 
 export interface PlanSummary {

@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -65,6 +67,19 @@ public class PartnerAdminController {
     @RequiresPermission(program = PA, action = Action.EDIT)
     public PartnerAdminService.Detail update(@PathVariable String code, @RequestBody PartnerAdminService.PartnerRequest body) {
         return service.update(code, body);
+    }
+
+    /** 로고 올리기 · 바꾸기 (multipart file) */
+    @PostMapping("/partners/{code}/logo")
+    @RequiresPermission(program = PA, action = Action.EDIT)
+    public PartnerAdminService.Detail uploadLogo(@PathVariable String code, @RequestPart("file") MultipartFile file) {
+        return service.uploadLogo(code, file);
+    }
+
+    @DeleteMapping("/partners/{code}/logo")
+    @RequiresPermission(program = PA, action = Action.EDIT)
+    public PartnerAdminService.Detail removeLogo(@PathVariable String code) {
+        return service.removeLogo(code);
     }
 
     @GetMapping("/partners/{code}/usage")

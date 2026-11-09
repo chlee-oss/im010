@@ -16,9 +16,13 @@ export function usePartners(): Map<string, Partner> {
   return useContext(PartnerContext)
 }
 
-/** 브랜드 칩. 색상은 백오피스(제휴사관리)에 등록된 값. */
+/** 브랜드 칩. 색상 · 로고는 백오피스(제휴사관리)에 등록된 값 — 로고가 있으면 로고 이미지를 보여 준다. */
 export function BrandChip({ code, name, className = '' }: { code: string; name?: string; className?: string }) {
   const partner = usePartners().get(code)
+  // 로고가 등록돼 있으면 칩 자리에 로고 (같은 brand-chip 자리 · 여백 규칙을 따른다)
+  if (partner?.logoUrl) {
+    return <img className={`brand-chip brand-logo ${className}`.trim()} src={partner.logoUrl} alt={partner.name} loading="lazy" />
+  }
   const style = partner ? { background: partner.chipBg, color: partner.chipFg } : undefined
   return (
     <span className={`brand-chip ${code} ${className}`.trim()} style={style}>

@@ -141,6 +141,8 @@ export interface Partner {
   chipBg: string
   chipFg: string
   homepageUrl: string | null
+  /** 로고 이미지 주소 (/uploads/partners/...), 없으면 null */
+  logoUrl: string | null
   exposed: boolean
   sortOrder: number
   postpaidUrls: number

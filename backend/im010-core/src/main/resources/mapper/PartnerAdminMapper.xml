@@ -3,7 +3,7 @@
 <mapper namespace="kr.co.im010.core.mapper.PartnerAdminMapper">
 
     <sql id="partnerSelect">
-        SELECT pt.code, pt.name, pt.chip_bg, pt.chip_fg, pt.homepage_url, pt.exposed, pt.sort_order,
+        SELECT pt.code, pt.name, pt.chip_bg, pt.chip_fg, pt.homepage_url, pt.logo_url, pt.exposed, pt.sort_order,
                (SELECT count(*) FROM collect_url c WHERE c.partner_code = pt.code AND c.url_type = 'POSTPAID') AS postpaid_urls,
                (SELECT count(*) FROM collect_url c WHERE c.partner_code = pt.code AND c.url_type = 'PREPAID')  AS prepaid_urls,
                (SELECT count(*) FROM collect_url c WHERE c.partner_code = pt.code AND c.url_type = 'MONTHLY')  AS monthly_urls,
@@ -85,6 +85,10 @@
         INSERT INTO partner (code, name, chip_bg, chip_fg, homepage_url, exposed, sort_order)
         VALUES (#{code}, #{name}, #{chipBg}, #{chipFg}, #{homepageUrl}, #{exposed}, #{sortOrder})
     </insert>
+
+    <update id="updateLogo">
+        UPDATE partner SET logo_url = #{logoUrl}, updated_at = now() WHERE code = #{code}
+    </update>
 
     <update id="updatePartner">
         UPDATE partner SET name = #{name}, chip_bg = #{chipBg}, chip_fg = #{chipFg}, homepage_url = #{homepageUrl},

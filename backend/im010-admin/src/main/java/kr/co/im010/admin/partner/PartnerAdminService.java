@@ -10,7 +10,9 @@ import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import kr.co.im010.admin.ai.UploadService;
 import kr.co.im010.admin.audit.AuditService;
 import kr.co.im010.admin.auth.CurrentAdmin;
 import kr.co.im010.admin.web.ApiException;
@@ -71,13 +73,38 @@ public class PartnerAdminService {
     private final RatePlanParser parser;
     private final AuditService audit;
 
+    private final UploadService uploads;
+
     public PartnerAdminService(PartnerAdminMapper partnerMapper, PlanAdminMapper planMapper, PageFetcher fetcher,
-                               RatePlanParser parser, AuditService audit) {
+                               RatePlanParser parser, AuditService audit, UploadService uploads) {
         this.partnerMapper = partnerMapper;
         this.planMapper = planMapper;
         this.fetcher = fetcher;
         this.parser = parser;
         this.audit = audit;
+        this.uploads = uploads;
+    }
+
+    /**
+     * 로고 올리기 · 바꾸기. 알뜰AI 이미지와 같은 검사(jpg · png · webp · gif, 크기 제한)로 /uploads/partners/... 에 저장한다.
+     * 앞 로고 파일은 지우지 않는다 (주소가 매번 새로워 오래 캐시되므로, 이미 열린 화면이 깨지지 않게).
+     */
+    @Transactional
+    public Detail uploadLogo(String code, MultipartFile file) {
+        find(code);
+        String url = uploads.saveImage(file, "partners", PROGRAM, "PARTNER_LOGO_UPLOAD");
+        partnerMapper.updateLogo(code, url);
+        audit.action(PROGRAM, "PARTNER_LOGO_SET", code, url);
+        return detail(code);
+    }
+
+    /** 로고 지우기 — 화면은 다시 브랜드 칩을 쓴다 */
+    @Transactional
+    public Detail removeLogo(String code) {
+        PartnerAdminRow partner = find(code);
+        partnerMapper.updateLogo(code, null);
+        audit.action(PROGRAM, "PARTNER_LOGO_REMOVE", code, partner.logoUrl());
+        return detail(code);
     }
 
     public List<PartnerAdminRow> list() {

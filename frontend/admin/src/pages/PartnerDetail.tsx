@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Badge, Loading, Modal, PageHead } from '../components/ui'
-import { del, get, post, put } from '../lib/api'
+import { del, get, post, put, upload } from '../lib/api'
 import { NETWORK, URL_TYPE, won } from '../lib/format'
 import { useMe } from '../lib/me'
 import { useRun } from '../lib/notice'
@@ -49,6 +49,20 @@ export default function PartnerDetail() {
   if (!data) return <Loading error={error} />
   const { partner, urls, tabs } = data
   const registered = new Set(urls.map((u) => u.url))
+
+  // 로고: jpg · png · webp · gif (5MB 이하). 서버가 파일 내용으로 형식을 다시 확인한다
+  const pickLogo = () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/jpeg,image/png,image/webp,image/gif'
+    input.onchange = () => {
+      const file = input.files?.[0]
+      if (file) void run(() => upload<Detail>(`/partners/${code}/logo`, file), () => '로고를 올렸습니다').then((d) => d && setData(d))
+    }
+    input.click()
+  }
+  const removeLogo = () =>
+    void run(() => del<Detail>(`/partners/${code}/logo`), () => '로고를 지웠습니다').then((d) => d && setData(d))
 
   const runTest = (url: string, label?: string | null) => {
     setTest({ url, result: null })
@@ -163,6 +177,24 @@ export default function PartnerDetail() {
             {partner.exposed ? <Badge tone="green">노출</Badge> : <Badge>비노출 — 프런트에서 이 제휴사 요금제 · 칩을 숨김</Badge>}
           </div>
         )}
+        <div className="logo-row">
+          <div className="logo-box">
+            {partner.logoUrl ? <img src={partner.logoUrl} alt={`${partner.name} 로고`} /> : <span className="muted">로고 없음 — 화면에는 브랜드 칩이 나옵니다</span>}
+          </div>
+          {canEdit && (
+            <div className="actions left">
+              <button onClick={pickLogo} disabled={busy}>
+                {partner.logoUrl ? '로고 바꾸기' : '로고 올리기'}
+              </button>
+              {partner.logoUrl && (
+                <button className="danger" onClick={removeLogo} disabled={busy}>
+                  로고 지우기
+                </button>
+              )}
+            </div>
+          )}
+          <p className="hint">jpg · png · webp · gif, 5MB 이하. 가로로 긴 투명 배경 PNG 를 권장합니다. 고객 화면의 요금제 카드 · 상세 · 이동 안내 화면 등에서 브랜드 칩 대신 쓰입니다.</p>
+        </div>
       </section>
 
       <section className="panel">
