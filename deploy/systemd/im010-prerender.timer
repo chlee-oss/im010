@@ -1,0 +1,12 @@
+# 매일 05:00(KST) 고객 화면 미리 렌더링 — /etc/systemd/system/im010-prerender.timer
+# 다음 실행 확인: systemctl list-timers im010-prerender.timer
+[Unit]
+Description=Daily im010 web prerender at 05:00
+
+[Timer]
+OnCalendar=*-*-* 05:00:00 Asia/Seoul
+Persistent=true
+RandomizedDelaySec=0
+
+[Install]
+WantedBy=timers.target

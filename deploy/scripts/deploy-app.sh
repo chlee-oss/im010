@@ -19,6 +19,10 @@ for f in api admin batch; do
     [[ -f /etc/im010/$f.env ]] || { echo "/etc/im010/$f.env 가 없습니다 — setup-runtime.sh 먼저" >&2; exit 1; }
 done
 
+# 화면 폴더를 바꾸는 작업끼리(매일 05:00 im010-prerender 포함) 겹치지 않게
+exec 9>/run/lock/im010-web.lock
+flock -w 900 9 || { echo "다른 화면 작업(im010-prerender 등)이 끝나지 않았습니다" >&2; exit 1; }
+
 wait_health() {   # $1 = 이름, $2 = 포트
     for _ in $(seq 1 60); do
         if curl -sf "http://127.0.0.1:$2/actuator/health" | grep -q '"UP"'; then
