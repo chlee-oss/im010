@@ -29,8 +29,9 @@ const DIST = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist')
 const OG_IMAGE = `${SITE}/og-default.png`
 const SITE_NAME = 'im010'
 const BASE_TITLE = 'im010 — 알뜰폰 요금비교'
-const BASE_DESC =
-  '마블링 · 토리모바일 · 위너스텔 · 슈가모바일 · 인스모바일 · 조이M · 시월모바일 알뜰폰 요금제를 한눈에 비교하고 최저가 요금제를 찾아보세요.'
+// description · og:description 은 80자 이내 (네이버 서치어드바이저 권장). index.html 기본값과 같게 둔다
+const DESC_MAX = 80
+const BASE_DESC = '7개 제휴사 알뜰폰 후불 · 선불 요금제와 인터넷 상품을 한눈에 비교하고 최저가 요금제를 찾아보세요.'
 const TERMS = { service: ['SERVICE', '이용약관'], privacy: ['PRIVACY', '개인정보처리방침'] }
 
 // ---------- 공통 ----------
@@ -44,9 +45,24 @@ const esc = (s) =>
     .replaceAll("'", '&#39;')
 
 const won = (n) => (n == null ? '-' : Number(n).toLocaleString('ko-KR'))
-const oneLine = (s, max = 155) => {
+const len = (s) => [...s].length
+/** 한 줄로 · max 자 이내. 넘치면 가능한 한 띄어쓰기에서 자르고 … */
+const oneLine = (s, max = DESC_MAX) => {
   const t = String(s ?? '').replace(/\s+/g, ' ').trim()
-  return t.length > max ? `${t.slice(0, max - 1)}…` : t
+  if (len(t) <= max) return t
+  const cut = [...t].slice(0, max - 1).join('')
+  const sp = cut.lastIndexOf(' ')
+  return `${(sp > max * 0.6 ? cut.slice(0, sp) : cut).replace(/[\s·,/:—-]+$/, '')}…`
+}
+/** 앞 조각부터 이어 붙여 max 자를 넘기 전까지만 (첫 조각이 이미 길면 oneLine 으로 자름) */
+const fit = (parts, max = DESC_MAX) => {
+  const list = parts.filter(Boolean)
+  let out = ''
+  for (const p of list) {
+    if (len(out + p) > max) break
+    out += p
+  }
+  return out ? out.trim() : oneLine(list[0] ?? '', max)
 }
 const ymd = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' })
 /** ISO → 2026.10.15 (한국 시간) */
@@ -259,11 +275,7 @@ const { categories } = data
     page({
       path: '/faq',
       title: '자주 묻는 질문 | im010',
-      description: oneLine(
-        data.faqs.length
-          ? `알뜰폰 개통 · 요금제 · 선불폰에 대해 자주 묻는 질문: ${data.faqs.slice(0, 4).map((f) => f.question).join(' / ')}`
-          : '알뜰폰 개통 · 요금제 · 선불폰에 대해 자주 묻는 질문과 답변을 모았어요.',
-      ),
+      description: '알뜰폰 개통 · 요금제 · 선불폰 이용에 대해 자주 묻는 질문과 답변을 모았어요.',
       body: layout(main, categories),
       jsonLd: data.faqs.length
         ? [{
@@ -293,11 +305,10 @@ for (const cat of [null, ...categories]) {
     page({
       path,
       title: `${name} | im010`,
-      description: oneLine(
-        list.length
-          ? `${name}: ${list.slice(0, 3).map((c) => c.title).join(' / ')}`
-          : '알뜰폰 · 인터넷 요금과 혜택 소식을 1분 안에 읽을 수 있게 정리했어요.',
-      ),
+      description: fit([
+        cat ? `${cat.name} 소식을 1분 안에 읽을 수 있게 정리했어요.` : '알뜰폰 · 인터넷 요금과 혜택 소식을 1분 안에 읽을 수 있게 정리했어요.',
+        list.length ? ` 최신 글: ${list[0].title}` : '',
+      ]),
       body: layout(main, categories),
     }),
   ])
@@ -359,7 +370,8 @@ for (const d of data.posts) {
 function planPage(d, ended) {
   const p = d.plan
   const prepaid = p.planType === 'PREPAID'
-  const name = `${p.partnerName} ${p.name}`
+  // 요금제 이름이 제휴사 이름으로 시작하면 한 번만 (예: 마블링 마블링 프라임 → 마블링 프라임)
+  const name = p.name.startsWith(p.partnerName) ? p.name : `${p.partnerName} ${p.name}`
   const price = `${won(planPrice(p))}${planUnit(p)}`
   const specs = [
     ['데이터', p.dataText],
@@ -371,9 +383,18 @@ function planPage(d, ended) {
     !prepaid && d.discountMonths && d.priceAfterDiscount != null ? ['할인 후', `${d.discountMonths}개월 뒤 ${won(d.priceAfterDiscount)}원 / 월`] : null,
     prepaid && p.validDays ? ['사용 기간', `${p.validDays}일`] : null,
   ].filter((s) => s && s[1])
-  const description = oneLine(
-    `${ended ? '[판매 종료] ' : ''}${name} ${prepaid ? '선불' : '후불'} 알뜰폰 요금제 — ${p.dataText} · ${p.networkLabel}망 ${p.generation} · ${price}${d.basisDate ? ` (${d.basisDate.replaceAll('-', '.')} 기준)` : ''}. 조건이 비슷한 요금제와 비교해 보세요.`,
-  )
+  // 80자 이내: 이름 → 종류 → 가격 → 데이터 → 통신망 → 기준일 순으로, 넘치는 뒤쪽은 뺀다
+  const shortPrice = prepaid
+    ? `${won(planPrice(p))}원${p.validDays ? `/${p.validDays}일` : ''}`
+    : `월 ${won(planPrice(p))}원`
+  const description = fit([
+    `${ended ? '[판매 종료] ' : ''}${name}`,
+    ` ${prepaid ? '선불' : '후불'} 알뜰폰`,
+    ` · ${shortPrice}`,
+    ` · ${p.dataText.replace(/^(데이터|선불)\s*/, '데이터 ')}`,
+    ` · ${p.networkLabel}망 ${p.generation}`,
+    d.basisDate ? ` (${d.basisDate.slice(5).replace('-', '.')} 기준)` : '',
+  ])
   const main = `
 <section class="detail"><div class="wrap">
   <nav class="breadcrumb" aria-label="현재 위치"><a href="/">홈</a> › <a href="/#partners">요금제</a> › ${esc(p.partnerName)} › ${esc(p.name)}</nav>
