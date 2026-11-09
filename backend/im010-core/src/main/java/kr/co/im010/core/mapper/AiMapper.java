@@ -11,6 +11,7 @@ import kr.co.im010.core.row.AiCategoryRow;
 import kr.co.im010.core.row.AiPostListRow;
 import kr.co.im010.core.row.AiPostRow;
 import kr.co.im010.core.row.AiPostWrite;
+import kr.co.im010.core.row.AiSitemapRow;
 
 /**
  * 알뜰AI 콘텐츠 (im010_알뜰AI_기획서.md). 고객에게 보이는 글 = 노출 카테고리 · status PUBLISHED · publish_at 이 지난 글.
@@ -52,6 +53,9 @@ public interface AiMapper {
     AiPostListRow findPinned(@Param("categoryCode") String categoryCode);
 
     AiPostRow findPublishedPost(@Param("id") long id);
+
+    /** sitemap.xml — 고객에게 보이는 글 전부 (최신순) */
+    List<AiSitemapRow> findSitemapEntries();
 
     /** 이전 글(더 오래된) · 다음 글(더 최근) — 같은 카테고리 */
     AiPostListRow findOlder(@Param("categoryCode") String categoryCode, @Param("publishAt") OffsetDateTime publishAt,
