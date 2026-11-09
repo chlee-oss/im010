@@ -99,6 +99,7 @@ im010/
 | `GET /api/ai/posts?category=&tag=&q=&sort=latest|popular&page=` | 알뜰AI 목록 — 첫 페이지 위에 상단 고정 글 1개, 20개씩 |
 | `GET /api/ai/posts/{id}` | 알뜰AI 상세 + 관련 요금제 · 인터넷, 이전 · 다음 글, 같은 카테고리 글 |
 | `POST /api/ai/posts/{id}/view` | 조회 수 (검색 로봇 제외, 화면에서 하루 한 번) |
+| `GET /sitemap.xml` | 검색엔진용 sitemap — DB 기준 즉시 반영 (아래 "검색 노출") |
 
 - 오류 응답은 RFC 9457 ProblemDetail (`400` · `404`)
 - `/go` 는 DB에 등록된 URL로만 이동한다 (요청 값으로 받은 URL로 보내지 않음). 이동 기록은 비동기 저장, 개인정보 없음.
@@ -206,20 +207,25 @@ im010/
 고객 화면은 React SPA라 빈 `#root` 만으로는 검색엔진 · 링크 미리보기가 내용을 읽지 못한다. 그래서 **빌드할 때 운영 API에서 데이터를 받아 경로별 정적 HTML을 만든다** ([`scripts/prerender.mjs`](frontend/web/scripts/prerender.mjs), `npm run build` 마지막 단계).
 
 - 만드는 페이지 (`dist/<경로>/index.html`): `/` · `/faq` · `/ai` · `/ai/<카테고리>` · `/ai/posts/<id>/<slug>` · `/plans/<id>`(게시 중) · `/terms/service|privacy` · `/out`(noindex,nofollow)
+  - (sitemap.xml 은 빌드에서 만들지 않는다 — 아래 api 엔드포인트)
   - 각 HTML: 페이지별 `<title>` · `meta description` · `link rel=canonical`(https://www.im010.co.kr 기준) · `og:title/description/url/image/type` · 본문 텍스트(요금제 목록 · 사양 · 글 본문 · FAQ, 내부 링크) · JSON-LD(WebSite · FAQPage · Article)
   - 본문은 `#root` 안에 넣는다. 브라우저에서는 React(`createRoot`)가 그 자리를 새로 그리므로 사람에게는 지금과 같은 화면이 보인다
   - `_gone/plans/<id>/index.html`: 판매 종료 요금제(번호를 차례로 조회해 찾음) → nginx가 **410** + 종료 안내 · 비슷한 요금제 링크(noindex)
   - `404.html`: 없는 경로 → nginx가 **404** (noindex, SPA가 떠서 404 화면이 보임)
   - `_shell.html`: 기본 메타만 있는 SPA 틀. **빌드 뒤에 새로 게시된 요금제 · 알뜰AI 글**은 미리 만든 HTML이 없어 이 틀로 200 응답 (Google은 JS를 실행해 읽는다)
-  - `sitemap.xml`: 메인 · FAQ · 알뜰AI 목록 · 글 · 게시 중 요금제, `lastmod` = 글 수정일/게시일 · 요금 기준일 · 빌드일. `robots.txt`(`public/`): `/go/` · `/out` · `/api/` 제외 + Sitemap
+  - `robots.txt`(`public/`): `/go/` · `/out` · `/api/` 제외 + Sitemap 위치
   - 기본 공유 이미지 `public/og-default.png`(1200x630, 임시 디자인 — 확정본으로 같은 이름 교체). 글에 썸네일이 있으면 그 이미지
 - **데이터 출처 = 빌드 시점의 운영 API** (`PRERENDER_API`, 기본 `https://www.im010.co.kr`). 서버에는 Node가 없어서 배포 후 주기 재생성 대신 이 방식을 골랐다
   - API를 못 받으면 빌드가 멈춘다. 인터넷 없이 확인만 할 때 `PRERENDER_OFFLINE=1 npm run build` (데이터 없는 화면 — **운영 배포 금지**)
   - 로컬 API로 만들어 볼 때: `PRERENDER_API=http://localhost:8080 npm run build`
   - **새 글 · 요금제를 검색에 빨리 반영하려면 고객 화면만 다시 빌드해 올린다** (알뜰AI 게시 후 · 요금제 수집 변동이 큰 날). 화면만 바꿀 때는 jar 재시작 없이 `web/`만 교체하면 된다:
     `npm run build` → `dist/` 를 서버 `~/im010-deploy/release/web/` 로 올림 → `sudo bash deploy-web.sh` ([`deploy-web.sh`](deploy/scripts/deploy-web.sh), 이전 화면 백업 · 상태 코드 확인)
-  - 데이터가 날마다 크게 바뀌거나 글이 많아지면: API에 `/sitemap.xml` 엔드포인트를 두거나 서버에서 주기 재생성(Node 설치) · Next.js(SSR) 전환을 검토
-- nginx ([`im010.conf`](deploy/nginx/im010.conf)): 미리 만든 HTML이 있는 경로만 200, 없는 경로는 404 / 판매 종료 요금제 410 / 빌드 뒤 새 요금제 · 글은 SPA 틀 200. `sitemap.xml` 은 `application/xml`, `robots.txt` 는 `text/plain`. 설정 변경 반영: `sudo bash deploy/scripts/setup-nginx.sh` (`nginx -t` 실패 시 되돌림)
+  - 다시 빌드하기 전까지: 새 요금제 · 글은 SPA 틀(200), 빌드 뒤 판매 종료된 요금제는 예전 "게시 중" HTML(200)이 나간다 — sitemap 은 아래처럼 바로 반영되므로 검색엔진이 새 주소를 찾는 데는 지장 없다
+- **`sitemap.xml` = im010-api 가 요청마다 DB 기준으로 만든다** ([`SitemapController`](backend/im010-api/src/main/java/kr/co/im010/api/seo/SitemapController.java), nginx 가 `/sitemap.xml` 만 api 로 넘김). 게시 · 판매 종료 · 글 게시가 **빌드 없이 즉시** 반영된다 (응답 캐시 10분)
+  - 담는 주소: 메인 · FAQ · 알뜰AI 목록 · 노출 카테고리 · 고객에게 보이는 글(게시 · 예약 시각 지남 · 노출 카테고리) · 게시 중 요금제(후불 · 선불). 판매 종료 · 숨김 요금제, 게시 전 글은 넣지 않는다
+  - `lastmod`: 요금제 = 요금 수집일, 글 = 본문 수정일(없으면 게시일), 카테고리 · 목록 = 그 안 최신 글, 메인 = 최신 수집일 · 최신 글 중 늦은 날, FAQ = 마지막 수정일 (한국 날짜)
+  - 주소 기준 = `IM010_FRONT_BASE_URL`(운영 `https://www.im010.co.kr`), 글 주소의 slug 는 프런트 canonical 과 같은 인코딩(encodeURIComponent)
+- nginx ([`im010.conf`](deploy/nginx/im010.conf)): 미리 만든 HTML이 있는 경로만 200, 없는 경로는 404 / 판매 종료 요금제 410 / 빌드 뒤 새 요금제 · 글은 SPA 틀 200. `sitemap.xml` → api (`application/xml`), `robots.txt` 는 `text/plain`. 설정 변경 반영: `sudo bash deploy/scripts/setup-nginx.sh` (`nginx -t` 실패 시 되돌림). **api 를 먼저 배포한 뒤** nginx 를 반영한다 (예전 api 는 `/sitemap.xml` 이 없어 404)
 - 확인: `curl -s https://www.im010.co.kr/faq | grep -E '<title>|canonical|description'` · `curl -sI https://www.im010.co.kr/없는주소` (404) · `curl -sI https://www.im010.co.kr/sitemap.xml` (application/xml)
 - 검색엔진 등록: Google Search Console · 네이버 서치어드바이저에 `https://www.im010.co.kr/sitemap.xml` 제출
 
