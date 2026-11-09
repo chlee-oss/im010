@@ -25,7 +25,7 @@ import kr.co.im010.core.row.PlanRow;
 
 /**
  * sitemap.xml (https://www.sitemaps.org/protocol.html) — 요청할 때마다 DB 기준으로 만든다 (게시 · 판매 종료 즉시 반영).
- * 담는 주소: 메인 · FAQ · 알뜰AI 목록 · 노출 카테고리 · 고객에게 보이는 글 · 게시 중 요금제(후불 · 선불)
+ * 담는 주소: 메인 · 서비스 랜딩(/postpaid · /prepaid · /internet) · FAQ · 알뜰AI 목록 · 노출 카테고리 · 고객에게 보이는 글 · 게시 중 요금제(후불 · 선불)
  * + 최근 {@value #ENDED_KEEP_DAYS}일 안에 판매 종료된 요금제(lastmod = 종료일) — 검색엔진이 다시 방문해 410 을 빨리 확인하게.
  * 숨김 · 게시 전 요금제와 게시 전 글은 넣지 않는다. 주소 모양은 프런트 미리 렌더링(frontend/web/scripts/prerender.mjs)의 canonical 과 같다.
  */
@@ -69,8 +69,9 @@ public class SitemapService {
     }
 
     List<Url> urls() {
-        List<PlanRow> plans = Stream.concat(planMapper.findPublished("POSTPAID", null).stream(),
-                planMapper.findPublished("PREPAID", null).stream()).toList();
+        List<PlanRow> postpaid = planMapper.findPublished("POSTPAID", null);
+        List<PlanRow> prepaid = planMapper.findPublished("PREPAID", null);
+        List<PlanRow> plans = Stream.concat(postpaid.stream(), prepaid.stream()).toList();
         List<AiSitemapRow> posts = aiMapper.findSitemapEntries();
         List<AiCategoryRow> categories = aiMapper.findCategories(true);
         LocalDate latestPlan = plans.stream().map(PlanRow::collectedOn).filter(Objects::nonNull)
@@ -80,6 +81,10 @@ public class SitemapService {
 
         List<Url> urls = new ArrayList<>();
         urls.add(new Url("/", max(latestPlan, posts.isEmpty() ? null : lastmod(posts.getFirst()))));
+        // 서비스별 랜딩 (검색 결과에 서비스마다 따로 보이게) — 인터넷은 변경일을 따로 두지 않아 lastmod 없음
+        urls.add(new Url("/postpaid", latest(postpaid)));
+        urls.add(new Url("/prepaid", latest(prepaid)));
+        urls.add(new Url("/internet", null));
         urls.add(new Url("/faq", latestFaq));
         urls.add(new Url("/ai", posts.stream().map(SitemapService::lastmod).max(Comparator.naturalOrder()).orElse(null)));
         for (AiCategoryRow c : categories) {
@@ -98,6 +103,10 @@ public class SitemapService {
             urls.add(new Url("/plans/" + e.id(), e.endedOn()));
         }
         return urls;
+    }
+
+    private static LocalDate latest(List<PlanRow> plans) {
+        return plans.stream().map(PlanRow::collectedOn).filter(Objects::nonNull).max(Comparator.naturalOrder()).orElse(null);
     }
 
     private static LocalDate lastmod(AiSitemapRow p) {

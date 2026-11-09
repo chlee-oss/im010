@@ -206,7 +206,15 @@ im010/
 
 고객 화면은 React SPA라 빈 `#root` 만으로는 검색엔진 · 링크 미리보기가 내용을 읽지 못한다. 그래서 **빌드할 때 운영 API에서 데이터를 받아 경로별 정적 HTML을 만든다** ([`scripts/prerender.mjs`](frontend/web/scripts/prerender.mjs), `npm run build` 마지막 단계).
 
-- 만드는 페이지 (`dist/<경로>/index.html`): `/` · `/faq` · `/ai` · `/ai/<카테고리>` · `/ai/posts/<id>/<slug>` · `/plans/<id>`(게시 중) · `/terms/service|privacy` · `/out`(noindex,nofollow)
+- **서비스별 랜딩** (검색 결과에 서비스마다 따로 보이게 — 해시 주소 `/#prepaid` 등은 구글이 메인 한 페이지로 본다). 제목은 그대로(` | im010` 없음), 헤더 · 푸터 · 메인에서 일반 링크
+  | 주소 | 제목 | 내용 |
+  |---|---|---|
+  | `/postpaid` | im010 - 나는 알뜰한 요금제 | 이달의 요금제 · 제휴사별 후불 요금제 |
+  | `/prepaid` | im010 - 나는 선불요금제 | 선불요금제 |
+  | `/internet` | im010 - 나는 알뜰한 인터넷 | 인터넷 단독 · 인터넷 + TV 결합 |
+  | `/ai` | im010 - 나는 알뜰한 통신경험을 원해! | 알뜰AI 전체 목록 |
+  - 화면: [`ServiceLandingPage.tsx`](frontend/web/src/pages/ServiceLandingPage.tsx) · 미리 렌더링 `SERVICES` · sitemap(api)에도 포함. 메인의 `/#month` 등 섹션 주소는 그대로 동작
+- 만드는 페이지 (`dist/<경로>/index.html`): `/` · `/postpaid` · `/prepaid` · `/internet` · `/faq` · `/ai` · `/ai/<카테고리>` · `/ai/posts/<id>/<slug>` · `/plans/<id>`(게시 중) · `/terms/service|privacy` · `/out`(noindex,nofollow)
   - (sitemap.xml 은 빌드에서 만들지 않는다 — 아래 api 엔드포인트)
   - 각 HTML: 페이지별 `<title>` · `meta description` · `link rel=canonical`(https://www.im010.co.kr 기준) · `og:title/description/url/image/type` · 본문 텍스트(요금제 목록 · 사양 · 글 본문 · FAQ, 내부 링크) · JSON-LD(WebSite · FAQPage · Article)
   - 본문은 `#root` 안에 넣는다. 브라우저에서는 React(`createRoot`)가 그 자리를 새로 그리므로 사람에게는 지금과 같은 화면이 보인다

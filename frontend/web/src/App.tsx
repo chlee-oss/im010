@@ -12,6 +12,7 @@ import HomePage from './pages/HomePage'
 import NotFoundPage from './pages/NotFoundPage'
 import OutboundPage from './pages/OutboundPage'
 import PlanDetailPage from './pages/PlanDetailPage'
+import ServiceLandingPage from './pages/ServiceLandingPage'
 import TermsPage from './pages/TermsPage'
 
 export default function App() {
@@ -24,6 +25,9 @@ export default function App() {
         <main>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/postpaid" element={<ServiceLandingPage key="postpaid" service="postpaid" />} />
+            <Route path="/prepaid" element={<ServiceLandingPage key="prepaid" service="prepaid" />} />
+            <Route path="/internet" element={<ServiceLandingPage key="internet" service="internet" />} />
             <Route path="/plans/:id" element={<PlanDetailPage />} />
             <Route path="/terms/:slug" element={<TermsPage />} />
             <Route path="/faq" element={<FaqPage />} />

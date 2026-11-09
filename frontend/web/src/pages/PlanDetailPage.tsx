@@ -15,7 +15,11 @@ export default function PlanDetailPage() {
   const id = Number(useParams().id)
   const [search] = useSearchParams()
   const { data, loading, error } = useApi((signal) => api.planDetail(id, signal), [id])
-  usePageTitle(data ? `${data.plan.partnerName} ${data.plan.name}` : undefined)
+  // 받는 동안(null)은 미리 렌더링한 제목을 그대로 둔다. 제휴사 이름으로 시작하는 요금제는 한 번만 (prerender.mjs 와 같게)
+  const planName = data
+    ? data.plan.name.startsWith(data.plan.partnerName) ? data.plan.name : `${data.plan.partnerName} ${data.plan.name}`
+    : null
+  usePageTitle(planName)
 
   if (!Number.isInteger(id) || (error instanceof ApiError && error.status === 404)) return <NotFoundPage />
   if (!data) {

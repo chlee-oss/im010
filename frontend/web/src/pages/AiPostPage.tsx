@@ -31,7 +31,8 @@ export default function AiPostPage() {
   const postId = Number(id)
   const { data, loading, error } = useApi((signal) => api.aiPost(postId, signal), [postId])
   const p = data?.post
-  usePageTitle(p ? p.seoTitle || p.title : '알뜰AI')
+  // 받는 동안(null)은 미리 렌더링한 글 제목을 그대로 둔다
+  usePageTitle(p ? p.seoTitle || p.title : error ? '알뜰AI' : null)
 
   useEffect(() => {
     if (p) countView(p.id)

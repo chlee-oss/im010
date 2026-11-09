@@ -6,12 +6,13 @@ import { usePartners } from '../lib/partners'
 import { useToast } from '../lib/toast'
 import Icon from './Icon'
 
-// 1차: 마이페이지 · 로그인 · 선불 충전 메뉴 없음. 섹션 이동은 메인(/)의 앵커로.
+// 1차: 마이페이지 · 로그인 · 선불 충전 메뉴 없음.
+// 요금제 · 선불요금제 · 인터넷은 서비스별 랜딩 주소(검색 결과에 따로 보이게), 나머지는 메인(/)의 앵커
 const SECTIONS = [
   { href: '/#month', label: '이달의 요금제' },
-  { href: '/#partners', label: '요금제', dropdown: true },
-  { href: '/#prepaid', label: '선불요금제' },
-  { href: '/#internet-compare', label: '인터넷' },
+  { href: '/postpaid', label: '요금제', dropdown: true },
+  { href: '/prepaid', label: '선불요금제' },
+  { href: '/internet', label: '인터넷' },
   { href: '/#analysis', label: '요금제분석' },
 ]
 
@@ -41,9 +42,9 @@ export default function Header() {
               </a>
               {s.dropdown && (
                 <div className="dropdown">
-                  <a href="/#partners">전체 비교</a>
+                  <a href="/postpaid#partners">전체 비교</a>
                   {[...partners.values()].map((p) => (
-                    <a key={p.code} href={`/#partners`} onClick={() => sessionStorage.setItem('im010.partnerTab', p.code)}>
+                    <a key={p.code} href="/postpaid#partners" onClick={() => sessionStorage.setItem('im010.partnerTab', p.code)}>
                       {p.name}
                     </a>
                   ))}
