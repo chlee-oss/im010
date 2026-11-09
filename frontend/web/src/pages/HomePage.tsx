@@ -34,7 +34,7 @@ export default function HomePage() {
       <section className="hero">
         <div className="wrap">
           <div>
-            <span className="eyebrow"><Icon name="compare_arrows" /> 7개 제휴사 요금제 한눈에 비교</span>
+            <span className="eyebrow"><Icon name="compare_arrows" /> 조건에 맞는 제휴사 요금제를 찾아드려요</span>
             <h1 className="hero-title">
               매달 통신비,
               <br />
