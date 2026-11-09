@@ -14,6 +14,10 @@ for f in index.html 404.html _shell.html robots.txt; do
     [[ -f "$SRC/$f" ]] || { echo "화면 파일이 없습니다: $SRC/$f (npm run build 결과인지 확인)" >&2; exit 1; }
 done
 
+# 화면 폴더를 바꾸는 작업끼리(매일 05:00 im010-prerender 포함) 겹치지 않게
+exec 9>/run/lock/im010-web.lock
+flock -w 900 9 || { echo "다른 화면 작업(im010-prerender 등)이 끝나지 않았습니다" >&2; exit 1; }
+
 install -d -m 750 "$BACKUP"
 [[ -d /opt/im010/web ]] && cp -a /opt/im010/web "$BACKUP/web"
 

@@ -1,0 +1,19 @@
+# im010 고객 화면 미리 렌더링 다시 만들기 — /etc/systemd/system/im010-prerender.service
+# 실행: im010-prerender.timer (매일 05:00) · 수동 1회: sudo systemctl start im010-prerender.service
+# 로그: journalctl -u im010-prerender -n 50 --no-pager
+# root 로 화면 폴더를 바꾸고, 페이지를 만드는 node 는 스크립트 안에서 im010 계정으로 낮춰 실행한다
+[Unit]
+Description=im010 web prerender (refresh static HTML from im010-api)
+After=network-online.target im010-api.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/im010/prerender/im010-prerender.sh
+TimeoutStartSec=20min
+Nice=10
+IOSchedulingClass=idle
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=full
+ReadWritePaths=/opt/im010 /run/lock

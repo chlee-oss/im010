@@ -25,7 +25,10 @@ import { fileURLToPath } from 'node:url'
 const SITE = 'https://www.im010.co.kr'
 const API = (process.env.PRERENDER_API || SITE).replace(/\/$/, '')
 const OFFLINE = process.env.PRERENDER_OFFLINE === '1'
-const DIST = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist')
+// 결과 폴더 · HTML 틀. 기본은 vite 빌드 결과(dist/, 틀 = dist/index.html).
+// 운영 서버 매일 재생성(deploy/prerender/im010-prerender.sh)은 빈 작업 폴더 + 배포된 web/_shell.html 을 넘긴다
+const DIST = process.env.PRERENDER_DIST || join(dirname(fileURLToPath(import.meta.url)), '..', 'dist')
+const TEMPLATE = process.env.PRERENDER_TEMPLATE || join(DIST, 'index.html')
 const OG_IMAGE = `${SITE}/og-default.png`
 const SITE_NAME = 'im010'
 const BASE_TITLE = 'im010 — 알뜰폰 요금비교'
@@ -102,8 +105,8 @@ async function mapLimit(items, n, fn) {
 
 // ---------- HTML 틀 ----------
 
-const template = await readFile(join(DIST, 'index.html'), 'utf8')
-if (!template.includes('<div id="root"></div>')) throw new Error('dist/index.html 에 <div id="root"></div> 가 없습니다')
+const template = await readFile(TEMPLATE, 'utf8')
+if (!template.includes('<div id="root"></div>')) throw new Error(`${TEMPLATE} 에 <div id="root"></div> 가 없습니다 (미리 렌더링 전 틀이어야 함)`)
 
 /** 틀에서 페이지마다 바뀌는 메타를 지운다 (index.html 의 기본값) */
 const stripped = template
@@ -471,5 +474,5 @@ for (const [rel, html] of files) {
 }
 
 console.log(
-  `[prerender] ${API} → dist: 페이지 ${files.length - 1}개 (요금제 ${data.plans.length} · 판매 종료 ${data.ended.length} · 알뜰AI 글 ${data.posts.length})`,
+  `[prerender] ${API} → ${DIST}: 페이지 ${files.length - 1}개 (요금제 ${data.plans.length} · 판매 종료 ${data.ended.length} · 알뜰AI 글 ${data.posts.length})`,
 )

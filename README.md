@@ -215,12 +215,22 @@ im010/
   - `_shell.html`: 기본 메타만 있는 SPA 틀. **빌드 뒤에 새로 게시된 요금제 · 알뜰AI 글**은 미리 만든 HTML이 없어 이 틀로 200 응답 (Google은 JS를 실행해 읽는다)
   - `robots.txt`(`public/`): `/go/` · `/out` · `/api/` 제외 + Sitemap 위치
   - 기본 공유 이미지 `public/og-default.png`(1200x630, 임시 디자인 — 확정본으로 같은 이름 교체). 글에 썸네일이 있으면 그 이미지
-- **데이터 출처 = 빌드 시점의 운영 API** (`PRERENDER_API`, 기본 `https://www.im010.co.kr`). 서버에는 Node가 없어서 배포 후 주기 재생성 대신 이 방식을 골랐다
-  - API를 못 받으면 빌드가 멈춘다. 인터넷 없이 확인만 할 때 `PRERENDER_OFFLINE=1 npm run build` (데이터 없는 화면 — **운영 배포 금지**)
-  - 로컬 API로 만들어 볼 때: `PRERENDER_API=http://localhost:8080 npm run build`
-  - **새 글 · 요금제를 검색에 빨리 반영하려면 고객 화면만 다시 빌드해 올린다** (알뜰AI 게시 후 · 요금제 수집 변동이 큰 날). 화면만 바꿀 때는 jar 재시작 없이 `web/`만 교체하면 된다:
-    `npm run build` → `dist/` 를 서버 `~/im010-deploy/release/web/` 로 올림 → `sudo bash deploy-web.sh` ([`deploy-web.sh`](deploy/scripts/deploy-web.sh), 이전 화면 백업 · 상태 코드 확인)
-  - 다시 빌드하기 전까지: 새 요금제 · 글은 SPA 틀(200), 빌드 뒤 판매 종료된 요금제는 예전 "게시 중" HTML(200)이 나간다 — sitemap 은 아래처럼 바로 반영되므로 검색엔진이 새 주소를 찾는 데는 지장 없다
+- **데이터 출처 = 운영 API**. 두 곳에서 만든다
+  - 빌드할 때 (`npm run build`, `PRERENDER_API` 기본 `https://www.im010.co.kr`). API를 못 받으면 빌드가 멈춘다. 인터넷 없이 확인만 할 때 `PRERENDER_OFFLINE=1 npm run build` (데이터 없는 화면 — **운영 배포 금지**), 로컬 API로: `PRERENDER_API=http://localhost:8080 npm run build`
+  - **운영 서버에서 매일 05:00** 다시 만든다 (아래 "매일 미리 렌더링") — 전날 게시된 알뜰AI 글 · 새 요금제 · 판매 종료(410)가 다음 날 아침 반영된다
+  - 그 사이(게시 ~ 다음 05:00): 새 요금제 · 글은 SPA 틀(200), 판매 종료된 요금제는 예전 "게시 중" HTML(200). 급하면 수동 1회 실행. sitemap 은 api 가 바로 반영
+  - 화면 코드를 바꿨을 때만 고객 화면을 빌드해 올린다: `npm run build` → `dist/` 를 서버에 올림 → `sudo bash deploy-web.sh <폴더>` ([`deploy-web.sh`](deploy/scripts/deploy-web.sh), 이전 화면 백업 · 상태 코드 확인)
+
+### 매일 미리 렌더링 (운영 서버, 05:00)
+
+[`im010-prerender.timer`](deploy/systemd/im010-prerender.timer) → [`im010-prerender.sh`](deploy/prerender/im010-prerender.sh). jar 재시작 · vite 빌드 없이 **배포된 화면의 틀(`web/_shell.html`) + 서버 안 api(`127.0.0.1:8080`)** 로 `prerender.mjs` 만 돌린다.
+- node 는 `im010` 계정 권한으로 빈 작업 폴더(`/opt/im010/prerender/work`)에만 쓴다. Node.js 22 는 Rocky AppStream 모듈 (npm 패키지 설치 없음)
+- **바꾸지 않고 끝내는 경우** (기존 화면 유지 · 서비스 failed): api 오류 · 메인 미생성 · 게시 중 요금제 0개 · 요금제나 알뜰AI 글이 직전 화면보다 50% 밑으로 줄었을 때 (`PRERENDER_MIN_RATIO`)
+- 교체: 지금 화면을 복사한 새 폴더에서 미리 렌더링 결과만 갈아 끼우고 `renameat2(RENAME_EXCHANGE)`로 `/opt/im010/web` 과 **한 번에 맞바꾼다**. 이전 화면은 `/opt/im010/web.prev`. 바꾼 뒤 `/` · `/faq` 가 200 이 아니면 즉시 되돌린다
+- 화면 배포(`deploy-web.sh` · `deploy-app.sh`)와는 `/run/lock/im010-web.lock` 으로 겹치지 않는다
+- 설치 · `prerender.mjs` 갱신: `sudo bash deploy/scripts/setup-prerender.sh <올린 폴더>` ([`setup-prerender.sh`](deploy/scripts/setup-prerender.sh) — 폴더에 `prerender/` · `systemd/` · `scripts/`)
+- 수동 1회: `sudo systemctl start im010-prerender.service` · 로그: `journalctl -u im010-prerender -n 50 --no-pager` · 다음 실행: `systemctl list-timers im010-prerender.timer`
+- 감소 검사를 건너뛰고 강제로: `sudo PRERENDER_FORCE=1 /opt/im010/prerender/im010-prerender.sh` (요금제를 대량 종료한 날 등) · 되돌리기: `/opt/im010/web.prev` 를 `deploy-web.sh` 로 다시 배포
 - **`sitemap.xml` = im010-api 가 요청마다 DB 기준으로 만든다** ([`SitemapController`](backend/im010-api/src/main/java/kr/co/im010/api/seo/SitemapController.java), nginx 가 `/sitemap.xml` 만 api 로 넘김). 게시 · 판매 종료 · 글 게시가 **빌드 없이 즉시** 반영된다 (응답 캐시 10분)
   - 담는 주소: 메인 · FAQ · 알뜰AI 목록 · 노출 카테고리 · 고객에게 보이는 글(게시 · 예약 시각 지남 · 노출 카테고리) · 게시 중 요금제(후불 · 선불). 판매 종료 · 숨김 요금제, 게시 전 글은 넣지 않는다
   - `lastmod`: 요금제 = 요금 수집일, 글 = 본문 수정일(없으면 게시일), 카테고리 · 목록 = 그 안 최신 글, 메인 = 최신 수집일 · 최신 글 중 늦은 날, FAQ = 마지막 수정일 (한국 날짜)
