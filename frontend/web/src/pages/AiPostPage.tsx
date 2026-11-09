@@ -66,7 +66,7 @@ export default function AiPostPage() {
   const compare = aiCompareLink(p, data.relatedPlans)
   return (
     <section className="ai-page ai-detail" style={style}>
-      <article className="wrap narrow">
+      <article className="wrap narrow" data-track="AI_POST">
         <nav className="ai-crumb" aria-label="위치">
           <Link to="/ai">알뜰AI</Link> <Icon name="chevron_right" /> <Link to={`/ai/${p.categorySlug}`}>{p.categoryName}</Link>
         </nav>

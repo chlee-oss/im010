@@ -3,6 +3,7 @@ import { api } from '../api/client'
 import { BrandChip, usePartners } from '../lib/partners'
 import { pickTwo } from '../lib/planPicks'
 import { cleanMonthly, is5Mbps, pickMonthlyFallback, uniquePlans } from '../lib/planRules'
+import { track } from '../lib/track'
 import { useApi } from '../lib/useApi'
 import { PlanListCard } from './PlanListCard'
 import StateMessage from './StateMessage'
@@ -94,7 +95,10 @@ export function PartnerPlans() {
               role="tab"
               className={tab === p.code ? 'active' : ''}
               aria-selected={tab === p.code}
-              onClick={() => setTab(p.code)}
+              onClick={() => {
+                setTab(p.code)
+                track('filter', { props: { dim: 'partner_tab', value: p.code } })
+              }}
             >
               {p.name}
             </button>

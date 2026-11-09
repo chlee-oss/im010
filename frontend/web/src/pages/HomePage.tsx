@@ -65,7 +65,7 @@ function HeroCards() {
   const { data } = useApi((signal) => api.plans('PREPAID', undefined, signal), [])
   const plans = useMemo(() => heroPicks(data ?? []), [data])
   return (
-    <div className="hero-visual">
+    <div className="hero-visual" data-track="HERO">
       {plans.map((p, i) => (
         <Link key={p.id} className={`float-card fc-${i + 1}`} to={`/plans/${p.id}`}>
           <BrandChip code={p.partnerCode} name={p.partnerName} />

@@ -498,3 +498,112 @@ export interface AiPostPage {
   page: number
   items: { post: AiPostListRow; state: AiState }[]
 }
+
+// ---------- 대시보드 (DS-01 요약 · DS-02 관심사 · DS-03 콘텐츠 효과) ----------
+
+export interface DashSettings {
+  enabled: boolean
+  aggregatedAt: string | null
+}
+
+export interface DashRange {
+  from: string
+  to: string
+  device: 'ALL' | 'PC' | 'MO'
+}
+
+export interface DashTotals {
+  visitors: number
+  newVisitors: number
+  sessions: number
+  pageViews: number
+  planViews: number
+  planClicks: number
+  outbounds: number
+}
+
+export interface DashVisit {
+  key: string
+  visitors: number
+  newVisitors: number
+  sessions: number
+  pageViews: number
+}
+
+export interface DashDaily {
+  day: string
+  visitors: number
+  pageViews: number
+  planViews: number
+  outbounds: number
+}
+
+export interface DashPage {
+  pageType: string
+  views: number
+  visitors: number
+  engageMs: number
+  engageCount: number
+}
+
+export interface DashPlan {
+  planId: number
+  name: string
+  partnerCode: string | null
+  partnerName: string | null
+  planType: string | null
+  network: string | null
+  generation: string | null
+  price: number | null
+  views: number
+  visitors: number
+  clicks: number
+  outbounds: number
+}
+
+export interface DashPost {
+  postId: number
+  title: string
+  categoryName: string | null
+  views: number
+  visitors: number
+  completes: number
+  engageMs: number
+  engageCount: number
+  planClicks: number
+}
+
+export interface DashInterestRow {
+  dim: string
+  value: string
+  cnt: number
+}
+
+export interface DashSummary {
+  range: DashRange
+  settings: DashSettings
+  current: DashTotals
+  previous: DashTotals
+  daily: DashDaily[]
+  byRef: DashVisit[]
+  byDevice: DashVisit[]
+  pages: DashPage[]
+  topPlans: DashPlan[]
+  topPosts: DashPost[]
+}
+
+export interface DashInterest {
+  range: DashRange
+  settings: DashSettings
+  dims: Record<string, DashInterestRow[]>
+  plans: DashPlan[]
+  partners: { partnerCode: string; partnerName: string; views: number; clicks: number; outbounds: number }[]
+}
+
+export interface DashContent {
+  range: DashRange
+  settings: DashSettings
+  posts: DashPost[]
+  categories: { categoryName: string; posts: number; views: number; completes: number; planClicks: number }[]
+  internet: Record<string, DashInterestRow[]>
+}

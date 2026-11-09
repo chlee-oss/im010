@@ -8,6 +8,9 @@ import type { Stage } from './lib/types'
 import Approvals from './pages/Approvals'
 import BatchItems from './pages/BatchItems'
 import InternetProducts from './pages/InternetProducts'
+import DashContent from './pages/dashboard/DashContent'
+import DashInterest from './pages/dashboard/DashInterest'
+import DashSummary from './pages/dashboard/DashSummary'
 import Login from './pages/Login'
 import AiCategories from './pages/ai/AiCategories'
 import AiPostEdit from './pages/ai/AiPostEdit'
@@ -54,6 +57,10 @@ export default function App() {
         <Routes>
           {/* 로그인 후 첫 화면 = BA-02 요금제배치관리 (결정 #23) */}
           <Route path="/" element={<Navigate to="/batch-items" replace />} />
+          <Route path="/dashboard" element={<Navigate to="/dashboard/summary" replace />} />
+          <Route path="/dashboard/summary" element={<DashSummary />} />
+          <Route path="/dashboard/interest" element={<DashInterest />} />
+          <Route path="/dashboard/content" element={<DashContent />} />
           <Route path="/batch-items" element={<BatchItems />} />
           <Route path="/approvals" element={<Approvals />} />
           <Route path="/plans" element={<Plans />} />
