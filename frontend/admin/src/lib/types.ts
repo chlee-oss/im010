@@ -389,12 +389,17 @@ export interface AlertTypeInfo {
 export interface NotifyChannel {
   id: number
   name: string
-  kind: 'SLACK' | 'TEAMS' | 'JANDI' | 'WEBHOOK'
+  kind: 'SLACK' | 'TEAMS' | 'JANDI' | 'WEBHOOK' | 'KAKAOWORK'
+  /** 가린 값 — 카카오워크는 봇 App Key 앞 4자리 */
   webhookUrl: string
   alertTypes: string[]
   enabled: boolean
   updatedBy: string | null
   updatedAt: string
+  /** 카카오워크: 채팅방 멤버 이메일 */
+  recipients: string[]
+  /** 카카오워크: 봇이 만든 채팅방이 연결돼 있는지 */
+  hasRoom: boolean
 }
 
 export interface NotificationRow {

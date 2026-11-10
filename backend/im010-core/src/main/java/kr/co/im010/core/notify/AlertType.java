@@ -12,7 +12,8 @@ public enum AlertType {
     PUBLISH_FAILURE("게시 예약 실패", true),
     FORWARD_NO_URL("포워딩 URL 없음", true),
     STALE_DATA("기준일 경과", false),
-    TAB_CHANGED("사이트 탭 변경", true);
+    TAB_CHANGED("사이트 탭 변경", true),
+    DAILY_REPORT("정기 현황 리포트", true);
 
     private final String label;
     private final boolean messengerDefault;
