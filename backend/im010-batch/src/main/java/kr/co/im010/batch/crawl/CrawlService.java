@@ -151,9 +151,42 @@ public class CrawlService {
             return applier.recordFailure(job, type, "ABNORMAL", startedAt, urls.size(), plans.size(),
                     "직전 정상 수집 %d건 → %d건".formatted(last, plans.size()));
         }
+        if (!type.equals("MONTHLY")) {
+            plans = fillDetailDiscounts(job, plans);
+        }
         return type.equals("MONTHLY")
                 ? applier.applyMonthly(job, startedAt, urls.size(), plans)
                 : applier.applyPlans(job, type, startedAt, urls.size(), plans);
+    }
+
+    /**
+     * 카드에 "N개월 할인" 배지만 있고 할인 문구가 없으면 (인스모바일) 상세 페이지에서 할인 기간 · 할인 후 요금을 읽는다.
+     * 접속에 실패하거나 문구가 없으면 그대로 두고, 변경 감지가 할인 정보 미수집 경고를 붙인다.
+     */
+    private List<ParsedPlan> fillDetailDiscounts(CrawlJobRow job, List<ParsedPlan> plans) {
+        List<ParsedPlan> out = new ArrayList<>(plans.size());
+        int read = 0;
+        int failed = 0;
+        for (ParsedPlan p : plans) {
+            if (!RatePlanParser.needsDetailDiscount(p)) {
+                out.add(p);
+                continue;
+            }
+            try {
+                ParsedPlan filled = parser.withDetailDiscount(p, fetcher.fetch(p.detailUrl()));
+                read += filled.discountMonths() != null ? 1 : 0;
+                failed += filled.discountMonths() == null ? 1 : 0;
+                out.add(filled);
+            } catch (IOException | IllegalArgumentException e) {
+                log.warn("상세 페이지 할인 정보 접속 실패 — {} {} ({})", job.partnerCode(), p.detailUrl(), e.getMessage());
+                failed++;
+                out.add(p);
+            }
+        }
+        if (read + failed > 0) {
+            log.info("상세 페이지 할인 정보 — {} : 읽음 {}건 · 못 읽음 {}건", job.partnerCode(), read, failed);
+        }
+        return List.copyOf(out);
     }
 
     private void alert(CrawlJobRow job, CrawlApplier.Summary s) {

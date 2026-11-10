@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.jsoup.nodes.Document;
@@ -23,7 +24,8 @@ public class RatePlanParser {
     private static final Pattern TAB_HREF = Pattern.compile("rate_plan\\.do(;jsessionid=[^?]*)?\\?type=(T\\d+)$", Pattern.CASE_INSENSITIVE);
     private static final Pattern DECORATION = Pattern.compile("^\\[[^\\]가-힣0-9]*\\]\\s*");
     private static final Pattern FIVE_G = Pattern.compile("(?<![0-9.])5G(?![A-Z0-9])", Pattern.CASE_INSENSITIVE);
-    private static final Pattern NETWORK_TEXT = Pattern.compile("(?i)(SKT?|KT|LG ?U\\+?|LG)(망)?");
+    private static final Pattern BADGE_DISCOUNT = Pattern.compile("(\\d+)\\s*개월\\s*할인");
+    private static final Pattern NETWORK_TEXT =Pattern.compile("(?i)(SKT?|KT|LG ?U\\+?|LG)(망)?");
     private static final String NETWORK_BADGES =".badge_SKT, .badge_KT, .badge_KTF, .badge_LGT, .badge_LGU";
 
     /**
@@ -118,6 +120,44 @@ public class RatePlanParser {
     }
 
     /** 카드 위쪽 배지 (5G · 무제한 ...) — 망 배지는 망 항목으로 따로 읽으므로 뺀다. */
+    /**
+     * 카드 배지의 기간 할인 개월 수 ("6개월 할인" → 6). 없으면 null.
+     * 인스모바일처럼 카드 금액 칸에 할인 문구 없이 배지에만 기간을 적는 제휴사가 있다.
+     */
+    public static Integer badgeDiscountMonths(List<String> tags) {
+        if (tags == null) {
+            return null;
+        }
+        for (String t : tags) {
+            Matcher m = BADGE_DISCOUNT.matcher(t);
+            if (m.find()) {
+                return Integer.parseInt(m.group(1));
+            }
+        }
+        return null;
+    }
+
+    /** 기간 할인 배지는 있는데 카드에서 할인 기간 · 할인 후 요금을 못 읽었으면 상세 페이지를 본다. */
+    public static boolean needsDetailDiscount(ParsedPlan p) {
+        return p.discountMonths() == null && p.detailUrl() != null && badgeDiscountMonths(p.tags()) != null;
+    }
+
+    /**
+     * 요금제 상세 페이지의 금액 안내 ("*6개월 이후 25,300원")로 할인 기간 · 할인 후 요금을 채운다.
+     * 읽지 못하면 그대로 돌려준다 (변경 감지에서 할인 정보 미수집 경고).
+     */
+    public ParsedPlan withDetailDiscount(ParsedPlan p, Document detail) {
+        for (Element ref : detail.select("div.price .ref")) {
+            SpecText.Discount d = SpecText.discount(ref.text(), p.price());
+            if (d != null) {
+                return new ParsedPlan(p.partnerPlanCode(), p.name(), p.network(), p.generation(), p.dataText(), p.dataGb(),
+                        p.qosText(), p.voiceText(), p.smsText(), p.price(), d.months(), d.price(), p.detailUrl(),
+                        p.sourceUrl(), p.siteOrder(), p.tags());
+            }
+        }
+        return p;
+    }
+
     static List<String> badges(Element card) {
         List<String> tags = new ArrayList<>();
         for (Element b : card.select(".badge_wrap .badge")) {
