@@ -68,7 +68,8 @@ restorecon -R /opt/im010/web /opt/im010/admin-web
 
 echo "== 3-1. 알뜰AI 이미지 폴더 /opt/im010/uploads (앱이 쓰고 nginx 가 읽는다)"
 install -d -o im010 -g im010 -m 755 /opt/im010/uploads
-if ! semanage fcontext -l | grep -qF '/opt/im010/uploads(/.*)?'; then
+# grep -q 는 첫 줄에서 바로 끝나 semanage 가 BrokenPipe 로 실패하고, pipefail 때문에 "없음"으로 잘못 판단한다 → 끝까지 읽는다
+if ! semanage fcontext -l | grep -F '/opt/im010/uploads(/.*)?' >/dev/null; then
     semanage fcontext -a -t httpd_sys_content_t '/opt/im010/uploads(/.*)?'
 fi
 restorecon -R /opt/im010/uploads

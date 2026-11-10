@@ -22,7 +22,8 @@ nginx -v
 
 echo "== 2. SELinux: 프록시(8080 · 8081) 허용, 7945 포트 등록"
 setsebool -P httpd_can_network_connect 1
-if ! semanage port -l | grep -E '^http_port_t\b' | grep -qw 7945; then
+# grep -q 는 첫 일치에서 끝나 앞 명령이 BrokenPipe 로 실패하고, pipefail 때문에 "없음"으로 잘못 판단한다 → 끝까지 읽는다
+if ! semanage port -l | grep -E '^http_port_t\b' | grep -w 7945 >/dev/null; then
     semanage port -a -t http_port_t -p tcp 7945
 fi
 
@@ -31,7 +32,7 @@ mkdir -p /opt/im010/web /opt/im010/admin-web
 for d in web admin-web; do
     [[ -f /opt/im010/$d/index.html ]] || echo "<!doctype html><title>im010</title><p>im010 $d — 배포 전</p>" > /opt/im010/$d/index.html
 done
-if ! semanage fcontext -l | grep -qF '/opt/im010/(web|admin-web)(/.*)?'; then
+if ! semanage fcontext -l | grep -F '/opt/im010/(web|admin-web)(/.*)?' >/dev/null; then
     semanage fcontext -a -t httpd_sys_content_t '/opt/im010/(web|admin-web)(/.*)?'
 fi
 restorecon -R /opt/im010
