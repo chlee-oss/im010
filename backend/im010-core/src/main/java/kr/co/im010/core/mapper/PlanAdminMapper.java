@@ -21,14 +21,18 @@ import kr.co.im010.core.row.PlanVersionRow;
 public interface PlanAdminMapper {
 
     /**
-     * @param state PUBLISHED 게시 중(대기 버전 없음) · DRAFT 게시 대기 · SCHEDULED 게시 예약 · ENDED · HIDDEN · null 전체
+     * @param state  고객 노출 기준 — PUBLISHED 게시 중 · UNPUBLISHED 게시 전 · HIDDEN 비노출 · ENDED 판매 종료 ·
+     *               ACTIVE 판매 종료 제외 · null 전체
+     * @param change 게시하지 않은 변경 — DRAFT 변경 대기 · SCHEDULED 변경 예약 · null 상관없음
      */
     List<PlanAdminRow> findPlans(@Param("planType") String planType, @Param("partnerCode") String partnerCode,
-                                 @Param("state") String state, @Param("network") String network, @Param("q") String q,
+                                 @Param("state") String state, @Param("change") String change,
+                                 @Param("network") String network, @Param("q") String q,
                                  @Param("limit") int limit, @Param("offset") int offset);
 
     int countPlans(@Param("planType") String planType, @Param("partnerCode") String partnerCode,
-                   @Param("state") String state, @Param("network") String network, @Param("q") String q);
+                   @Param("state") String state, @Param("change") String change,
+                   @Param("network") String network, @Param("q") String q);
 
     PlanAdminRow findPlan(@Param("id") long id);
 

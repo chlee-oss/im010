@@ -104,6 +104,28 @@ class PlanBulkStatusTest {
     }
 
     @Test
+    void stateFollowsCustomerExposureAndChangeIsSeparate() {
+        OffsetDateTime at = OffsetDateTime.parse("2026-11-12T10:00:00+09:00");
+        // 게시 중인데 수집으로 새 값이 들어온 경우: 상태는 게시 중(노출), 변경 대기
+        PlanAdminRow liveWithDraft = plan(1, "PUBLISHED", 900L, null);
+        assertThat(PlanAdminService.state(liveWithDraft)).isEqualTo("PUBLISHED");
+        assertThat(PlanAdminService.change(liveWithDraft)).isEqualTo("DRAFT");
+        // 게시 중 + 변경 예약
+        assertThat(PlanAdminService.change(plan(2, "PUBLISHED", 901L, at))).isEqualTo("SCHEDULED");
+        // 한 번도 게시 안 된 신규 (예약 포함) → 게시 전
+        assertThat(PlanAdminService.state(plan(3, "PENDING", 902L, null))).isEqualTo("UNPUBLISHED");
+        assertThat(PlanAdminService.state(plan(4, "SCHEDULED", 903L, at))).isEqualTo("UNPUBLISHED");
+        assertThat(PlanAdminService.change(plan(4, "SCHEDULED", 903L, at))).isEqualTo("SCHEDULED");
+        // 비노출 · 판매 종료는 그대로, 판매 종료에는 변경 표시 없음
+        assertThat(PlanAdminService.state(plan(5, "HIDDEN", 904L, null))).isEqualTo("HIDDEN");
+        assertThat(PlanAdminService.change(plan(5, "HIDDEN", 904L, null))).isEqualTo("DRAFT");
+        assertThat(PlanAdminService.state(plan(6, "ENDED", 905L, null))).isEqualTo("ENDED");
+        assertThat(PlanAdminService.change(plan(6, "ENDED", 905L, null))).isNull();
+        // 변경 없음
+        assertThat(PlanAdminService.change(plan(7, "PUBLISHED", null, null))).isNull();
+    }
+
+    @Test
     void unknownTargetIsRejected() {
         assertThatThrownBy(() -> service.changeStatus(List.of(1L), "PUBLISHED")).isInstanceOf(ApiException.class);
     }

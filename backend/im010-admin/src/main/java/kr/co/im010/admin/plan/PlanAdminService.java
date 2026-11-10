@@ -39,14 +39,17 @@ public class PlanAdminService {
     private static final int PAGE_SIZE = 50;
     private static final int MAX_TAGS = 6;
 
-    /** state = PUBLISHED · DRAFT · SCHEDULED · ENDED · HIDDEN (화면 상태), missing = 게시 전 필수 항목 중 빈 것 */
-    public record ListItem(PlanAdminRow plan, String state, List<String> missing) {
+    /**
+     * state = 고객 노출 기준 PUBLISHED · UNPUBLISHED · HIDDEN · ENDED, change = 게시하지 않은 변경 DRAFT · SCHEDULED · null,
+     * missing = 게시 전 필수 항목 중 빈 것
+     */
+    public record ListItem(PlanAdminRow plan, String state, String change, List<String> missing) {
     }
 
     public record Page(int total, int page, List<ListItem> items) {
     }
 
-    public record Detail(PlanAdminRow plan, String state, VersionDto published, VersionDto draft,
+    public record Detail(PlanAdminRow plan, String state, String change, VersionDto published, VersionDto draft,
                          List<VersionDto> versions, List<String> missing, boolean canRollback) {
     }
 
@@ -75,17 +78,22 @@ public class PlanAdminService {
         this.clock = clock;
     }
 
-    public Page list(String planType, String partner, String state, String network, String q, int page) {
+    /**
+     * @param state  고객 노출 기준 PUBLISHED · UNPUBLISHED · HIDDEN · ENDED (비우면 판매 종료 제외 전체)
+     * @param change 게시하지 않은 변경 DRAFT · SCHEDULED (비우면 상관없음)
+     */
+    public Page list(String planType, String partner, String state, String change, String network, String q, int page) {
         String type = "PREPAID".equals(planType) ? "PREPAID" : "POSTPAID";
         int p = Math.max(page, 1);
         String partnerCode = Texts.trim(partner);
         // 상태를 고르지 않으면 판매 종료는 뺀다 (판매 종료는 [상태] 에서 따로 골라 본다)
         String st = Texts.trim(state) == null ? "ACTIVE" : Texts.trim(state);
+        String ch = Texts.trim(change);
         String net = Texts.trim(network);
         String query = Texts.trim(q);
-        List<ListItem> items = planMapper.findPlans(type, partnerCode, st, net, query, PAGE_SIZE, (p - 1) * PAGE_SIZE)
+        List<ListItem> items = planMapper.findPlans(type, partnerCode, st, ch, net, query, PAGE_SIZE, (p - 1) * PAGE_SIZE)
                 .stream().map(this::listItem).toList();
-        return new Page(planMapper.countPlans(type, partnerCode, st, net, query), p, items);
+        return new Page(planMapper.countPlans(type, partnerCode, st, ch, net, query), p, items);
     }
 
     public Detail detail(long id) {
@@ -93,7 +101,7 @@ public class PlanAdminService {
         PlanVersionRow published = plan.publishedVersionId() == null ? null : planMapper.findVersion(plan.publishedVersionId());
         PlanVersionRow draft = planMapper.findDraft(id);
         List<String> missing = draft == null ? List.of() : PublishRules.missing(plan.planType(), draft, plan.activationUrl());
-        return new Detail(plan, state(plan), VersionDto.of(published), VersionDto.of(draft),
+        return new Detail(plan, state(plan), change(plan), VersionDto.of(published), VersionDto.of(draft),
                 planMapper.findVersions(id).stream().map(VersionDto::of).toList(), missing, rollbackTarget(plan) != null);
     }
 
@@ -373,20 +381,29 @@ public class PlanAdminService {
                 v.priceAfterDiscount());
     }
 
+    /**
+     * 상태 = 고객 노출 기준 (고객 API 와 같은 plan.status). 게시하지 않은 변경이 있어도 바뀌지 않는다.
+     * PUBLISHED 게시 중(노출) · UNPUBLISHED 게시 전(한 번도 게시 안 됨, 예약 포함) · HIDDEN 비노출 · ENDED 판매 종료
+     */
     static String state(PlanAdminRow p) {
-        if (p.status().equals("ENDED") || p.status().equals("HIDDEN")) {
-            return p.status();
+        return switch (p.status()) {
+            case "PUBLISHED", "HIDDEN", "ENDED" -> p.status();
+            default -> "UNPUBLISHED";
+        };
+    }
+
+    /** 게시하지 않은 변경: DRAFT 변경 대기 · SCHEDULED 변경 예약(publishAt) · null 없음. 판매 종료는 표시하지 않는다 */
+    static String change(PlanAdminRow p) {
+        if (p.draftVersionId() == null || p.status().equals("ENDED")) {
+            return null;
         }
-        if (p.draftVersionId() != null) {
-            return p.publishAt() != null ? "SCHEDULED" : "DRAFT";
-        }
-        return p.publishedVersionId() != null ? "PUBLISHED" : "DRAFT";
+        return p.publishAt() != null ? "SCHEDULED" : "DRAFT";
     }
 
     private ListItem listItem(PlanAdminRow p) {
         List<String> missing = p.draftVersionId() == null ? List.of()
                 : PublishRules.missing(p.planType(), planMapper.findVersion(p.draftVersionId()), p.activationUrl());
-        return new ListItem(p, state(p), missing);
+        return new ListItem(p, state(p), change(p), missing);
     }
 
     /** 예약 · 게시할 수 있으면 null, 아니면 이유 */

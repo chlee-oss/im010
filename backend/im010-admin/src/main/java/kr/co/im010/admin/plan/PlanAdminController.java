@@ -59,10 +59,11 @@ public class PlanAdminController {
     public PlanAdminService.Page list(@RequestParam(defaultValue = "POSTPAID") String type,
                                       @RequestParam(required = false) String partner,
                                       @RequestParam(required = false) String state,
+                                      @RequestParam(required = false) String change,
                                       @RequestParam(required = false) String network,
                                       @RequestParam(required = false) String q,
                                       @RequestParam(defaultValue = "1") int page) {
-        return planService.list(type, partner, state, network, q, page);
+        return planService.list(type, partner, state, change, network, q, page);
     }
 
     /** [게시 일정]: 기간 안에 예약됐거나 게시된 버전 (주간 · 월간 달력) */
