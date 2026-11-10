@@ -1,5 +1,6 @@
 package kr.co.im010.admin.plan;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,7 @@ import kr.co.im010.admin.config.AdminProperties;
 import kr.co.im010.admin.review.ReviewService;
 import kr.co.im010.admin.web.ApiException;
 import kr.co.im010.admin.web.Texts;
+import kr.co.im010.core.mapper.CrawlItemMapper;
 import kr.co.im010.core.mapper.PlanAdminMapper;
 import kr.co.im010.core.row.CalendarRow;
 import kr.co.im010.core.row.ItemValues;
@@ -50,14 +53,26 @@ public class PlanAdminService {
     public record DraftRequest(ItemValues values, Integer validDays, List<String> tags) {
     }
 
+    /** 일괄 상태 변경 대상: 비노출 · 노출(비노출 해제) · 판매 종료 */
+    public static final Set<String> BULK_TARGETS = Set.of("HIDDEN", "VISIBLE", "ENDED");
+
     private final PlanAdminMapper planMapper;
+    private final CrawlItemMapper crawlMapper;
     private final AuditService audit;
     private final AdminProperties props;
+    private final Clock clock;
 
-    public PlanAdminService(PlanAdminMapper planMapper, AuditService audit, AdminProperties props) {
+    @Autowired
+    public PlanAdminService(PlanAdminMapper planMapper, CrawlItemMapper crawlMapper, AuditService audit, AdminProperties props) {
+        this(planMapper, crawlMapper, audit, props, Clock.system(ZoneId.of("Asia/Seoul")));
+    }
+
+    PlanAdminService(PlanAdminMapper planMapper, CrawlItemMapper crawlMapper, AuditService audit, AdminProperties props, Clock clock) {
         this.planMapper = planMapper;
+        this.crawlMapper = crawlMapper;
         this.audit = audit;
         this.props = props;
+        this.clock = clock;
     }
 
     public Page list(String planType, String partner, String state, String network, String q, int page) {
@@ -219,6 +234,58 @@ public class PlanAdminService {
         }
         audit.action(PROGRAM, hidden ? "HIDE" : "UNHIDE", "plan " + id, null);
         return detail(id);
+    }
+
+    /**
+     * 선택한 요금제의 상태를 한꺼번에 바꾼다. 바꿀 수 없는 건은 이유와 함께 건너뛴다.
+     * - HIDDEN(비노출): 판매 종료 · 이미 비노출은 건너뜀
+     * - VISIBLE(노출): 비노출인 것만 원래 상태(게시 중 · 게시 대기)로
+     * - ENDED(판매 종료): 오늘(한국 날짜) 종료 — 수집 배치의 판매 종료와 같이 이달의 요금제 노출을 내리고,
+     *   남아 있는 게시 예약은 취소한다 (예약 게시가 종료된 요금제를 다시 게시 중으로 되돌리지 않게).
+     *   제휴사 사이트에 계속 올라와 있으면 다음 수집 때 "판매 재개" 점검 항목으로 다시 올라온다
+     */
+    @Transactional
+    public ReviewService.BulkResult changeStatus(List<Long> ids, String target) {
+        if (!BULK_TARGETS.contains(target)) {
+            throw ApiException.badRequest("바꿀 상태를 선택해 주세요");
+        }
+        List<Long> ok = new ArrayList<>();
+        List<ReviewService.Skipped> skipped = new ArrayList<>();
+        for (PlanAdminRow plan : planMapper.findPlansByIds(ids)) {
+            String problem = switch (target) {
+                case "HIDDEN" -> plan.status().equals("ENDED") ? "판매 종료된 요금제입니다"
+                        : plan.status().equals("HIDDEN") ? "이미 비노출입니다" : null;
+                case "VISIBLE" -> plan.status().equals("HIDDEN") ? null : "비노출 상태가 아닙니다";
+                default -> plan.status().equals("ENDED") ? "이미 판매 종료된 요금제입니다" : null;
+            };
+            if (problem != null) {
+                skipped.add(new ReviewService.Skipped(plan.id(), problem));
+                continue;
+            }
+            switch (target) {
+                case "HIDDEN" -> planMapper.setStatus(plan.id(), "HIDDEN");
+                case "VISIBLE" -> planMapper.restoreStatus(plan.id());
+                default -> {
+                    if (plan.draftVersionId() != null && plan.publishAt() != null) {
+                        planMapper.cancelSchedule(plan.draftVersionId());
+                    }
+                }
+            }
+            ok.add(plan.id());
+        }
+        if (target.equals("ENDED") && !ok.isEmpty()) {
+            crawlMapper.endPlans(ok, LocalDate.now(clock));
+            crawlMapper.hidePicksOfPlans(ok);
+        }
+        if (!ok.isEmpty()) {
+            String action = switch (target) {
+                case "HIDDEN" -> "HIDE";
+                case "VISIBLE" -> "UNHIDE";
+                default -> "END";
+            };
+            audit.action(PROGRAM, action, "plan " + ok, "일괄 " + ok.size() + "건");
+        }
+        return new ReviewService.BulkResult(ok, skipped);
     }
 
     /**

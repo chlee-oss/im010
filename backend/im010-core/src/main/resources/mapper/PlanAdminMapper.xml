@@ -9,7 +9,9 @@
                CASE WHEN d.id IS NOT NULL THEN COALESCE(d.monthly_price, d.charge_price)
                     ELSE COALESCE(pv.monthly_price, pv.charge_price) END AS price,
                COALESCE(d.network, pv.network) AS network,
-               pv.published_at, d.publish_at, p.last_collected_on, p.ended_on, p.main_pick
+               pv.published_at, d.publish_at, p.last_collected_on, p.ended_on, p.main_pick,
+               CASE WHEN d.id IS NOT NULL THEN d.discount_months ELSE pv.discount_months END AS discount_months,
+               CASE WHEN d.id IS NOT NULL THEN d.price_after_discount ELSE pv.price_after_discount END AS price_after_discount
         FROM plan p
         JOIN partner pt ON pt.code = p.partner_code
         LEFT JOIN plan_version pv ON pv.id = p.published_version_id
