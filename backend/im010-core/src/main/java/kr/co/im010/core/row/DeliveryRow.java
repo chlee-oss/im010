@@ -1,6 +1,9 @@
 package kr.co.im010.core.row;
 
-/** 보낼 차례가 된 발송 한 건 (채널 웹훅 또는 메일). channelKind · webhookUrl 이 null 이면 메일. */
+/**
+ * 보낼 차례가 된 발송 한 건 (채널 웹훅 또는 메일). channelKind · webhookUrl 이 null 이면 메일.
+ * 카카오워크는 webhookUrl = 봇 App Key, conversationId = 봇이 만든 채팅방.
+ */
 public record DeliveryRow(
         long id,
         long notificationId,
@@ -11,6 +14,7 @@ public record DeliveryRow(
         String alertType,
         String level,
         String title,
-        String body
+        String body,
+        String conversationId
 ) {
 }

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import kr.co.im010.batch.CrawlProperties;
 import kr.co.im010.core.mapper.NotifyMapper;
 import kr.co.im010.core.notify.AlertType;
+import kr.co.im010.core.notify.KakaoWorkClient;
 import kr.co.im010.core.notify.WebhookSender;
 import kr.co.im010.core.row.ChannelRow;
 import kr.co.im010.core.row.DeliveryRow;
@@ -33,13 +34,15 @@ public class NotificationDispatcher {
 
     private final NotifyMapper notifyMapper;
     private final WebhookSender webhook;
+    private final KakaoWorkClient kakaoWork;
     private final ObjectProvider<JavaMailSender> mailSender;
     private final CrawlProperties props;
 
-    public NotificationDispatcher(NotifyMapper notifyMapper, WebhookSender webhook, ObjectProvider<JavaMailSender> mailSender,
-                                  CrawlProperties props) {
+    public NotificationDispatcher(NotifyMapper notifyMapper, WebhookSender webhook, KakaoWorkClient kakaoWork,
+                                  ObjectProvider<JavaMailSender> mailSender, CrawlProperties props) {
         this.notifyMapper = notifyMapper;
         this.webhook = webhook;
+        this.kakaoWork = kakaoWork;
         this.mailSender = mailSender;
         this.props = props;
     }
@@ -74,7 +77,14 @@ public class NotificationDispatcher {
     void send(DeliveryRow d) {
         int attempts = d.attempts() + 1;
         try {
-            if (d.webhookUrl() != null) {
+            if ("KAKAOWORK".equals(d.channelKind())) {
+                if (d.conversationId() == null || d.conversationId().isBlank()) {
+                    notifyMapper.markDeliveryFailed(d.id(), attempts, "카카오워크 채팅방이 없습니다 — 백오피스 알림 채널에서 [채팅방 만들기]", true, 0);
+                    return;
+                }
+                kakaoWork.send(d.webhookUrl(), d.conversationId(),
+                        KakaoWorkClient.text(d.level(), label(d.alertType()), d.title(), d.body()));
+            } else if (d.webhookUrl() != null) {
                 webhook.send(d.channelKind(), d.webhookUrl(), d.level(), label(d.alertType()), d.title(), d.body());
             } else {
                 JavaMailSender mail = mailSender.getIfAvailable();

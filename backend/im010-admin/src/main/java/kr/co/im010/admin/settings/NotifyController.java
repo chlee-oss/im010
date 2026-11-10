@@ -66,6 +66,20 @@ public class NotifyController {
         return Map.of("message", service.testChannel(id));
     }
 
+    /** 카카오워크: 멤버 이메일로 봇 그룹 채팅방을 만들어 채널에 연결 (있으면 새로 만든다) */
+    @PostMapping("/admin/api/settings/notify/channels/{id}/room")
+    @RequiresPermission(program = NotifyAdminService.PROGRAM, action = Action.EDIT)
+    public List<NotifyAdminService.ChannelDto> openRoom(@PathVariable long id) {
+        return service.openRoom(id);
+    }
+
+    /** 정기 현황 리포트를 지금 만들어 알림함에 넣는다 (받는 채널로 30초 안에 발송). 매일 08:00 리포트의 증감 기준은 바꾸지 않는다 */
+    @PostMapping("/admin/api/settings/notify/daily-report")
+    @RequiresPermission(program = NotifyAdminService.PROGRAM, action = Action.EDIT)
+    public Map<String, String> dailyReport() {
+        return Map.of("message", service.sendDailyReportNow());
+    }
+
     @PostMapping("/admin/api/settings/notify/test-alert")
     @RequiresPermission(program = NotifyAdminService.PROGRAM, action = Action.EDIT)
     @ResponseStatus(HttpStatus.ACCEPTED)

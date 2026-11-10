@@ -26,7 +26,8 @@
     </select>
 
     <sql id="channelColumns">
-        id, name, kind, webhook_url, array_to_string(alert_types, '|') AS alert_types, enabled, updated_by, updated_at
+        id, name, kind, webhook_url, array_to_string(alert_types, '|') AS alert_types, enabled, updated_by, updated_at,
+        recipients, conversation_id
     </sql>
 
     <select id="findChannelsFor" resultType="kr.co.im010.core.row.ChannelRow">
@@ -56,7 +57,7 @@
     <!-- 채널 발송이면 channel_id 가 있고, 메일이면 target 이 메일 주소 -->
     <select id="findDueDeliveries" resultType="kr.co.im010.core.row.DeliveryRow">
         SELECT d.id, d.notification_id, d.target, d.attempts, c.kind AS channel_kind, c.webhook_url,
-               n.alert_type, n.level, n.title, n.body
+               n.alert_type, n.level, n.title, n.body, c.conversation_id
         FROM notification_delivery d
         JOIN notification n ON n.id = d.notification_id
         LEFT JOIN notify_channel c ON c.id = d.channel_id
@@ -101,6 +102,42 @@
         GROUP BY status
     </select>
 
+    <!-- 정기 현황 리포트: 상태는 요금제관리와 같은 고객 노출 기준 -->
+    <select id="countPlanStatus" resultType="kr.co.im010.core.row.CountRow">
+        SELECT k AS key, k AS label, count(*) AS count FROM (
+            SELECT CASE WHEN p.status IN ('PUBLISHED', 'HIDDEN') THEN p.status ELSE 'UNPUBLISHED' END || ':' || p.plan_type AS k
+            FROM plan p WHERE p.status &lt;&gt; 'ENDED'
+            UNION ALL
+            SELECT CASE WHEN v.publish_at IS NOT NULL THEN 'CHANGE_SCHEDULED' ELSE 'CHANGE_DRAFT' END || ':' || p.plan_type
+            FROM plan p
+            JOIN LATERAL (
+                SELECT x.publish_at FROM plan_version x
+                WHERE x.plan_id = p.id AND x.published_at IS NULL AND x.discarded_at IS NULL
+                ORDER BY x.version_no DESC LIMIT 1
+            ) v ON TRUE
+            WHERE p.status &lt;&gt; 'ENDED'
+        ) t
+        GROUP BY k
+    </select>
+
+    <select id="countEndedOn" resultType="kr.co.im010.core.row.CountRow">
+        SELECT plan_type AS key, plan_type AS label, count(*) AS count
+        FROM plan WHERE status = 'ENDED' AND ended_on = #{day}
+        GROUP BY plan_type
+    </select>
+
+    <select id="countForwards" resultType="kr.co.im010.core.row.CountRow">
+        SELECT kind AS key, result AS label, count(*) AS count
+        FROM forward_log WHERE created_at &gt;= #{from} AND created_at &lt; #{to}
+        GROUP BY kind, result
+    </select>
+
+    <select id="countOpenItems" resultType="kr.co.im010.core.row.CountRow">
+        SELECT status AS key, status AS label, count(*) AS count
+        FROM crawl_item WHERE status IN ('REVIEW_PENDING', 'APPROVAL_REQUESTED')
+        GROUP BY status
+    </select>
+
     <select id="findLastCollectedByPartner" resultType="kr.co.im010.core.row.StaleDataRow">
         SELECT p.partner_code, pt.name AS partner_name, max(p.last_collected_on) AS last_collected_on
         FROM plan p JOIN partner pt ON pt.code = p.partner_code
@@ -127,17 +164,21 @@
     </select>
 
     <select id="insertChannel" resultType="long" flushCache="true" useCache="false">
-        INSERT INTO notify_channel (name, kind, webhook_url, alert_types, enabled, updated_by)
+        INSERT INTO notify_channel (name, kind, webhook_url, alert_types, enabled, recipients, updated_by)
         VALUES (#{name}, #{kind}, #{webhookUrl}, #{alertTypes,typeHandler=org.apache.ibatis.type.ArrayTypeHandler},
-                #{enabled}, #{by})
+                #{enabled}, #{recipients}, #{by})
         RETURNING id
     </select>
 
     <update id="updateChannel">
         UPDATE notify_channel SET name = #{name}, kind = #{kind}, webhook_url = #{webhookUrl},
                alert_types = #{alertTypes,typeHandler=org.apache.ibatis.type.ArrayTypeHandler}, enabled = #{enabled},
-               updated_by = #{by}, updated_at = now()
+               recipients = #{recipients}, updated_by = #{by}, updated_at = now()
         WHERE id = #{id}
+    </update>
+
+    <update id="updateChannelConversation">
+        UPDATE notify_channel SET conversation_id = #{conversationId}, updated_at = now() WHERE id = #{id}
     </update>
 
     <delete id="deleteChannel">

@@ -7,14 +7,27 @@ import { useRun } from '../../lib/notice'
 import type { AlertTypeInfo, MyNotify, NotificationRow, NotifyChannel } from '../../lib/types'
 import { useLoad } from '../../lib/useLoad'
 
-type ChannelForm = { id?: number; name: string; kind: NotifyChannel['kind']; webhookUrl: string; alertTypes: string[]; enabled: boolean }
+type ChannelForm = {
+  id?: number
+  name: string
+  kind: NotifyChannel['kind']
+  webhookUrl: string
+  alertTypes: string[]
+  enabled: boolean
+  /** 카카오워크: 채팅방 멤버 이메일 (줄바꿈) */
+  recipients: string
+}
 
 const KIND_HELP: Record<string, string> = {
   SLACK: 'Slack: 앱 › Incoming Webhooks 에서 채널 웹훅 URL 발급 (Mattermost도 같은 형식)',
   TEAMS: 'Teams: 채널 › 워크플로 › "웹후크 요청이 수신되면 채널에 게시" 로 만든 URL',
   JANDI: '잔디: 토픽 › 커넥트 › Incoming Webhook 에서 발급한 URL',
   WEBHOOK: '그 밖의 메신저 · 중계 서버: {"type","level","title","body","sentAt"} JSON 을 POST',
+  KAKAOWORK:
+    '카카오워크: 관리자 서비스 › 봇 관리 › Bot 개발에서 만든 봇의 App Key. 카카오워크 봇은 사람이 만든 방에는 보낼 수 없어서, 저장한 뒤 [채팅방 만들기]를 누르면 봇이 채널 이름으로 그룹 채팅방을 만들고 멤버를 넣습니다.',
 }
+
+const KAKAO_ROOM = 'im010서비스 알림'
 
 /** [알림 채널]: 메신저 채널(웹훅)별로 받을 알림 종류 — 최고관리자만 등록 · 수정 */
 export function NotifyChannels() {
@@ -41,7 +54,12 @@ export function NotifyChannels() {
           알림은 백오피스 알림함에 쌓였다가 배치가 30초 안에 채널 · 메일로 보냅니다. 실패하면 5분 · 10분 뒤 다시 보내고, 결과는 [알림 이력]에서 봅니다.
         </span>
         {editable && (
-          <button className="primary" onClick={() => setForm({ name: '', kind: 'SLACK', webhookUrl: '', alertTypes: data.types.filter((t) => t.messengerDefault).map((t) => t.code), enabled: true })}>
+          <button
+            className="primary"
+            onClick={() =>
+              setForm({ name: '', kind: 'SLACK', webhookUrl: '', alertTypes: data.types.filter((t) => t.messengerDefault).map((t) => t.code), enabled: true, recipients: '' })
+            }
+          >
             + 채널 추가
           </button>
         )}
@@ -54,7 +72,7 @@ export function NotifyChannels() {
             <tr>
               <th>채널</th>
               <th>메신저</th>
-              <th>웹훅</th>
+              <th>웹훅 · 봇</th>
               <th>받는 알림</th>
               <th>사용</th>
               <th></th>
@@ -65,16 +83,42 @@ export function NotifyChannels() {
               <tr key={c.id}>
                 <td>{c.name}</td>
                 <td>{CHANNEL_KIND[c.kind]}</td>
-                <td className="url muted">{c.webhookUrl}</td>
+                <td className="url muted">
+                  {c.kind === 'KAKAOWORK' ? (
+                    <>
+                      App Key {c.webhookUrl} · 멤버 {c.recipients.length}명{' '}
+                      {c.hasRoom ? <Badge tone="green">채팅방 연결됨</Badge> : <Badge tone="amber">채팅방 없음</Badge>}
+                    </>
+                  ) : (
+                    c.webhookUrl
+                  )}
+                </td>
                 <td className="wrap-cell">{c.alertTypes.map(label).join(' · ') || <span className="muted">없음</span>}</td>
                 <td>{c.enabled ? '사용' : <Badge>끔</Badge>}</td>
                 <td className="row-actions">
                   {editable && (
                     <>
+                      {c.kind === 'KAKAOWORK' && (
+                        <button
+                          disabled={busy}
+                          onClick={() =>
+                            (!c.hasRoom || window.confirm('채팅방을 새로 만듭니다. 이후 알림은 새 방으로 갑니다 (예전 방은 그대로 남습니다).')) &&
+                            run(() => post<NotifyChannel[]>(`/settings/notify/channels/${c.id}/room`), () => '채팅방을 만들었습니다. 카카오워크에서 확인해 주세요').then((r) => r && setData({ ...data, channels: r }))
+                          }
+                        >
+                          {c.hasRoom ? '채팅방 다시 만들기' : '채팅방 만들기'}
+                        </button>
+                      )}
                       <button disabled={busy} onClick={() => run(() => post<{ message: string }>(`/settings/notify/channels/${c.id}/test`), (r) => r.message)}>
                         테스트 발송
                       </button>
-                      <button onClick={() => setForm({ id: c.id, name: c.name, kind: c.kind, webhookUrl: '', alertTypes: c.alertTypes, enabled: c.enabled })}>수정</button>
+                      <button
+                        onClick={() =>
+                          setForm({ id: c.id, name: c.name, kind: c.kind, webhookUrl: '', alertTypes: c.alertTypes, enabled: c.enabled, recipients: c.recipients.join('\n') })
+                        }
+                      >
+                        수정
+                      </button>
                       <button onClick={() => window.confirm(`${c.name} 채널을 삭제합니다.`) && run(() => del<NotifyChannel[]>(`/settings/notify/channels/${c.id}`), () => '삭제했습니다').then(replace)}>
                         삭제
                       </button>
@@ -106,6 +150,22 @@ export function NotifyChannels() {
         </section>
       )}
 
+      {editable && (
+        <section className="panel">
+          <h2>정기 현황 리포트</h2>
+          <div className="form-line">
+            <span className="muted">매일 08:00 "정기 현황 리포트"를 받는 채널로 보냅니다 (서비스 상태 · 요금제 · 어제 고객 이동 · 처리 대기).</span>
+            <button
+              disabled={busy}
+              onClick={() => run(() => post<{ message: string }>('/settings/notify/daily-report'), (r) => r.message)}
+            >
+              지금 보내기
+            </button>
+          </div>
+          <p className="hint">지금 보내기는 오늘 숫자로 한 번 더 보내 보는 것이고, 08:00 리포트의 전날 대비 증감 기준은 바뀌지 않습니다.</p>
+        </section>
+      )}
+
       {form && (
         <Modal title={form.id ? '채널 수정' : '채널 추가'} onClose={() => setForm(null)}>
           <div className="form-grid">
@@ -114,7 +174,19 @@ export function NotifyChannels() {
             </label>
             <label>
               메신저
-              <select value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as ChannelForm['kind'] })}>
+              <select
+                value={form.kind}
+                onChange={(e) => {
+                  const kind = e.target.value as ChannelForm['kind']
+                  // 카카오워크를 처음 고르면 채팅방 이름(= 채널 이름)과 정기 리포트를 기본으로
+                  setForm({
+                    ...form,
+                    kind,
+                    name: kind === 'KAKAOWORK' && !form.name ? KAKAO_ROOM : form.name,
+                    alertTypes: kind === 'KAKAOWORK' && !form.alertTypes.includes('DAILY_REPORT') ? [...form.alertTypes, 'DAILY_REPORT'] : form.alertTypes,
+                  })
+                }}
+              >
                 {Object.entries(CHANNEL_KIND).map(([k, v]) => (
                   <option key={k} value={k}>
                     {v}
@@ -126,15 +198,26 @@ export function NotifyChannels() {
               <input type="checkbox" checked={form.enabled} onChange={(e) => setForm({ ...form, enabled: e.target.checked })} /> 사용
             </label>
             <label className="span2">
-              웹훅 URL
+              {form.kind === 'KAKAOWORK' ? '봇 App Key' : '웹훅 URL'}
               <input
                 value={form.webhookUrl}
                 onChange={(e) => setForm({ ...form, webhookUrl: e.target.value })}
-                placeholder={form.id ? '바꿀 때만 입력 (비우면 기존 주소 유지)' : 'https://'}
+                placeholder={form.id ? '바꿀 때만 입력 (비우면 기존 값 유지)' : form.kind === 'KAKAOWORK' ? '관리자 서비스 › 봇 관리 › Bot 기본 정보의 App Key' : 'https://'}
                 maxLength={1000}
                 autoComplete="off"
               />
             </label>
+            {form.kind === 'KAKAOWORK' && (
+              <label className="span2">
+                채팅방 멤버 이메일 (한 줄에 한 명)
+                <textarea
+                  rows={4}
+                  value={form.recipients}
+                  onChange={(e) => setForm({ ...form, recipients: e.target.value })}
+                  placeholder={'카카오워크 가입 때 인증한 이메일\nhong@company.co.kr'}
+                />
+              </label>
+            )}
           </div>
           <p className="hint">{KIND_HELP[form.kind]}</p>
           <fieldset className="checks">
