@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Badge, Empty, Loading, Modal, PageHead, Pager, Tabs, selectAll } from '../components/ui'
 import { get, post, put, qs } from '../lib/api'
-import { NETWORK, PLAN_STATE, dateTime, localToIso, nextHourLocal, won } from '../lib/format'
+import { NETWORK, PLAN_STATE, dateTime, localToIso, nextHourLocal, planChangeLabel, won } from '../lib/format'
 import { useMe } from '../lib/me'
 import { bulkText, useRun } from '../lib/notice'
-import type { BulkResult, PlanRow, PlanState } from '../lib/types'
+import type { BulkResult, PlanChange, PlanRow, PlanState } from '../lib/types'
 import { useLoad } from '../lib/useLoad'
 import { usePartnerOptions } from '../lib/usePartnerOptions'
 import PlanCalendar from './PlanCalendar'
@@ -13,6 +13,7 @@ import PlanCalendar from './PlanCalendar'
 interface ListItem {
   plan: PlanRow
   state: PlanState
+  change: PlanChange
   missing: string[]
 }
 
@@ -24,11 +25,13 @@ interface Page {
 
 export const STATE_TONE: Record<string, 'green' | 'coral' | 'amber' | 'red' | 'gray'> = {
   PUBLISHED: 'green',
-  DRAFT: 'coral',
-  SCHEDULED: 'amber',
-  ENDED: 'red',
+  UNPUBLISHED: 'coral',
   HIDDEN: 'gray',
+  ENDED: 'red',
 }
+
+/** 게시하지 않은 변경 배지 색: 대기 = 코랄, 예약 = 노랑 */
+export const CHANGE_TONE: Record<string, 'coral' | 'amber'> = { DRAFT: 'coral', SCHEDULED: 'amber' }
 
 const TYPE_TABS: [string, string][] = [['POSTPAID', '후불'], ['PREPAID', '선불'], ['CALENDAR', '게시 일정']]
 
@@ -62,7 +65,7 @@ const BULK_TARGETS: { value: BulkTarget; label: string; result: string; from: st
     label: '노출 (비노출 해제)',
     result: '노출 변경',
     from: '비노출 요금제',
-    note: '비노출 전 상태(게시 중 · 게시 대기)로 돌아갑니다.',
+    note: '비노출 전 상태(게시 중 · 게시 전)로 돌아갑니다.',
   },
   {
     value: 'ENDED',
@@ -132,6 +135,7 @@ function PlanList() {
   const partners = usePartnerOptions()
   const type = params.get('type') === 'PREPAID' ? 'PREPAID' : 'POSTPAID'
   const state = params.get('state') ?? ''
+  const change = params.get('change') ?? ''
   const partner = params.get('partner') ?? ''
   const network = params.get('network') ?? ''
   const [q, setQ] = useState(params.get('q') ?? '')
@@ -151,8 +155,8 @@ function PlanList() {
   }
 
   const { data, error, reload } = useLoad(
-    () => get<Page>('/plans' + qs({ type, state, partner, network, q: params.get('q'), page })),
-    [type, state, partner, network, params.get('q'), page],
+    () => get<Page>('/plans' + qs({ type, state, change, partner, network, q: params.get('q'), page })),
+    [type, state, change, partner, network, params.get('q'), page],
   )
   const items = data?.items ?? []
   const after = () => {
@@ -211,6 +215,14 @@ function PlanList() {
               ))}
             </select>
           </label>
+          <label title="게시하지 않은 새 값이 있는 요금제. 게시할 때까지 고객 화면은 지금 값 그대로입니다">
+            변경{' '}
+            <select value={change} onChange={(e) => set('change', e.target.value)}>
+              <option value="">전체</option>
+              <option value="DRAFT">대기</option>
+              <option value="SCHEDULED">예약</option>
+            </select>
+          </label>
           <label>
             제휴사{' '}
             <select value={partner} onChange={(e) => set('partner', e.target.value)}>
@@ -265,7 +277,8 @@ function PlanList() {
               <th>요금제</th>
               <th className="num">{type === 'PREPAID' ? '충전 금액' : '월 요금'}</th>
               <th>망</th>
-              <th>상태</th>
+              <th title="고객 화면 기준. 게시 중만 고객에게 보입니다">상태</th>
+              <th title="게시하지 않은 새 값이 있음. 목록의 이름 · 요금 · 할인은 고객에게 보이는 값이고, 새 값은 상세 화면에서 비교합니다">변경</th>
               {type === 'POSTPAID' && (
                 <>
                   <th className="num">할인 기간</th>
@@ -280,7 +293,7 @@ function PlanList() {
             </tr>
           </thead>
           <tbody>
-            {items.map(({ plan: p, state: st, missing }) => (
+            {items.map(({ plan: p, state: st, change: ch, missing }) => (
               <tr key={p.id} className="clickable" onClick={() => navigate(`/plans/${p.id}`)}>
                 <td className="check" onClick={(e) => e.stopPropagation()}>
                   <input
@@ -300,12 +313,26 @@ function PlanList() {
                 <td>{p.partnerName}</td>
                 <td>
                   {p.name}
-                  {p.publishedVersionId === null && st !== 'ENDED' && <Badge tone="coral">신규</Badge>}
                 </td>
                 <td className="num">{won(p.price)}</td>
                 <td>{NETWORK[p.network] ?? p.network}</td>
                 <td>
                   <Badge tone={STATE_TONE[st]}>{PLAN_STATE[st]}</Badge>
+                </td>
+                <td>
+                  {ch ? (
+                    <Badge tone={CHANGE_TONE[ch]}>
+                      {planChangeLabel(st, ch)}
+                      {ch === 'SCHEDULED' && ` 📅 ${dateTime(p.publishAt)}`}
+                    </Badge>
+                  ) : (
+                    '–'
+                  )}
+                  {missing.length > 0 && (
+                    <Badge tone="amber">
+                      ⚠ {missing.join(' · ')} 없음
+                    </Badge>
+                  )}
                 </td>
                 {type === 'POSTPAID' && (
                   <>
@@ -314,12 +341,7 @@ function PlanList() {
                   </>
                 )}
                 <td>
-                  {st === 'SCHEDULED' ? `📅 ${dateTime(p.publishAt)}` : st === 'ENDED' ? `${p.endedOn ?? ''} 종료` : dateTime(p.publishedAt)}
-                  {missing.length > 0 && (
-                    <Badge tone="amber">
-                      ⚠ {missing.join(' · ')} 없음
-                    </Badge>
-                  )}
+                  {st === 'ENDED' ? `${p.endedOn ?? ''} 종료` : p.publishedAt ? dateTime(p.publishedAt) : '–'}
                 </td>
                 <td>{p.lastCollectedOn ?? '–'}</td>
                 {type === 'POSTPAID' && (

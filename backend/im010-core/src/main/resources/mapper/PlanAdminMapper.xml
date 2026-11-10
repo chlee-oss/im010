@@ -5,13 +5,15 @@
     <sql id="planSelect">
         SELECT p.id, p.partner_code, pt.name AS partner_name, p.plan_type, p.partner_plan_code, p.status, p.activation_url,
                p.published_version_id, d.id AS draft_version_id,
-               COALESCE(d.name, pv.name) AS name,
-               CASE WHEN d.id IS NOT NULL THEN COALESCE(d.monthly_price, d.charge_price)
-                    ELSE COALESCE(pv.monthly_price, pv.charge_price) END AS price,
-               COALESCE(d.network, pv.network) AS network,
+               <!-- 이름 · 요금 · 망 · 할인 = 고객에게 보이는 값(게시된 버전). 한 번도 게시 안 된 요금제만 대기 버전 값.
+                    게시하지 않은 새 값은 상세 화면에서 비교한다 -->
+               CASE WHEN pv.id IS NOT NULL THEN pv.name ELSE d.name END AS name,
+               CASE WHEN pv.id IS NOT NULL THEN COALESCE(pv.monthly_price, pv.charge_price)
+                    ELSE COALESCE(d.monthly_price, d.charge_price) END AS price,
+               CASE WHEN pv.id IS NOT NULL THEN pv.network ELSE d.network END AS network,
                pv.published_at, d.publish_at, p.last_collected_on, p.ended_on, p.main_pick,
-               CASE WHEN d.id IS NOT NULL THEN d.discount_months ELSE pv.discount_months END AS discount_months,
-               CASE WHEN d.id IS NOT NULL THEN d.price_after_discount ELSE pv.price_after_discount END AS price_after_discount
+               CASE WHEN pv.id IS NOT NULL THEN pv.discount_months ELSE d.discount_months END AS discount_months,
+               CASE WHEN pv.id IS NOT NULL THEN pv.price_after_discount ELSE d.price_after_discount END AS price_after_discount
         FROM plan p
         JOIN partner pt ON pt.code = p.partner_code
         LEFT JOIN plan_version pv ON pv.id = p.published_version_id
@@ -25,15 +27,20 @@
     <sql id="planFilter">
         WHERE p.plan_type = #{planType}
         <if test="partnerCode != null">AND p.partner_code = #{partnerCode}</if>
-        <if test="network != null">AND COALESCE(d.network, pv.network) = #{network}</if>
-        <if test="q != null">AND COALESCE(d.name, pv.name) ILIKE '%' || #{q} || '%'</if>
+        <if test="network != null">AND (CASE WHEN pv.id IS NOT NULL THEN pv.network ELSE d.network END) = #{network}</if>
+        <!-- 이름 검색은 게시된 이름 · 게시하지 않은 새 이름 둘 다 -->
+        <if test="q != null">AND (pv.name ILIKE '%' || #{q} || '%' OR d.name ILIKE '%' || #{q} || '%')</if>
+        <!-- 상태 = 고객 노출 기준 (고객 API 와 같은 plan.status). 게시하지 않은 변경은 change 로 따로 거른다 -->
         <choose>
-            <when test="state == 'PUBLISHED'">AND p.status = 'PUBLISHED' AND d.id IS NULL</when>
-            <when test="state == 'DRAFT'">AND p.status NOT IN ('ENDED', 'HIDDEN') AND d.id IS NOT NULL AND d.publish_at IS NULL</when>
-            <when test="state == 'SCHEDULED'">AND p.status NOT IN ('ENDED', 'HIDDEN') AND d.publish_at IS NOT NULL</when>
+            <when test="state == 'PUBLISHED'">AND p.status = 'PUBLISHED'</when>
+            <when test="state == 'UNPUBLISHED'">AND p.status IN ('PENDING', 'SCHEDULED')</when>
             <when test="state == 'ENDED'">AND p.status = 'ENDED'</when>
             <when test="state == 'HIDDEN'">AND p.status = 'HIDDEN'</when>
             <when test="state == 'ACTIVE'">AND p.status &lt;&gt; 'ENDED'</when>
+        </choose>
+        <choose>
+            <when test="change == 'DRAFT'">AND p.status &lt;&gt; 'ENDED' AND d.id IS NOT NULL AND d.publish_at IS NULL</when>
+            <when test="change == 'SCHEDULED'">AND p.status &lt;&gt; 'ENDED' AND d.publish_at IS NOT NULL</when>
         </choose>
     </sql>
 

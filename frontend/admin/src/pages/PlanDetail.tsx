@@ -3,12 +3,12 @@ import { Link, useParams } from 'react-router-dom'
 import { ValueInput } from '../components/ItemDrawer'
 import { Badge, Loading, Modal, PageHead } from '../components/ui'
 import { get, post, put } from '../lib/api'
-import { FIELD, NETWORK, PLAN_STATE, URL_TYPE, dateTime, itemValueText, localToIso, nextHourLocal } from '../lib/format'
+import { FIELD, NETWORK, PLAN_STATE, URL_TYPE, dateTime, itemValueText, localToIso, nextHourLocal, planChangeLabel } from '../lib/format'
 import { useMe } from '../lib/me'
 import { bulkText, useRun } from '../lib/notice'
 import type { BulkResult, ItemValues, PlanDetail as Detail, Version } from '../lib/types'
 import { useLoad } from '../lib/useLoad'
-import { STATE_TONE } from './Plans'
+import { CHANGE_TONE, STATE_TONE } from './Plans'
 
 const FORM_FIELDS: [keyof ItemValues, string][] = [
   ['name', 'name'],
@@ -52,7 +52,7 @@ export default function PlanDetail() {
   const [publishAt, setPublishAt] = useState(nextHourLocal())
 
   if (!data) return <Loading error={error} />
-  const { plan, state, published, draft, versions, missing } = data
+  const { plan, state, change, published, draft, versions, missing } = data
   const prepaid = plan.planType === 'PREPAID'
   const canEdit = can('PR-01', 'EDIT') && state !== 'ENDED'
   const canApprove = can('PR-01', 'APPROVE')
@@ -72,6 +72,7 @@ export default function PlanDetail() {
       </PageHead>
       <div className="meta-row">
         <Badge tone={STATE_TONE[state]}>{PLAN_STATE[state]}</Badge>
+        {change && <Badge tone={CHANGE_TONE[change]}>{planChangeLabel(state, change)}</Badge>}
         <span>
           {plan.partnerName} · {URL_TYPE[plan.planType]} · {NETWORK[plan.network] ?? plan.network} · 요금제 #{plan.id} · 제휴사 코드 {plan.partnerPlanCode ?? '–'}
         </span>
@@ -108,7 +109,7 @@ export default function PlanDetail() {
           <h2>값 · 보완 입력</h2>
           {canEdit && base && !editing && (
             <button onClick={() => setEditing({ values: toValues(base), validDays: base.validDays, tags: base.tags.join(', ') })}>
-              {draft ? '대기 버전 고치기' : '고치기 (새 대기 버전)'}
+              {draft ? '게시하지 않은 값 고치기' : '고치기 (게시 전까지 고객 화면은 그대로)'}
             </button>
           )}
         </div>
@@ -117,9 +118,11 @@ export default function PlanDetail() {
           <thead>
             <tr>
               <th>항목</th>
-              <th>게시 중{published ? ` (v${published.versionNo})` : ''}</th>
+              <th>{published ? `게시된 값 (v${published.versionNo})` : '게시된 값 없음'}</th>
               <th>
-                {draft ? (draft.state === 'SCHEDULED' ? `게시 예약 (v${draft.versionNo}) 📅 ${dateTime(draft.publishAt)}` : `게시 대기 (v${draft.versionNo})`) : '대기 버전 없음'}
+                {draft
+                  ? `${planChangeLabel(state, change ?? (draft.state === 'SCHEDULED' ? 'SCHEDULED' : 'DRAFT'))} (v${draft.versionNo})${draft.state === 'SCHEDULED' ? ` 📅 ${dateTime(draft.publishAt)}` : ''}`
+                  : '게시하지 않은 변경 없음'}
               </th>
             </tr>
           </thead>
@@ -187,7 +190,7 @@ export default function PlanDetail() {
                       validDays: editing.validDays,
                       tags: editing.tags.split(',').map((t) => t.trim()).filter(Boolean),
                     }),
-                  () => '저장했습니다 (게시 대기)',
+                  () => (published ? '저장했습니다 — 게시할 때까지 고객 화면은 지금 값 그대로입니다' : '저장했습니다 (게시 대기)'),
                 ).then((d) => {
                   if (d) {
                     setEditing(null)
@@ -264,7 +267,7 @@ export default function PlanDetail() {
               <tr key={v.id} className={v.id === plan.publishedVersionId ? 'current' : ''}>
                 <td>v{v.versionNo}</td>
                 <td>
-                  {v.id === plan.publishedVersionId ? '게시 중' : { PUBLISHED: '게시됨', SCHEDULED: '게시 예약', DRAFT: '게시 대기', DISCARDED: '대체됨' }[v.state]}
+                  {v.id === plan.publishedVersionId ? '게시 중' : { PUBLISHED: '게시됨', SCHEDULED: '게시 예약', DRAFT: '대기', DISCARDED: '대체됨' }[v.state]}
                 </td>
                 <td>{v.changedFields.map((f) => FIELD[f] ?? f).join(' · ') || '–'}</td>
                 <td>{v.supplementedFields.map((f) => FIELD[f] ?? f).join(' · ') || '–'}</td>

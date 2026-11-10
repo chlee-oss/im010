@@ -116,17 +116,22 @@ export interface PlanRow {
   endedOn: string | null
   /** 메인 "제휴사별 요금제" 노출 순서 (1 · 2), 없으면 null */
   mainPick: 1 | 2 | null
-  /** 할인 기간(개월, 후불) — 대기 버전이 있으면 대기 버전 값 */
+  /** 할인 기간(개월, 후불) — 이름 · 요금과 같이 고객에게 보이는 값 (게시 전 요금제만 대기 값) */
   discountMonths: number | null
   /** 할인 기간이 끝난 뒤 월 요금 */
   priceAfterDiscount: number | null
 }
 
-export type PlanState = 'PUBLISHED' | 'DRAFT' | 'SCHEDULED' | 'ENDED' | 'HIDDEN'
+/** 상태 = 고객 노출 기준 (고객 화면과 같은 기준) */
+export type PlanState = 'PUBLISHED' | 'UNPUBLISHED' | 'HIDDEN' | 'ENDED'
+
+/** 게시하지 않은 변경 (상태와 따로 표시) */
+export type PlanChange = 'DRAFT' | 'SCHEDULED' | null
 
 export interface PlanDetail {
   plan: PlanRow
   state: PlanState
+  change: PlanChange
   published: Version | null
   draft: Version | null
   versions: Version[]

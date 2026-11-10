@@ -17,12 +17,22 @@ export const ITEM_STATUS: Record<string, string> = {
   AUTO_APPLIED: '자동 처리',
 }
 
+/** 요금제 상태 = 고객 노출 기준 (게시 중만 고객 화면에 나간다) */
 export const PLAN_STATE: Record<string, string> = {
   PUBLISHED: '게시 중',
-  DRAFT: '게시 대기',
-  SCHEDULED: '게시 예약',
-  ENDED: '판매 종료',
+  UNPUBLISHED: '게시 전',
   HIDDEN: '비노출',
+  ENDED: '판매 종료',
+}
+
+/**
+ * 게시하지 않은 변경 표시. 게시 전(신규) 요금제는 첫 게시이므로 "게시 대기 · 게시 예약",
+ * 그 밖에는 "변경 대기 · 변경 예약" (게시할 때까지 고객 화면은 지금 값 그대로)
+ */
+export function planChangeLabel(state: string, change: string | null): string | null {
+  if (!change) return null
+  const first = state === 'UNPUBLISHED'
+  return change === 'SCHEDULED' ? (first ? '게시 예약' : '변경 예약') : first ? '게시 대기' : '변경 대기'
 }
 
 export const RUN_RESULT: Record<string, string> = { SUCCESS: '성공', FAILED: '실패', ABNORMAL: '이상' }

@@ -170,8 +170,8 @@ public class ReviewService {
         if (row.urlType().equals("MONTHLY")) {
             return List.of();
         }
-        List<PlanAdminRow> ended = planMapper.findPlans(row.urlType(), row.partnerCode(), "ENDED", null, null, 200, 0);
-        List<PlanAdminRow> all = planMapper.findPlans(row.urlType(), row.partnerCode(), null, null, null, 300, 0);
+        List<PlanAdminRow> ended = planMapper.findPlans(row.urlType(), row.partnerCode(), "ENDED", null, null, null, 200, 0);
+        List<PlanAdminRow> all = planMapper.findPlans(row.urlType(), row.partnerCode(), null, null, null, null, 300, 0);
         List<PlanAdminRow> out = new ArrayList<>(ended);
         all.stream().filter(p -> !p.status().equals("ENDED")).forEach(out::add);
         return out;

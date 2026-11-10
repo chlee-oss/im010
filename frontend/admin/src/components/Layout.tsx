@@ -49,7 +49,7 @@ export default function Layout({ children, onLogout }: { children: ReactNode; on
             <button className="pill" onClick={() => navigate('/approvals')}>
               승인 대기 <b>{me.badges.approvalRequested}</b>
             </button>
-            <button className="pill" onClick={() => navigate('/plans?state=SCHEDULED')}>
+            <button className="pill" onClick={() => navigate('/plans?change=SCHEDULED')}>
               오늘 게시 예약 <b>{me.badges.scheduledToday}</b>
             </button>
             <div className="user-menu">
