@@ -32,6 +32,9 @@ public class PlanAdminController {
     public record IdsRequest(@NotEmpty @Size(max = 500) List<Long> ids) {
     }
 
+    public record StatusRequest(@NotEmpty @Size(max = 500) List<Long> ids, @NotNull String status) {
+    }
+
     public record ScheduleRequest(@NotEmpty @Size(max = 500) List<Long> ids, @NotNull OffsetDateTime publishAt) {
     }
 
@@ -104,6 +107,13 @@ public class PlanAdminController {
     @RequiresPermission(program = PlanAdminService.PROGRAM, action = Action.APPROVE)
     public ReviewService.BulkResult cancelSchedule(@Valid @RequestBody IdsRequest body) {
         return planService.cancelSchedule(body.ids());
+    }
+
+    /** 선택한 요금제 상태 일괄 변경: HIDDEN(비노출) · VISIBLE(노출) · ENDED(판매 종료) */
+    @PostMapping("/status")
+    @RequiresPermission(program = PlanAdminService.PROGRAM, action = Action.APPROVE)
+    public ReviewService.BulkResult changeStatus(@Valid @RequestBody StatusRequest body) {
+        return planService.changeStatus(body.ids(), body.status());
     }
 
     @PostMapping("/{id}/hide")

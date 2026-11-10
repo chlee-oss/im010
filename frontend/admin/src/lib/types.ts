@@ -116,6 +116,10 @@ export interface PlanRow {
   endedOn: string | null
   /** 메인 "제휴사별 요금제" 노출 순서 (1 · 2), 없으면 null */
   mainPick: 1 | 2 | null
+  /** 할인 기간(개월, 후불) — 대기 버전이 있으면 대기 버전 값 */
+  discountMonths: number | null
+  /** 할인 기간이 끝난 뒤 월 요금 */
+  priceAfterDiscount: number | null
 }
 
 export type PlanState = 'PUBLISHED' | 'DRAFT' | 'SCHEDULED' | 'ENDED' | 'HIDDEN'

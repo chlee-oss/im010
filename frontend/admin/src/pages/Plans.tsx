@@ -47,7 +47,83 @@ export default function Plans() {
   )
 }
 
-/** [후불] · [선불]: 보완 입력 · 게시 예약 · 즉시 게시 */
+type BulkTarget = 'HIDDEN' | 'VISIBLE' | 'ENDED'
+
+const BULK_TARGETS: { value: BulkTarget; label: string; result: string; from: string; note: string }[] = [
+  {
+    value: 'HIDDEN',
+    label: '비노출',
+    result: '비노출 변경',
+    from: '판매 종료 · 이미 비노출이 아닌 요금제',
+    note: '고객 화면 목록 · 비교에서 빠집니다. 판매 종료와 달리 상세 주소는 그대로 두고, 언제든 노출로 되돌릴 수 있습니다.',
+  },
+  {
+    value: 'VISIBLE',
+    label: '노출 (비노출 해제)',
+    result: '노출 변경',
+    from: '비노출 요금제',
+    note: '비노출 전 상태(게시 중 · 게시 대기)로 돌아갑니다.',
+  },
+  {
+    value: 'ENDED',
+    label: '판매 종료',
+    result: '판매 종료',
+    from: '판매 종료가 아닌 요금제',
+    note: '오늘 날짜로 판매 종료합니다. 상세 주소는 다음 미리 렌더링(매일 05:00)부터 410(종료 안내)으로 바뀌고, 이달의 요금제 노출은 내려가며, 남은 게시 예약은 취소됩니다. 제휴사 사이트에 계속 올라와 있으면 다음 수집 때 "판매 재개" 점검 항목으로 다시 올라옵니다.',
+  },
+]
+
+/** 선택한 요금제 상태 일괄 변경 (PR-01 승인 권한) */
+function StatusModal({
+  items,
+  busy,
+  onClose,
+  onSubmit,
+}: {
+  items: ListItem[]
+  busy: boolean
+  onClose: () => void
+  onSubmit: (status: BulkTarget, label: string) => void
+}) {
+  const [target, setTarget] = useState<BulkTarget>('HIDDEN')
+  const t = BULK_TARGETS.find((x) => x.value === target)!
+  const counts = items.reduce<Record<string, number>>((m, i) => ({ ...m, [i.state]: (m[i.state] ?? 0) + 1 }), {})
+  const applies = (st: PlanState) => (target === 'HIDDEN' ? st !== 'ENDED' && st !== 'HIDDEN' : target === 'VISIBLE' ? st === 'HIDDEN' : st !== 'ENDED')
+  const n = items.filter((i) => applies(i.state)).length
+  return (
+    <Modal title={`${items.length}건 상태 변경`} onClose={onClose}>
+      <p className="hint">
+        선택: {Object.entries(counts).map(([st, c]) => `${PLAN_STATE[st] ?? st} ${c}건`).join(' · ')}
+      </p>
+      <div className="status-options">
+        {BULK_TARGETS.map((x) => (
+          <label key={x.value} className="inline">
+            <input type="radio" name="bulk-status" checked={target === x.value} onChange={() => setTarget(x.value)} /> {x.label}
+          </label>
+        ))}
+      </div>
+      <p className="note">{t.note}</p>
+      <p className="hint">
+        바뀌는 대상: {t.from} — <b>{n}건</b>
+        {n < items.length && ` (나머지 ${items.length - n}건은 건너뜁니다)`}
+      </p>
+      <div className="actions">
+        <button onClick={onClose}>취소</button>
+        <button
+          className="primary"
+          disabled={busy || n === 0}
+          onClick={() => {
+            if (target !== 'ENDED' || window.confirm(`${n}건을 판매 종료합니다. 고객 화면에서 판매 종료로 표시됩니다.`)) onSubmit(target, t.result)
+          }}
+        >
+          {t.label.replace(' (비노출 해제)', '')}로 변경
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
+/** [후불] · [선불]: 보완 입력 · 게시 예약 · 즉시 게시 · 상태 일괄 변경 */
 function PlanList() {
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
@@ -62,6 +138,7 @@ function PlanList() {
   const page = Number(params.get('page') ?? 1)
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const [scheduling, setScheduling] = useState(false)
+  const [changing, setChanging] = useState(false)
   const [publishAt, setPublishAt] = useState(nextHourLocal())
 
   const set = (key: string, value: string) => {
@@ -96,6 +173,9 @@ function PlanList() {
       <PageHead title="요금제관리">
         {canApprove && (
           <>
+            <button disabled={busy || selected.size === 0} onClick={() => setChanging(true)}>
+              선택 상태 변경
+            </button>
             <button disabled={busy || selected.size === 0} onClick={() => run(() => post<BulkResult>('/plans/cancel-schedule', { ids: [...selected] }), (r) => bulkText('예약 취소', r)).then(after)}>
               예약 취소
             </button>
@@ -186,6 +266,12 @@ function PlanList() {
               <th className="num">{type === 'PREPAID' ? '충전 금액' : '월 요금'}</th>
               <th>망</th>
               <th>상태</th>
+              {type === 'POSTPAID' && (
+                <>
+                  <th className="num">할인 기간</th>
+                  <th className="num">할인 후 요금</th>
+                </>
+              )}
               <th>게시 일시</th>
               <th>최종 수집</th>
               {type === 'POSTPAID' && (
@@ -221,6 +307,12 @@ function PlanList() {
                 <td>
                   <Badge tone={STATE_TONE[st]}>{PLAN_STATE[st]}</Badge>
                 </td>
+                {type === 'POSTPAID' && (
+                  <>
+                    <td className="num">{p.discountMonths ? `${p.discountMonths}개월` : '–'}</td>
+                    <td className="num">{p.discountMonths && p.priceAfterDiscount != null ? won(p.priceAfterDiscount) : '–'}</td>
+                  </>
+                )}
                 <td>
                   {st === 'SCHEDULED' ? `📅 ${dateTime(p.publishAt)}` : st === 'ENDED' ? `${p.endedOn ?? ''} 종료` : dateTime(p.publishedAt)}
                   {missing.length > 0 && (
@@ -257,6 +349,22 @@ function PlanList() {
         </table>
       )}
       {data && <Pager page={data.page} total={data.total} onChange={(p) => set('page', String(p))} />}
+
+      {changing && (
+        <StatusModal
+          items={items.filter((i) => selected.has(i.plan.id))}
+          busy={busy}
+          onClose={() => setChanging(false)}
+          onSubmit={(status, label) =>
+            run(() => post<BulkResult>('/plans/status', { ids: [...selected], status }), (r) => bulkText(label, r)).then((r) => {
+              if (r) {
+                setChanging(false)
+                after()
+              }
+            })
+          }
+        />
+      )}
 
       {scheduling && (
         <Modal title={`${selected.size}건 게시 예약`} onClose={() => setScheduling(false)}>
