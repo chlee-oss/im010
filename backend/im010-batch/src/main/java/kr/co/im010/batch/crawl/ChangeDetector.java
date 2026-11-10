@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import kr.co.im010.core.parse.ParsedPlan;
+import kr.co.im010.core.parse.RatePlanParser;
 import kr.co.im010.core.row.HandledHashRow;
 import kr.co.im010.core.row.OpenItemRow;
 import kr.co.im010.core.row.PlanBaselineRow;
@@ -184,6 +185,9 @@ public final class ChangeDetector {
             w.add("MISSING_DATA");
         } else if (p.dataGb() != null && p.dataGb().signum() == 0 && p.dataText().contains("매일")) {
             w.add("MISSING_DATA");   // "0GB + 매일 5GB": 계산기 비교용 기본 제공량을 운영자가 정한다
+        }
+        if (p.discountMonths() == null && RatePlanParser.badgeDiscountMonths(p.tags()) != null) {
+            w.add("MISSING_DISCOUNT");   // "N개월 할인" 배지는 있는데 할인 기간 · 할인 후 요금을 못 읽음 — 할인가가 계속 내는 요금처럼 보인다
         }
         return w;
     }

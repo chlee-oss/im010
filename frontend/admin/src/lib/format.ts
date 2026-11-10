@@ -51,6 +51,7 @@ export const WARNING: Record<string, string> = {
   PRICE_ZERO: '0원',
   MISSING_NETWORK: '망 미수집',
   MISSING_DATA: '기본 제공량 미수집',
+  MISSING_DISCOUNT: '할인 정보 미수집',
   PRICE_JUMP: '요금 ±30% 초과',
   RESUMED: '판매 재개',
   SAME_AS_EXCLUDED: '제외된 값과 동일',

@@ -75,6 +75,20 @@ class ChangeDetectorTest {
     }
 
     @Test
+    void 기간_할인_배지가_있는데_할인_정보가_없으면_경고() {
+        ParsedPlan unread = new ParsedPlan("9", "A", "LGU", "LTE", "데이터 5GB", new BigDecimal("5"), null,
+                "200분", "100건", 10, null, null, null, null, 1, List.of("6개월 할인", "실속 요금"));
+        ParsedPlan read = new ParsedPlan("9", "A", "LGU", "LTE", "데이터 5GB", new BigDecimal("5"), null,
+                "200분", "100건", 10, 6, 25300, null, null, 1, List.of("6개월 할인", "실속 요금"));
+        ParsedPlan lifetime = new ParsedPlan("10", "B", "LGU", "LTE", "데이터 5GB", new BigDecimal("5"), null,
+                "200분", "100건", 2430, null, null, null, null, 2, List.of("평생할인"));
+
+        assertThat(ChangeDetector.warnings(unread)).contains("MISSING_DISCOUNT");
+        assertThat(ChangeDetector.warnings(read)).doesNotContain("MISSING_DISCOUNT");
+        assertThat(ChangeDetector.warnings(lifetime)).doesNotContain("MISSING_DISCOUNT");
+    }
+
+    @Test
     void 판매_종료된_요금제가_다시_보이면_판매_재개_점검() {
         Result r = detect(List.of(plan("5", "E", 5000)), List.of(baseline(14, "5", "ENDED", "E", 5000, null)));
 

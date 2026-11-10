@@ -108,6 +108,49 @@ class RatePlanParserTest {
     }
 
     @Test
+    void 기간_할인_배지만_있으면_상세_페이지에서_할인_정보를_읽는다() {
+        String card = """
+                <ul><li class="card_list_item">
+                  <a href="rateplan_view.do?type=T007&no=3387" class="card_rate_link">
+                    <p class="badge_wrap"><span class="badge badge_red">6개월 할인</span><span class="badge badge_red">실속 요금</span></p>
+                    <p class="title"><span class="text_light_color me-2">LGU+</span> 예시 유심 5GB</p>
+                    <div class="d-flex content_group">
+                      <div class="detail"><ul class="desc"><li>5GB</li><li>통화 200 분</li><li>문자 100 건</li></ul></div>
+                      <div class="price"><span>월 </span>10 원 <p class="ref">&nbsp;</p></div>
+                    </div>
+                  </a>
+                </li></ul>""";
+        String source = "https://partner.example.com/rate_plan.do?type=T007";
+        ParsedPlan p = parser.parse(Jsoup.parse(card, source), source, null).plans().get(0);
+        assertThat(p.price()).isEqualTo(10);
+        assertThat(p.discountMonths()).isNull();               // 카드 금액 칸에 할인 문구가 없다
+        assertThat(RatePlanParser.needsDetailDiscount(p)).isTrue();
+
+        String detail = """
+                <div class="price">
+                  <p><span class="vat">(VAT포함)</span> 월 10원</p>
+                  <p class="ref">*6개월 이후 25,300원</p>
+                </div>""";
+        ParsedPlan filled = parser.withDetailDiscount(p, Jsoup.parse(detail));
+        assertThat(filled.discountMonths()).isEqualTo(6);
+        assertThat(filled.priceAfterDiscount()).isEqualTo(25300);
+        assertThat(filled.price()).isEqualTo(10);
+        assertThat(filled.tags()).isEqualTo(p.tags());
+        assertThat(RatePlanParser.needsDetailDiscount(filled)).isFalse();
+
+        // 상세 페이지에도 문구가 없으면 그대로
+        assertThat(parser.withDetailDiscount(p, Jsoup.parse("<div class=\"price\"><p class=\"ref\"></p></div>")).discountMonths()).isNull();
+    }
+
+    @Test
+    void 기간_할인_배지_해석() {
+        assertThat(RatePlanParser.badgeDiscountMonths(List.of("실속 요금", "12개월 할인"))).isEqualTo(12);
+        assertThat(RatePlanParser.badgeDiscountMonths(List.of("24개월할인"))).isEqualTo(24);
+        assertThat(RatePlanParser.badgeDiscountMonths(List.of("평생할인", "5G"))).isNull();   // 평생할인은 기간이 없다
+        assertThat(RatePlanParser.badgeDiscountMonths(null)).isNull();
+    }
+
+    @Test
     void 문구_해석() {
         assertThat(SpecText.data("월 데이터 7 GB + 1Mbps")).isEqualTo(new SpecText.Data("데이터 7GB", new BigDecimal("7"), "1Mbps"));
         assertThat(SpecText.data("300MB + 3Mbps").gb()).isEqualByComparingTo("0.3");
