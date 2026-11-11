@@ -1,10 +1,10 @@
-import { useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import Calculator from '../components/Calculator'
 import { FindPresets } from '../components/FindPresets'
 import { InternetBanner, InternetProducts } from '../components/Internet'
 import { PartnerPlans, PrepaidPlans } from '../components/PlanSections'
 import { WeeklyTabs } from '../components/WeeklyTabs'
+import { useHashScroll } from '../lib/scrollHold'
 import { usePageTitle } from '../lib/usePageTitle'
 
 /**
@@ -55,12 +55,9 @@ const SERVICE_PAGES: Record<ServiceKey, { path: string; title: string; h1: strin
 export default function ServiceLandingPage({ service }: { service: ServiceKey }) {
   const page = SERVICE_PAGES[service]
   usePageTitle(page.title, { raw: true, page: service })
-  const { hash } = useLocation()
 
   // /postpaid#partners 처럼 섹션 주소로 들어오면 그 섹션으로 (메인과 같은 방식)
-  useEffect(() => {
-    if (hash) requestAnimationFrame(() => document.getElementById(hash.slice(1))?.scrollIntoView())
-  }, [hash])
+  useHashScroll()
 
   return (
     <>
