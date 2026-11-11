@@ -66,7 +66,7 @@ class SecuritySliceTest {
 
     @Test
     void 조회_권한이_있으면_목록() throws Exception {
-        given(reviewService.list(any(), any(), any(), any(), anyInt()))
+        given(reviewService.list(any(), any(), any(), any(), any(), anyInt()))
                 .willReturn(new ReviewService.Page(LocalDate.of(2026, 10, 8), Map.of(), 0, 1, List.of()));
         mvc.perform(get("/admin/api/batch-items").with(authentication(admin(Map.of("BA-02", EnumSet.of(Action.VIEW))))))
                 .andExpect(status().isOk())

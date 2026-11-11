@@ -19,13 +19,14 @@ export default function BatchItems() {
   const [collectedOn, setCollectedOn] = useState('')
   const [partner, setPartner] = useState('')
   const [urlType, setUrlType] = useState('')
+  const [changeType, setChangeType] = useState('')
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const [open, setOpen] = useState<number | null>(null)
 
   const { data, error, reload } = useLoad(
-    () => get<ItemPage>('/batch-items' + qs({ view, collectedOn, partner, urlType, page })),
-    [view, collectedOn, partner, urlType, page],
+    () => get<ItemPage>('/batch-items' + qs({ view, collectedOn, partner, urlType, changeType: view === 'PENDING' ? changeType : '', page })),
+    [view, collectedOn, partner, urlType, changeType, page],
   )
   const after = () => {
     setSelected(new Set())
@@ -115,6 +116,16 @@ export default function BatchItems() {
               <option value="MONTHLY">이달의 요금제</option>
             </select>
           </label>
+          {view === 'PENDING' && (
+            <label>
+              변경 구분{' '}
+              <select value={changeType} onChange={(e) => { setChangeType(e.target.value); setPage(1); setSelected(new Set()) }}>
+                <option value="">전체</option>
+                <option value="NEW">신규</option>
+                <option value="CHANGED">변경</option>
+              </select>
+            </label>
+          )}
           {view === 'PENDING' && <span className="muted">⚠ 경고가 있는 건은 한 건씩 열어 점검해 주세요 (일괄 점검에서 빠집니다)</span>}
         </div>
       </div>

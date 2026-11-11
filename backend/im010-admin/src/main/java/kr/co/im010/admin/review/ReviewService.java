@@ -30,6 +30,8 @@ public class ReviewService {
 
     static final String PROGRAM = "BA-02";
     private static final Set<String> VIEWS = Set.of("PENDING", "REQUESTED", "UNCHANGED", "ENDED", "EXCLUDED", "ALL");
+    /** 점검 대기 등에서 거를 수 있는 변경 구분 */
+    private static final Set<String> CHANGE_TYPES = Set.of("NEW", "CHANGED", "UNCHANGED", "ENDED");
     private static final int PAGE_SIZE = 50;
 
     public record Page(LocalDate collectedOn, Map<String, Long> summary, int total, int page, List<ItemDto> items) {
@@ -55,7 +57,7 @@ public class ReviewService {
         this.audit = audit;
     }
 
-    public Page list(String view, LocalDate collectedOn, String partnerCode, String urlType, int page) {
+    public Page list(String view, LocalDate collectedOn, String partnerCode, String urlType, String changeType, int page) {
         String v = view == null ? "PENDING" : view;
         if (!VIEWS.contains(v)) {
             throw ApiException.badRequest("알 수 없는 보기: " + view);
@@ -67,9 +69,13 @@ public class ReviewService {
         int p = Math.max(page, 1);
         String partner = Texts.trim(partnerCode);
         String type = Texts.trim(urlType);
-        List<ItemDto> items = reviewMapper.findItems(v, date, partner, type, PAGE_SIZE, (p - 1) * PAGE_SIZE)
+        String change = Texts.trim(changeType);
+        if (change != null && !CHANGE_TYPES.contains(change)) {
+            throw ApiException.badRequest("알 수 없는 변경 구분: " + changeType);
+        }
+        List<ItemDto> items = reviewMapper.findItems(v, date, partner, type, change, PAGE_SIZE, (p - 1) * PAGE_SIZE)
                 .stream().map(ItemDto::of).toList();
-        return new Page(date, reviewMapper.countSummary(date), reviewMapper.countItems(v, date, partner, type), p, items);
+        return new Page(date, reviewMapper.countSummary(date), reviewMapper.countItems(v, date, partner, type, change), p, items);
     }
 
     public Detail detail(long id) {

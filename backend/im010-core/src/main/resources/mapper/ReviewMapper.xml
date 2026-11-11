@@ -24,6 +24,7 @@
         </choose>
         <if test="partnerCode != null">AND i.partner_code = #{partnerCode}</if>
         <if test="urlType != null">AND i.url_type = #{urlType}</if>
+        <if test="changeType != null">AND i.change_type = #{changeType}</if>
     </sql>
 
     <select id="findItems" resultType="kr.co.im010.core.row.ReviewItemRow">
