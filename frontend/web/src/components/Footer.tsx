@@ -3,6 +3,7 @@ import { api } from '../api/client'
 import { usePartners } from '../lib/partners'
 import { useToast } from '../lib/toast'
 import { useApi } from '../lib/useApi'
+import BrandMark from './BrandMark'
 
 // 사업자 정보 · 고객센터 · 고지 문구는 백오피스 ST-06 Footer관리, 약관은 ST-04 약관관리에서 관리한다.
 export default function Footer() {
@@ -19,8 +20,11 @@ export default function Footer() {
       <div className="wrap">
         <div className="footer-grid">
           <div>
-            <div className="footer-logo">im010</div>
-            <div style={{ fontSize: 13, maxWidth: 280, lineHeight: 1.6 }}>
+            <div className="footer-logo">
+              <BrandMark inverse />
+              im010
+            </div>
+            <div style={{ fontSize: 14, maxWidth: 280, lineHeight: 1.6 }}>
               알뜰폰 요금제 비교부터 인터넷 상품 신청 연결까지, im010에서 한 번에 비교하세요.
             </div>
           </div>

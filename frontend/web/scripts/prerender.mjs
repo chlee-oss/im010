@@ -284,7 +284,7 @@ const { categories } = data
   const latest = data.cards.slice(0, 6)
   const main = `
 <section class="pre-page"><div class="wrap">
-  <h1>매달 통신비, 얼마나 아낄 수 있을까요?</h1>
+  <h1>합리적인 알뜰한 통신생활! 알뜰폰과 인터넷은 im010이 추천해 드릴게요.</h1>
   <p>데이터 사용량과 원하는 통신망만 알려주세요. ${esc(partnerNames || '7개 제휴사')} 알뜰폰 요금제 중 조건에 맞는 최저가 요금제를 바로 찾아 드려요.</p>
   <nav aria-label="서비스">${SERVICE_LINKS}</nav>
   ${data.weekly.length ? `<h2 id="month">im010 금주의 요금을 추천해요</h2>${data.weekly.map((t) => `<h3>${esc(t.label)}</h3><p>${esc(t.desc)}</p><ul>${t.plans.map(planItem).join('')}</ul>`).join('')}` : ''}

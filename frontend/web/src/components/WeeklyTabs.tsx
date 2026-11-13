@@ -10,6 +10,15 @@ import { headline, pickWeeklyTabs } from '../lib/weeklyTabs'
 import Icon from './Icon'
 import StateMessage from './StateMessage'
 
+/** 탭 아이콘 (시안 B-1: 이모지 대신 선 아이콘) */
+const WEEKLY_ICON: Record<string, string> = {
+  video: 'smart_display',
+  long: 'schedule',
+  call: 'call',
+  save: 'savings',
+  prepaid: 'credit_card',
+}
+
 /**
  * im010 금주의 요금을 추천해요 — 탭(영상많이 · 오래오래 · 통화많이 · 알뜰하게 · 선불은어때)마다 규칙으로 제휴사별 1개 (lib/weeklyTabs).
  * 요금제가 없는 탭은 숨긴다. 제휴사 순서는 화면을 열 때마다 랜덤.
@@ -55,7 +64,7 @@ export function WeeklyTabs() {
                   }}
                 >
                   <span className="ico" aria-hidden="true">
-                    {t.icon}
+                    <Icon name={WEEKLY_ICON[t.key] ?? 'smartphone'} />
                   </span>
                   {t.label}
                 </button>

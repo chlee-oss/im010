@@ -4,6 +4,7 @@ import { api } from '../api/client'
 import { useApi } from '../lib/useApi'
 import { usePartners } from '../lib/partners'
 import { useToast } from '../lib/toast'
+import BrandMark from './BrandMark'
 import Icon from './Icon'
 
 // 1차: 마이페이지 · 로그인 · 선불 충전 메뉴 없음.
@@ -31,7 +32,8 @@ export default function Header() {
     <header>
       <div className="wrap nav-row">
         <Link className="logo" to="/">
-          im<span>010</span>
+          <BrandMark />
+          im010
         </Link>
         <nav className="main-nav" aria-label="주 메뉴">
           {SECTIONS.map((s) => (
@@ -55,7 +57,7 @@ export default function Header() {
           {/* 알뜰AI: 업계 소식 · 정보 콘텐츠 (im010_알뜰AI_기획서.md) */}
           <div className="nav-item">
             <Link className={'top-link' + (aiOn ? ' on' : '')} to="/ai" aria-current={aiOn ? 'page' : undefined}>
-              알뜰AI <Icon name="expand_more" /><span className="new-badge">N</span>
+              알뜰AI <Icon name="expand_more" /><span className="new-dot" role="img" aria-label="새 메뉴" />
             </Link>
             <div className="dropdown">
               <Link to="/ai">전체 보기</Link>
@@ -73,7 +75,7 @@ export default function Header() {
           </div>
         </nav>
         <div className="header-actions">
-          <a className="btn-primary" href="/#calc">
+          <a className="btn-primary" href="/#calc-section">
             요금제 비교하기
           </a>
           <button
