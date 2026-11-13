@@ -251,8 +251,8 @@ export const PAGE: Record<string, string> = {
   NOT_FOUND: '없는 페이지',
 }
 export const POSITION: Record<string, string> = {
-  HERO: '히어로 카드',
-  MONTHLY: '이달의 요금제',
+  HERO: '히어로 카드 (11월 이전)',
+  MONTHLY: '금주의 요금을 추천해요',
   PARTNER: '제휴사별 요금제',
   PREPAID: '선불요금제',
   CALC: '요금 계산기',
