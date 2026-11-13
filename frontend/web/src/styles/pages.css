@@ -109,3 +109,74 @@
   .service-hero { padding: 24px 0 4px; }
   .service-hero h1 { font-size: 26px; }
 }
+
+/* ---------- im010 금주의 요금을 추천해요 (메인 · /postpaid, components/WeeklyTabs) ---------- */
+.weekly { overflow: hidden; }
+.weekly-head { text-align: center; }
+.weekly-head h2 { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; }
+.weekly-head h2 .brand { color: var(--coral); }
+
+.weekly-tabs { display: flex; justify-content: center; gap: 10px; margin-top: 26px; flex-wrap: wrap; }
+.weekly-tabs button { display: flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 999px; border: 1.5px solid var(--gray-200);
+  background: var(--white); font: inherit; font-size: 16px; font-weight: 700; color: var(--gray-700); cursor: pointer; transition: all .2s; }
+.weekly-tabs .ico { width: 26px; height: 26px; display: grid; place-items: center; font-size: 20px; line-height: 1; }
+.weekly-tabs button:hover { border-color: #F6B7AE; color: var(--coral-dark); }
+.weekly-tabs button.on { background: var(--coral); border-color: var(--coral); color: var(--white); box-shadow: 0 8px 20px rgba(217, 67, 47, .25); }
+.weekly-desc { text-align: center; margin-top: 18px; color: var(--gray-700); font-size: 15px; }
+
+.weekly-carousel { --side: clamp(230px, 31vw, 380px); position: relative; height: 470px; margin-top: 6px; }
+.weekly-card {
+  position: absolute; top: 50%; left: 50%; width: 340px; height: 400px; border-radius: 26px;
+  background: var(--white); border: 1.5px solid #F6B7AE; padding: 30px 30px 28px;
+  display: flex; flex-direction: column; color: var(--navy); text-decoration: none;
+  transition: transform .45s cubic-bezier(.2, .8, .2, 1), opacity .45s, background .3s, box-shadow .3s, color .3s;
+  transform: translate(-50%, -50%) scale(.85); opacity: 0; pointer-events: none;
+}
+.weekly-card.pos0 { transform: translate(-50%, -50%) scale(1.06); opacity: 1; z-index: 3; pointer-events: auto;
+  background: var(--coral); border-color: var(--coral); color: var(--white); box-shadow: 0 24px 48px rgba(217, 67, 47, .28); }
+.weekly-card.pos1 { transform: translate(calc(-50% + var(--side)), -50%) scale(.94); opacity: 1; z-index: 2; pointer-events: auto; }
+.weekly-card.pos-1 { transform: translate(calc(-50% - var(--side)), -50%) scale(.94); opacity: 1; z-index: 2; pointer-events: auto; }
+.weekly-card.pos2 { transform: translate(calc(-50% + 700px), -50%) scale(.85); }
+.weekly-card.pos-2 { transform: translate(calc(-50% - 700px), -50%) scale(.85); }
+.weekly-card:focus-visible { outline: 3px solid var(--navy); outline-offset: 4px; }
+.wk-partner { display: flex; height: 28px; align-items: center; }
+.wk-name { font-size: 22px; font-weight: 700; margin-top: 18px; line-height: 1.35; letter-spacing: -0.01em; min-height: 60px; }
+.wk-data { font-size: 30px; font-weight: 800; margin-top: 16px; letter-spacing: -0.02em; line-height: 1.2; }
+.wk-spec { margin-top: 12px; color: var(--gray-700); font-size: 15px; line-height: 1.7; }
+.wk-net { font-size: 13px; color: var(--gray-500); margin-top: 2px; }
+.weekly-card.pos0 .wk-spec { color: rgba(255, 255, 255, .9); }
+.weekly-card.pos0 .wk-net { color: rgba(255, 255, 255, .75); }
+.wk-price { margin-top: auto; text-align: right; color: var(--coral-dark); }
+.wk-price b { font-size: 40px; font-weight: 800; letter-spacing: -0.02em; }
+.wk-price small { font-size: 16px; font-weight: 700; margin: 0 2px; }
+.wk-after { font-size: 14px; color: var(--gray-500); margin-top: 4px; text-align: right; min-height: 1.4em; }
+.weekly-card.pos0 .wk-price, .weekly-card.pos0 .wk-after { color: var(--white); }
+
+.weekly-arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 5; width: 52px; height: 52px; border-radius: 50%;
+  border: 0; background: transparent; color: var(--coral-dark); cursor: pointer; font-size: 34px; display: grid; place-items: center; }
+.weekly-arrow:hover { background: var(--coral-tint); }
+.weekly-arrow.prev { left: 0; }
+.weekly-arrow.next { right: 0; }
+.weekly-dots { display: flex; gap: 8px; justify-content: center; }
+.weekly-dots button { width: 8px; height: 8px; padding: 0; border-radius: 50%; border: 0; background: var(--gray-200); cursor: pointer; transition: width .3s; }
+.weekly-dots button.on { width: 22px; border-radius: 4px; background: var(--coral); }
+.weekly-foot { text-align: center; margin-top: 20px; font-size: 13px; color: var(--gray-500); }
+.weekly-foot a { color: var(--coral-dark); font-weight: 700; margin-left: 6px; display: inline-flex; align-items: center; gap: 2px; }
+
+@media (max-width: 760px) {
+  .weekly-head h2 { font-size: 23px; }
+  .weekly-tabs { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; padding: 2px 2px 8px; scrollbar-width: none; }
+  .weekly-tabs::-webkit-scrollbar { display: none; }
+  .weekly-tabs button { flex: 0 0 auto; padding: 10px 14px; font-size: 14px; }
+  .weekly-desc { font-size: 14px; }
+  .weekly-carousel { height: 420px; --card: min(78vw, 300px); }
+  .weekly-card { width: var(--card); height: 370px; padding: 24px 22px; }
+  .weekly-card.pos0 { transform: translate(-50%, -50%) scale(1); }
+  .weekly-card.pos1 { transform: translate(calc(-50% + var(--card) + 14px), -50%) scale(.92); }
+  .weekly-card.pos-1 { transform: translate(calc(-50% - var(--card) - 14px), -50%) scale(.92); }
+  .wk-name { font-size: 19px; min-height: 52px; margin-top: 14px; }
+  .wk-data { font-size: 25px; }
+  .wk-price b { font-size: 34px; }
+  .weekly-arrow { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .weekly-card { transition: none; } }

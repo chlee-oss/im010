@@ -1,14 +1,10 @@
-import { useEffect, useMemo } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { api } from '../api/client'
+import { useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import Calculator from '../components/Calculator'
 import { Analysis } from '../components/Insights'
 import { InternetBanner, InternetProducts } from '../components/Internet'
-import { MonthlyPlans, PartnerPlans, PrepaidPlans } from '../components/PlanSections'
-import { won } from '../lib/format'
-import { BrandChip } from '../lib/partners'
-import { heroPicks } from '../lib/planRules'
-import { useApi } from '../lib/useApi'
+import { PartnerPlans, PrepaidPlans } from '../components/PlanSections'
+import { WeeklyTabs } from '../components/WeeklyTabs'
 import { usePageTitle } from '../lib/usePageTitle'
 import { useToast } from '../lib/toast'
 import Icon from '../components/Icon'
@@ -45,41 +41,17 @@ export default function HomePage() {
               <br />
               제휴사 요금제 중 조건에 맞는 최저가 요금제를 바로 찾아 드려요.
             </p>
-            <Calculator />
           </div>
-          <HeroCards />
+          {/* 오른쪽: 계산기 (예전 선불 요금제 그림 카드 자리 — 선불은 금주의 요금 [선불은어때] 탭에서) */}
+          <Calculator />
         </div>
       </section>
-      <MonthlyPlans />
+      <WeeklyTabs />
       <PartnerPlans />
       <PrepaidPlans />
       <InternetBanner />
       <InternetProducts />
       <Analysis />
     </>
-  )
-}
-
-// Hero 플로팅 카드 — 게시 중인 선불 요금제 4개를 제휴사마다 고르게 무작위로 (lib/planRules heroPicks). 화면을 열 때마다 바뀌고, 없으면 비워 둔다
-function HeroCards() {
-  const { data } = useApi((signal) => api.plans('PREPAID', undefined, signal), [])
-  const plans = useMemo(() => heroPicks(data ?? []), [data])
-  return (
-    <div className="hero-visual" data-track="HERO">
-      {plans.map((p, i) => (
-        <Link key={p.id} className={`float-card fc-${i + 1}`} to={`/plans/${p.id}`}>
-          <BrandChip code={p.partnerCode} name={p.partnerName} />
-          <h4>{p.name}</h4>
-          <div className="price-line num">
-            {won(p.chargePrice)}
-            <span>{p.validDays ? `원 / ${p.validDays}일` : '원'}</span>
-          </div>
-          <div className="meta">
-            {p.networkLabel} 망 · {p.generation}
-            {p.qos ? ` · QoS ${p.qos}` : ''}
-          </div>
-        </Link>
-      ))}
-    </div>
   )
 }

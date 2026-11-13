@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { InternetBanner, InternetProducts } from '../components/Internet'
-import { MonthlyPlans, PartnerPlans, PrepaidPlans } from '../components/PlanSections'
+import { PartnerPlans, PrepaidPlans } from '../components/PlanSections'
+import { WeeklyTabs } from '../components/WeeklyTabs'
 import { usePageTitle } from '../lib/usePageTitle'
 
 /**
@@ -62,7 +63,7 @@ export default function ServiceLandingPage({ service }: { service: ServiceKey })
       </section>
       {service === 'postpaid' && (
         <>
-          <MonthlyPlans />
+          <WeeklyTabs />
           <PartnerPlans />
         </>
       )}

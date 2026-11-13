@@ -27,7 +27,7 @@ function headline(p: PlanSummary): string {
 
 /**
  * 요금제 리스트 카드 (im010_요금제리스트_목업.html): 위 정보 영역 + 점선 + 아래 할인 안내.
- * 제휴사별 요금제 · 이달의 요금제비교 · 선불요금제가 같은 카드를 쓴다. 누르면 S2 요금제 상세.
+ * 제휴사별 요금제 · 선불요금제가 같은 카드를 쓴다. 누르면 S2 요금제 상세.
  */
 export function PlanListCard({ plan: p }: { plan: PlanSummary }) {
   const prepaid = p.planType === 'PREPAID'

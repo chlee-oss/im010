@@ -3,7 +3,7 @@ import type { PlanSummary } from '../api/types'
 import { planPrice, planPriceUnit, won } from '../lib/format'
 import { BrandChip } from '../lib/partners'
 
-/** 이달의 요금제 · 선불 요금제 카드. 클릭하면 S2 상세. (배지는 프로모션관리 보류 중이라 표시 안 함) */
+/** 선불 요금제 카드. 클릭하면 S2 상세. (배지는 프로모션관리 보류 중이라 표시 안 함) */
 export function PlanCard({ plan }: { plan: PlanSummary }) {
   return (
     <div className="plan-card">

@@ -1,10 +1,5 @@
 import type { PlanSummary } from '../api/types'
 
-/** 데이터 소진 후 5Mbps (15Mbps · 0.5Mbps 는 아님) */
-const QOS_5MBPS = /(^|[^\d.])5\s*Mbps/i
-
-export const is5Mbps = (p: PlanSummary) => QOS_5MBPS.test(p.qos ?? '')
-
 /**
  * 고객이 보기에 "같은 요금제": 같은 제휴사 · 같은 요금 조건(월 요금 또는 충전 금액 · 할인 기간 · 할인 후 요금 · 사용 기간).
  * 예) 토리 통화기본 100GB + 7개월 · 토리 통화기본 매일 5GB + 7개월 — 둘 다 12,100원, 7개월 후 46,200원
@@ -21,67 +16,4 @@ export function uniquePlans(plans: PlanSummary[]): PlanSummary[] {
     seen.add(key)
     return true
   })
-}
-
-export const HERO_CARDS = 4
-
-/**
- * Hero 카드: 게시 중인 선불 요금제에서 4개 (같은 요금제는 하나만).
- * 제휴사를 무작위 순서로 돌아가며 1개씩 골라 제휴사마다 고르게 나눈다 — 제휴사가 4곳 이상이면 무작위 4곳에서 1개씩,
- * 2곳이면 2개씩, 3곳이면 한 곳만 2개. 제휴사 안에서도 무작위이고, 요금제가 모자란 제휴사의 몫은 다른 제휴사가 채운다.
- */
-export function heroPicks(prepaid: PlanSummary[], random: () => number = Math.random): PlanSummary[] {
-  const pool = uniquePlans(prepaid.filter((p) => p.planType === 'PREPAID'))
-  const queues = shuffle(byPartner(pool), random).map((own) => shuffle(own, random))
-  const picks: PlanSummary[] = []
-  while (picks.length < HERO_CARDS && queues.some((q) => q.length > 0)) {
-    for (const q of queues) {
-      if (picks.length === HERO_CARDS) break
-      const next = q.shift()
-      if (next) picks.push(next)
-    }
-  }
-  return picks
-}
-
-function shuffle<T>(list: T[], random: () => number): T[] {
-  const a = [...list]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(random() * (i + 1))
-    ;[a[i], a[j]] = [a[j], a[i]]
-  }
-  return a
-}
-
-/** 제휴사마다 한 묶음 (처음 나온 순서) */
-function byPartner(plans: PlanSummary[]): PlanSummary[][] {
-  const groups = new Map<string, PlanSummary[]>()
-  for (const p of plans) {
-    groups.set(p.partnerCode, [...(groups.get(p.partnerCode) ?? []), p])
-  }
-  return [...groups.values()]
-}
-
-/**
- * 이달의 요금제가 없을 때 대신 보여 줄 후불 요금제 — 제휴사마다 1개 (제휴사 순서는 무작위).
- * Hero 카드에 나온 요금제(같은 요금제 포함)는 빼고, 제휴사 안에서는 5G · 5Mbps → 다른 5Mbps → 나머지 순으로 무작위 1개.
- */
-export function pickMonthlyFallback(
-  postpaid: PlanSummary[],
-  exclude: PlanSummary[] = [],
-  random: () => number = Math.random,
-): PlanSummary[] {
-  const excluded = new Set(exclude.map(samePlanKey))
-  const pool = uniquePlans(postpaid.filter((p) => p.planType === 'POSTPAID' && !excluded.has(samePlanKey(p))))
-  return shuffle(byPartner(pool), random).map((own) => {
-    const tier =
-      [own.filter((p) => is5Mbps(p) && p.generation === '5G'), own.filter((p) => is5Mbps(p)), own].find((t) => t.length > 0) ?? own
-    return tier[Math.floor(random() * tier.length)]
-  })
-}
-
-/** 제휴사 수집 "이달의 요금제": Hero 카드와 겹치는 요금제 · 같은 요금제는 빼고, 제휴사마다 1개 (사이트 순서 첫 번째) */
-export function cleanMonthly(monthly: PlanSummary[], exclude: PlanSummary[] = []): PlanSummary[] {
-  const excluded = new Set(exclude.map(samePlanKey))
-  return byPartner(uniquePlans(monthly.filter((p) => !excluded.has(samePlanKey(p))))).map((own) => own[0])
 }

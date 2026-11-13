@@ -20,9 +20,17 @@
 //   404.html                       없는 경로 (noindex, 상태 코드 404)
 //   robots.txt 는 public/ 그대로. sitemap.xml 은 im010-api 가 DB 기준으로 그때그때 만든다 (SitemapController)
 
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+
+// 금주의 요금을 추천해요 규칙 — 화면(src/lib/weeklyTabs.js)과 같은 파일. 운영 서버 매일 재생성은 이 스크립트 옆에 둔 사본을 쓴다
+const HERE = dirname(fileURLToPath(import.meta.url))
+const WEEKLY_TABS = await access(join(HERE, 'weeklyTabs.js')).then(
+  () => join(HERE, 'weeklyTabs.js'),
+  () => join(HERE, '..', 'src', 'lib', 'weeklyTabs.js'),
+)
+const { pickWeeklyTabs } = await import(pathToFileURL(WEEKLY_TABS).href)
 
 const SITE = 'https://www.im010.co.kr'
 const API = (process.env.PRERENDER_API || SITE).replace(/\/$/, '')
@@ -176,7 +184,7 @@ function layout(main, categories = []) {
   const cats = categories.map((c) => `<a href="/ai/${esc(c.slug)}">${esc(c.name)}</a>`).join(' · ')
   return `
 <header class="pre-header"><div class="wrap"><a href="/"><strong>im010</strong></a>
-  <nav aria-label="주요 메뉴"><a href="/#month">이달의 요금제</a> · ${SERVICE_LINKS} · <a href="/faq">자주 묻는 질문</a></nav>
+  <nav aria-label="주요 메뉴"><a href="/#month">금주의 요금을 추천해요</a> · ${SERVICE_LINKS} · <a href="/faq">자주 묻는 질문</a></nav>
 </div></header>
 <main>${main}</main>
 <footer class="pre-footer"><div class="wrap">
@@ -204,11 +212,10 @@ function cardItem(c) {
 // ---------- 데이터 ----------
 
 async function loadAll() {
-  const [partners, postpaid, prepaid, monthly, internet, faqs, categories] = await Promise.all([
+  const [partners, postpaid, prepaid, internet, faqs, categories] = await Promise.all([
     getJson('/api/partners'),
     getJson('/api/plans?type=POSTPAID'),
     getJson('/api/plans?type=PREPAID'),
-    getJson('/api/monthly-plans'),
     getJson('/api/internet-products'),
     getJson('/api/faqs'),
     getJson('/api/ai/categories'),
@@ -239,13 +246,16 @@ async function loadAll() {
   // 검색엔진설정(백오피스 ST-08). 아직 이 API 가 없는 api(배포 전 운영)면 기본값
   const siteMeta = { ...DEFAULT_META, ...((await getJson('/api/site-meta', { allow404: true })) ?? {}) }
 
-  return { partners, postpaid, prepaid, monthly, internet, faqs, categories, cards, posts, plans, ended, terms, siteMeta }
+  // im010 금주의 요금을 추천해요 — 화면과 같은 규칙 (제휴사 순서만 화면에서 랜덤, 여기서는 고정)
+  const weekly = pickWeeklyTabs([...(postpaid ?? []), ...(prepaid ?? [])], () => 0)
+
+  return { partners, postpaid, prepaid, weekly, internet, faqs, categories, cards, posts, plans, ended, terms, siteMeta }
 }
 
 const DEFAULT_META = { title: BASE_TITLE, description: BASE_DESC, ogTitle: BASE_TITLE, ogDescription: BASE_DESC }
 
 const EMPTY = {
-  partners: [], postpaid: [], prepaid: [], monthly: [], internet: [], faqs: [], categories: [],
+  partners: [], postpaid: [], prepaid: [], weekly: [], internet: [], faqs: [], categories: [],
   cards: [], posts: [], plans: [], ended: [], terms: {}, siteMeta: DEFAULT_META,
 }
 
@@ -277,7 +287,7 @@ const { categories } = data
   <h1>매달 통신비, 얼마나 아낄 수 있을까요?</h1>
   <p>데이터 사용량과 원하는 통신망만 알려주세요. ${esc(partnerNames || '7개 제휴사')} 알뜰폰 요금제 중 조건에 맞는 최저가 요금제를 바로 찾아 드려요.</p>
   <nav aria-label="서비스">${SERVICE_LINKS}</nav>
-  ${data.monthly.length ? `<h2 id="month">이달의 요금제</h2><ul>${data.monthly.map(planItem).join('')}</ul>` : ''}
+  ${data.weekly.length ? `<h2 id="month">im010 금주의 요금을 추천해요</h2>${data.weekly.map((t) => `<h3>${esc(t.label)}</h3><p>${esc(t.desc)}</p><ul>${t.plans.map(planItem).join('')}</ul>`).join('')}` : ''}
   ${data.prepaid.length ? `<h2 id="prepaid">선불 알뜰폰 요금제</h2><ul>${data.prepaid.map(planItem).join('')}</ul><p><a href="/prepaid">선불요금제 전체 보기</a></p>` : ''}
   ${data.postpaid.length ? `<h2 id="partners">후불 알뜰폰 요금제</h2><ul>${data.postpaid.map(planItem).join('')}</ul><p><a href="/postpaid">후불 요금제 전체 보기</a></p>` : ''}
   ${data.internet.length ? `<h2 id="internet-compare">인터넷 · 결합 상품</h2><ul>${data.internet.map(internetItem).join('')}</ul><p><a href="/internet">인터넷 상품 전체 보기</a></p>` : ''}
@@ -320,7 +330,7 @@ const { categories } = data
     'postpaid',
     '제휴사 후불 알뜰폰 요금제를 월 요금 · 데이터 · 통신망별로 비교해 보세요.',
     [
-      data.monthly.length ? `<h2 id="month">이달의 요금제</h2><ul>${data.monthly.map(planItem).join('')}</ul>` : '',
+      data.weekly.length ? `<h2 id="month">im010 금주의 요금을 추천해요</h2>${data.weekly.map((t) => `<h3>${esc(t.label)}</h3><ul>${t.plans.map(planItem).join('')}</ul>`).join('')}` : '',
       data.postpaid.length ? `<h2 id="partners">제휴사별 후불 요금제 (${n(data.postpaid)}개)</h2><ul>${data.postpaid.map(planItem).join('')}</ul>` : '<p>게시 중인 후불 요금제가 없어요.</p>',
     ].join('\n  '),
     data.postpaid.length
