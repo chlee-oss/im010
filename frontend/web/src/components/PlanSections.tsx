@@ -2,56 +2,12 @@ import { useMemo, useState } from 'react'
 import { api } from '../api/client'
 import { BrandChip, usePartners } from '../lib/partners'
 import { pickTwo } from '../lib/planPicks'
-import { cleanMonthly, is5Mbps, pickMonthlyFallback, uniquePlans } from '../lib/planRules'
+import { uniquePlans } from '../lib/planRules'
 import { track } from '../lib/track'
 import { useApi } from '../lib/useApi'
 import { PlanListCard } from './PlanListCard'
 import StateMessage from './StateMessage'
 import Icon from './Icon'
-
-/**
- * 이달의 요금제 — 제휴사 "이달의 요금제" URL 수집 결과 (제휴사 이름순 → 사이트 순서).
- * 제휴사마다 1개. 같은 요금제는 빼고 (Hero 카드는 선불이라 겹치지 않음), 남는 것이 없으면 후불 요금제에서 제휴사마다 1개를 대신 고른다 (lib/planRules).
- * 카드는 제휴사별 요금제와 같은 리스트 카드 2개씩 한 줄.
- */
-export function MonthlyPlans() {
-  const monthly = useApi((signal) => api.monthlyPlans(signal), [])
-  const postpaid = useApi((signal) => api.plans('POSTPAID', undefined, signal), [])
-  const picked = useMemo(() => cleanMonthly(monthly.data ?? []), [monthly.data])
-  const fallback = useMemo(() => pickMonthlyFallback(postpaid.data ?? []), [postpaid.data])
-  const ready = !!monthly.data && !!postpaid.data
-  const useFallback = ready && picked.length === 0
-  const data = !ready ? null : useFallback ? fallback : picked
-  const all5Mbps = fallback.length > 0 && fallback.every(is5Mbps)
-  const [month] = useState(() => new Date().getMonth() + 1)
-  return (
-    <section id="month">
-      <div className="wrap">
-        <div className="sec-head">
-          <div>
-            <h2>이달의 요금제비교</h2>
-            <div className="sub">
-              {useFallback
-                ? all5Mbps
-                  ? '데이터 소진 후 5Mbps 요금제를 제휴사마다 하나씩 골라 봤어요'
-                  : '제휴사마다 요금제를 하나씩 골라 봤어요'
-                : `${month}월, 제휴사가 추천하는 이달의 요금제 모음`}
-            </div>
-          </div>
-          <a className="see-all" href="#partners">
-            전체 요금제 보기 <Icon name="arrow_forward" />
-          </a>
-        </div>
-        <StateMessage loading={!data && (monthly.loading || postpaid.loading)} error={monthly.error ?? postpaid.error} empty={data?.length === 0} />
-        <div className="lp-pair">
-          {data?.map((p) => (
-            <PlanListCard key={p.id} plan={p} />
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
 
 /** 제휴사별 요금제 — 게시 중인 후불 요금제. [전체]는 제휴사마다 2개씩 한 줄, 제휴사 탭은 그 제휴사 전체 (낮은 가격순). */
 export function PartnerPlans() {
