@@ -48,8 +48,9 @@ public class ReviewController {
                                    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate collectedOn,
                                    @RequestParam(required = false) String partner,
                                    @RequestParam(required = false) String urlType,
+                                   @RequestParam(required = false) String changeType,
                                    @RequestParam(defaultValue = "1") int page) {
-        return reviewService.list(view, collectedOn, partner, urlType, page);
+        return reviewService.list(view, collectedOn, partner, urlType, changeType, page);
     }
 
     @GetMapping("/{id}")

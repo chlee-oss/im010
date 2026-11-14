@@ -41,7 +41,7 @@ public class ApprovalController {
     public ReviewService.Page list(@RequestParam(required = false) String partner,
                                    @RequestParam(required = false) String urlType,
                                    @RequestParam(defaultValue = "1") int page) {
-        return reviewService.list("REQUESTED", null, partner, urlType, page);
+        return reviewService.list("REQUESTED", null, partner, urlType, null, page);
     }
 
     @GetMapping("/{id}")

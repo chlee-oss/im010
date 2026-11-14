@@ -20,10 +20,12 @@ public interface ReviewMapper {
 
     List<ReviewItemRow> findItems(@Param("view") String view, @Param("collectedOn") LocalDate collectedOn,
                                   @Param("partnerCode") String partnerCode, @Param("urlType") String urlType,
+                                  @Param("changeType") String changeType,
                                   @Param("limit") int limit, @Param("offset") int offset);
 
     int countItems(@Param("view") String view, @Param("collectedOn") LocalDate collectedOn,
-                   @Param("partnerCode") String partnerCode, @Param("urlType") String urlType);
+                   @Param("partnerCode") String partnerCode, @Param("urlType") String urlType,
+                   @Param("changeType") String changeType);
 
     /** 화면 상단 건수: pending · pending_new · pending_changed · requested · unchanged · ended · excluded */
     Map<String, Long> countSummary(@Param("collectedOn") LocalDate collectedOn);
