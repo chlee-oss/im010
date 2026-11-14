@@ -61,10 +61,10 @@ class SeoSettingsServiceTest {
     @Test
     void pageKeysAreKnownServicePages() {
         assertThat(PageMeta.PAGES).extracting(PageMeta.Page::path)
-                .containsExactly("/postpaid", "/prepaid", "/internet", "/ai", "/faq");
+                .containsExactly("/weekly", "/find", "/postpaid", "/prepaid", "/internet", "/ai", "/faq");
         assertThat(PageMeta.known("prepaid")).isTrue();
         assertThat(PageMeta.known("plans")).isFalse();
-        assertThat(PageMeta.keys()).contains("seo_page_prepaid_title", "seo_page_faq_description").hasSize(10);
+        assertThat(PageMeta.keys()).contains("seo_page_prepaid_title", "seo_page_faq_description").hasSize(14);
     }
 
     @Test

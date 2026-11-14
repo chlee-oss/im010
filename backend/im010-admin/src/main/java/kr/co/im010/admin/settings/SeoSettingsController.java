@@ -38,7 +38,7 @@ public class SeoSettingsController {
         return service.save(body);
     }
 
-    /** 페이지별 제목 · 설명 (/postpaid · /prepaid · /internet · /ai · /faq) */
+    /** 페이지별 제목 · 설명 (/weekly · /find · /postpaid · /prepaid · /internet · /ai · /faq) */
     @GetMapping("/pages")
     @RequiresPermission(program = SeoSettingsService.PROGRAM, action = Action.VIEW)
     public PagesView pages() {

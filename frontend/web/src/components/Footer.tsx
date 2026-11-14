@@ -30,7 +30,8 @@ export default function Footer() {
           </div>
           <div className="footer-col">
             <h5>서비스</h5>
-            <a href="/#month">금주의 요금을 추천해요</a>
+            <a href="/weekly">금주의 요금을 추천해요</a>
+            <a href="/find">요금제 직접 찾기</a>
             <a href="/postpaid">요금제</a>
             <a href="/prepaid">선불요금제</a>
             <a href="/internet">인터넷</a>

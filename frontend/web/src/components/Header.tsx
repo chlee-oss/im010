@@ -8,9 +8,9 @@ import BrandMark from './BrandMark'
 import Icon from './Icon'
 
 // 1차: 마이페이지 · 로그인 · 선불 충전 메뉴 없음.
-// 요금제 · 선불요금제 · 인터넷은 서비스별 랜딩 주소(검색 결과에 따로 보이게), 나머지는 메인(/)의 앵커
+// 금주의 요금 · 요금제 · 선불요금제 · 인터넷은 서비스별 랜딩 주소(검색 결과에 따로 보이게), 나머지는 메인(/)의 앵커
 const SECTIONS = [
-  { href: '/#month', label: '금주의 요금을 추천해요' },
+  { href: '/weekly', label: '금주의 요금을 추천해요' },
   { href: '/postpaid', label: '요금제', dropdown: true },
   { href: '/prepaid', label: '선불요금제' },
   { href: '/internet', label: '인터넷' },
@@ -75,7 +75,7 @@ export default function Header() {
           </div>
         </nav>
         <div className="header-actions">
-          <a className="btn-primary" href="/#calc-section">
+          <a className="btn-primary" href="/find">
             요금제 비교하기
           </a>
           <button

@@ -40,7 +40,7 @@ export function WeeklyTabs() {
       <div className="wrap">
         <div className="weekly-head">
           <h2>
-            <span className="brand">im010</span> 금주의 요금을 추천해요
+            <span className="brand">im010</span> 금주의 요금, 이렇게 추천해요
           </h2>
         </div>
         <StateMessage

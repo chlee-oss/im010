@@ -82,6 +82,9 @@ public class SitemapService {
         List<Url> urls = new ArrayList<>();
         urls.add(new Url("/", max(latestPlan, posts.isEmpty() ? null : lastmod(posts.getFirst()))));
         // 서비스별 랜딩 (검색 결과에 서비스마다 따로 보이게) — 인터넷은 변경일을 따로 두지 않아 lastmod 없음
+        // /weekly · /find 는 후불 · 선불 요금제에서 고르므로 요금제 최신 수집일
+        urls.add(new Url("/weekly", latestPlan));
+        urls.add(new Url("/find", latest(postpaid)));
         urls.add(new Url("/postpaid", latest(postpaid)));
         urls.add(new Url("/prepaid", latest(prepaid)));
         urls.add(new Url("/internet", null));

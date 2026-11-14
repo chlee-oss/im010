@@ -31,7 +31,7 @@ export function InternetBanner() {
       <div className="wrap">
         <div className="internet-banner">
           <div>
-            <h3>인터넷도 im010에서 한 번에</h3>
+            <h2>인터넷도 im010에서 한 번에</h2>
             <p>SKT · KT · LG U+ · SKB(알뜰) 인터넷 상품을 비교하고, 마음에 드는 상품은 아정당 신청 페이지로 바로 연결해 드려요.</p>
             <a className="btn-primary" href="#internet-compare">
               인터넷 상품 보러가기
@@ -57,7 +57,7 @@ export function InternetProducts() {
       <div className="wrap">
         <div className="sec-head">
           <div>
-            <h2>인터넷 상품 비교</h2>
+            <h2>인터넷 상품 비교를 해 보세요</h2>
             <div className="sub">SKT · KT · LG U+ · SKB(알뜰) 인터넷 상품을 통신사별로 비교해보세요</div>
           </div>
         </div>

@@ -62,7 +62,7 @@ class SitemapServiceTest {
         List<SitemapService.Url> urls = service.urls();
 
         assertThat(urls).extracting(SitemapService.Url::path).containsExactly(
-                "/", "/postpaid", "/prepaid", "/internet", "/faq", "/ai", "/ai/mobile", "/ai/misc",
+                "/", "/weekly", "/find", "/postpaid", "/prepaid", "/internet", "/faq", "/ai", "/ai/mobile", "/ai/misc",
                 "/ai/posts/6/11%EC%9B%94%20%EC%9A%94%EA%B8%88%EC%A0%9C%20%26%20%ED%98%9C%ED%83%9D",
                 "/ai/posts/2/old-post", "/plans/29", "/plans/24");
         java.util.Map<String, LocalDate> lastmod = new java.util.HashMap<>();

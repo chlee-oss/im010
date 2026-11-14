@@ -56,16 +56,24 @@ export default function HomePage() {
               제휴사 {partners.length}곳 요금제를 같은 기준으로 비교해요
             </p>
           )}
+          {/* 섹션별 독립 주소 — 검색엔진이 메뉴 구조를 알 수 있게 일반 링크로 (서비스 랜딩) */}
+          <nav className="home-jump" aria-label="바로가기">
+            <Link to="/weekly">금주의 요금, 이렇게 추천해요</Link>
+            <Link to="/find">내가 찾는 요금제를 직접 찾아요</Link>
+            <Link to="/postpaid">입점한 제휴사에서 소개해요</Link>
+            <Link to="/prepaid">선불요금제를 알려 드릴게요</Link>
+            <Link to="/internet">인터넷도 im010에서 한 번에</Link>
+          </nav>
         </div>
       </section>
 
       <WeeklyTabs />
 
-      <section id="calc-section" aria-label="내 조건으로 직접 찾기">
+      <section id="calc-section" aria-label="내가 찾는 요금제를 직접 찾아요">
         <div className="wrap">
           <div className="calc-band">
             <div className="calc-copy">
-              <h2>내 조건으로 직접 찾기</h2>
+              <h2>내가 찾는 요금제를 직접 찾아요</h2>
               <p>데이터 사용량과 원하는 통신망만 알려 주세요. 제휴사 요금제 중 조건에 맞는 최저가를 바로 찾아 드려요.</p>
               <Calculator />
             </div>

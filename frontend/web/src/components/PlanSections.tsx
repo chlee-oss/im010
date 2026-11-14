@@ -39,7 +39,7 @@ export function PartnerPlans() {
       <div className="wrap">
         <div className="sec-head">
           <div>
-            <h2>제휴사별 요금제</h2>
+            <h2>입점한 제휴사에서 소개해요</h2>
             <div className="sub">{partners.size || 7}개 제휴 통신사 요금제를 브랜드별로 2개씩 모아봤어요 · 낮은 가격순</div>
           </div>
         </div>
@@ -109,7 +109,7 @@ export function PrepaidPlans() {
       <div className="wrap">
         <div className="sec-head">
           <div>
-            <h2>선불요금제</h2>
+            <h2>선불요금제를 알려 드릴게요</h2>
             <div className="sub">약정 없이 쓰는 선불 요금제 · 후불 요금제와 비교하지 않아요</div>
           </div>
         </div>

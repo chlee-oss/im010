@@ -378,9 +378,9 @@ fieldset.checks label { display: inline-flex; align-items: center; gap: 5px; fon
 .seo-pages { margin-top: 16px; }
 .seo-pages-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .seo-pages-head h2 { margin: 0; }
-.seo-page-row { display: grid; grid-template-columns: 160px minmax(0, 1fr) minmax(0, 1.4fr); gap: 14px; padding: 14px 0; border-top: 1px solid var(--gray-200); align-items: start; }
+.seo-page-row { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 10px 16px; padding: 14px 0; border-top: 1px solid var(--gray-200); align-items: start; }
 .seo-page-row .seo-field { margin-bottom: 0; }
-.seo-page-name { display: flex; flex-direction: column; gap: 4px; padding-top: 2px; font-size: 13px; }
+.seo-page-name { grid-row: span 2; display: flex; flex-direction: column; gap: 4px; padding-top: 2px; font-size: 13px; }
 .seo-page-name a { font-size: 12px; }
 @media (max-width: 1100px) { .seo-page-row { grid-template-columns: 1fr; } }
 .seo-preview h3 { font-size: 12px; font-weight: 700; color: var(--gray-500); margin: 4px 0 8px; }

@@ -113,3 +113,35 @@ export function headline(p) {
   const q = String(p.qos ?? '').match(/(\d+(?:\.\d+)?\s*[MK]bps)/i)
   return q && !/bps/i.test(data) ? `${data}+${q[1].replace(/\s+/g, '')}` : data
 }
+
+// ---------- 내가 찾는 요금제를 직접 찾아요 (/find) — 조건별 바로가기 ----------
+// 화면(pages/FindPage.tsx)과 미리 렌더링이 같이 쓴다. 후불 요금제만 (선불은 충전 금액 · 기간이 달라 같은 줄에 비교하지 않는다).
+// 조건마다 월 요금이 낮은 순으로 최대 limit 개. 같은 요금제가 여러 조건에 들어갈 수 있다. 맞는 요금제가 없는 조건은 뺀다.
+export const FIND_PRESETS = [
+  { key: 'unlimited', label: '데이터 무제한', desc: '기본 데이터가 무제한인 요금제', ok: (p) => p.unlimited },
+  { key: 'under10k', label: '월 1만원 이하', desc: '월 요금 10,000원 이하', ok: (p) => p.monthlyPrice != null && p.monthlyPrice <= 10000 },
+  { key: 'data10', label: '데이터 10GB 이상', desc: '기본 데이터 10GB 이상 (무제한 포함)', ok: (p) => p.unlimited || (p.dataGb ?? 0) >= 10 },
+  { key: 'skt', label: 'SKT망', desc: 'SKT 통신망을 쓰는 요금제', ok: (p) => p.network === 'SKT' },
+  { key: 'kt', label: 'KT망', desc: 'KT 통신망을 쓰는 요금제', ok: (p) => p.network === 'KT' },
+  { key: 'lgu', label: 'LG U+망', desc: 'LG U+ 통신망을 쓰는 요금제', ok: (p) => p.network === 'LGU' },
+  { key: '5g', label: '5G 요금제', desc: '5G 요금제', ok: (p) => p.generation === '5G' },
+]
+
+/** 조건별 요금제 (후불만, 월 요금 낮은 순 → 번호 작은 순) */
+export function pickFindPresets(plans, limit = 5) {
+  // 같은 제휴사 · 이름 · 요금이 여러 번 수집된 경우 하나만
+  const seen = new Set()
+  const postpaid = plans.filter((p) => {
+    if (p.planType !== 'POSTPAID' || p.monthlyPrice == null) return false
+    const k = p.partnerCode + '|' + p.name + '|' + p.monthlyPrice
+    if (seen.has(k)) return false
+    seen.add(k)
+    return true
+  })
+  return FIND_PRESETS.map((f) => ({
+    key: f.key,
+    label: f.label,
+    desc: f.desc,
+    plans: postpaid.filter(f.ok).sort((a, b) => a.monthlyPrice - b.monthlyPrice || a.id - b.id).slice(0, limit),
+  })).filter((g) => g.plans.length > 0)
+}

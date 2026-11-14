@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 const DEFAULT_BASE = 'im010 — 알뜰폰 요금비교'
 
 /** 검색엔진설정(ST-08) 페이지별 키 — 백오피스에서 제목을 바꿀 수 있는 화면 */
-export type MetaPage = 'postpaid' | 'prepaid' | 'internet' | 'ai' | 'faq'
+export type MetaPage = 'weekly' | 'find' | 'postpaid' | 'prepaid' | 'internet' | 'ai' | 'faq'
 
 interface SiteMeta {
   title?: string

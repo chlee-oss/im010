@@ -108,7 +108,7 @@ export default function Seo() {
       <p className="note">
         메인 화면(www.im010.co.kr)의 검색 결과 · 공유 미리보기 문구입니다. 저장하면 <b>1분 안에</b> 메인 화면에 반영되고, 매일 05:00 화면을 다시 만들 때도 이 값을 씁니다.
         <br />
-        서비스 화면(/postpaid 등) · FAQ · 알뜰AI 목록은 아래 <b>페이지별 제목 · 설명</b>에서, 요금제 상세 · 알뜰AI 글은 각자의 제목 · 설명을 씁니다. 검색엔진에는 다음 수집 때(보통 며칠) 반영되고, 카카오톡은 미리보기를 캐시하므로{' '}
+        서비스 화면(/weekly · /find · /postpaid 등) · FAQ · 알뜰AI 목록은 아래 <b>페이지별 제목 · 설명</b>에서, 요금제 상세 · 알뜰AI 글은 각자의 제목 · 설명을 씁니다. 검색엔진에는 다음 수집 때(보통 며칠) 반영되고, 카카오톡은 미리보기를 캐시하므로{' '}
         <a href="https://developers.kakao.com/tool/debugger/sharing" target="_blank" rel="noreferrer">
           카카오 공유 디버거
         </a>
@@ -206,7 +206,7 @@ export default function Seo() {
 type PageForm = Record<string, { title: string; description: string }>
 
 /**
- * 페이지별 제목 · 설명 (/postpaid · /prepaid · /internet · /ai · /faq).
+ * 페이지별 제목 · 설명 (/weekly · /find · /postpaid · /prepaid · /internet · /ai · /faq).
  * 비워 두면 자동 문구. 저장한 값은 매일 05:00 화면을 다시 만들 때(또는 배포 때) 반영된다.
  */
 function SeoPagesPanel({ canEdit }: { canEdit: boolean }) {

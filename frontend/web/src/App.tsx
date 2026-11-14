@@ -25,6 +25,8 @@ export default function App() {
         <main>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/weekly" element={<ServiceLandingPage key="weekly" service="weekly" />} />
+            <Route path="/find" element={<ServiceLandingPage key="find" service="find" />} />
             <Route path="/postpaid" element={<ServiceLandingPage key="postpaid" service="postpaid" />} />
             <Route path="/prepaid" element={<ServiceLandingPage key="prepaid" service="prepaid" />} />
             <Route path="/internet" element={<ServiceLandingPage key="internet" service="internet" />} />

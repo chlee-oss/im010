@@ -250,7 +250,7 @@ main > section:last-child{padding-bottom:64px;}
   content:""; position:absolute; right:-60px; top:-60px; width:240px; height:240px; border-radius:50%;
   background:radial-gradient(circle, rgba(30,91,216,0.28), transparent 70%);
 }
-.internet-banner h3{font-size:17px; font-weight:800; margin-bottom:8px;}
+.internet-banner h2, .internet-banner h3{font-size:17px; font-weight:800; margin-bottom:8px;}
 .internet-banner p{font-size:14px; color:rgba(255,255,255,0.85); margin-bottom:0; max-width:520px;}
 .internet-banner .btn-primary{background:#fff; color:var(--primary); box-shadow:none;}
 .internet-banner .btn-primary:hover{background:var(--primary-tint);}
@@ -385,3 +385,15 @@ footer{background:var(--ink); color:rgba(255,255,255,0.72); padding:48px 0 28px;
   .sec-head{flex-direction:column; align-items:flex-start;}
   .hero-sub br{display:none;}
 }
+
+/* ---------- 내가 찾는 요금제를 직접 찾아요 (/find) — 조건별 바로가기 ---------- */
+.find-jump{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px;}
+.find-jump a{padding:6px 12px; border:1px solid var(--gray-200); border-radius:999px; font-size:14px; font-weight:600; color:var(--gray-700); background:#fff;}
+.find-jump a:hover{border-color:var(--primary); color:var(--primary);}
+.find-group{margin-bottom:28px; scroll-margin-top:80px;}
+.find-group h3{font-size:16px; font-weight:700; margin-bottom:12px;}
+.find-group h3 .muted{font-size:13px; font-weight:500; color:var(--gray-500); margin-left:6px;}
+/* 메인 소개 아래 바로가기 (서비스 랜딩 주소) */
+.home-jump{display:flex; flex-wrap:wrap; gap:8px; margin-top:16px;}
+.home-jump a{padding:6px 12px; border-radius:999px; background:#fff; border:1px solid var(--gray-200); font-size:14px; font-weight:600; color:var(--gray-700);}
+.home-jump a:hover{border-color:var(--primary); color:var(--primary);}

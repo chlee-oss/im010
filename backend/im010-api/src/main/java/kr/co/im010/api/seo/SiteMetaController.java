@@ -29,7 +29,7 @@ public class SiteMetaController {
 
     /**
      * 화면 · 미리 렌더링에 그대로 쓰는 값 (OG 는 비어 있으면 사이트 제목 · 설명으로 채운 값).
-     * pages = 페이지별 제목 · 설명 (postpaid · prepaid · internet · ai · faq). 빈 문자열이면 자동 문구
+     * pages = 페이지별 제목 · 설명 (weekly · find · postpaid · prepaid · internet · ai · faq). 빈 문자열이면 자동 문구
      */
     public record SiteMetaView(String title, String description, String ogTitle, String ogDescription,
                                Map<String, PageView> pages) {
