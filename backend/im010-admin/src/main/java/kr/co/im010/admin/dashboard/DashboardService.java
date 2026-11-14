@@ -56,7 +56,25 @@ public class DashboardService {
     }
 
     public record Summary(Range range, Settings settings, Totals current, Totals previous, List<Daily> daily, List<Visit> byRef,
-                          List<Visit> byDevice, List<PageStat> pages, List<PlanStat> topPlans, List<PostStat> topPosts) {
+                          List<Visit> byDevice, List<PageStat> pages, List<PlanStat> topPlans, List<PostStat> topPosts,
+                          KeyView key) {
+    }
+
+    /**
+     * 핵심 지표 (검색 유입 · 제휴사 이동 · 선불 비중).
+     * searchSessions = 검색으로 들어온 세션, planOutbounds = 요금제 개통하기, internetOutbounds = 인터넷 상담 신청 이동
+     * (이동 안내 화면 조회 − 요금제 개통하기), prepaid* = 선불 요금제의 조회 · 개통하기
+     */
+    public record KeyMetrics(long searchSessions, long planViews, long prepaidViews, long planOutbounds, long prepaidOutbounds,
+                             long internetOutbounds) {
+    }
+
+    /** 요금제 구분(선불 · 후불)별 합계 */
+    public record TypeStat(String planType, long views, long outbounds) {
+    }
+
+    public record KeyView(KeyMetrics current, KeyMetrics previous, List<Interest> searchEngines, List<Interest> searchLandings,
+                          List<PartnerStat> partners, List<TypeStat> planTypes) {
     }
 
     /** 제휴사 합계 */
@@ -111,10 +129,51 @@ public class DashboardService {
 
     public Summary summary(Range r) {
         Range prev = new Range(r.from().minusDays(r.days()), r.from().minusDays(1), r.device());
-        return new Summary(r, settings(), totals(r), totals(prev), mapper.daily(r.from(), r.to(), r.device()),
-                mapper.visitByRef(r.from(), r.to(), r.device()), mapper.visitByDevice(r.from(), r.to()),
-                mapper.pages(r.from(), r.to(), r.device()), mapper.plans(r.from(), r.to(), r.device(), 5),
-                mapper.posts(r.from(), r.to(), r.device(), 5));
+        List<PlanStat> plans = mapper.plans(r.from(), r.to(), r.device(), null);
+        List<PlanStat> prevPlans = mapper.plans(prev.from(), prev.to(), prev.device(), null);
+        List<Visit> byRef = mapper.visitByRef(r.from(), r.to(), r.device());
+        List<PageStat> pages = mapper.pages(r.from(), r.to(), r.device());
+        Map<String, List<Interest>> dims = byDim(mapper.interests(r.from(), r.to(), r.device()));
+        KeyView key = new KeyView(
+                keyMetrics(plans, byRef, pages),
+                keyMetrics(prevPlans, mapper.visitByRef(prev.from(), prev.to(), prev.device()),
+                        mapper.pages(prev.from(), prev.to(), prev.device())),
+                dims.getOrDefault("SEARCH_ENGINE", List.of()), dims.getOrDefault("SEARCH_LANDING", List.of()),
+                partners(plans).stream().filter(p -> p.outbounds() > 0)
+                        .sorted((a, b) -> Long.compare(b.outbounds(), a.outbounds())).toList(),
+                planTypes(plans));
+        return new Summary(r, settings(), totals(r, plans), totals(prev, prevPlans), mapper.daily(r.from(), r.to(), r.device()),
+                byRef, mapper.visitByDevice(r.from(), r.to()), pages, plans.stream().limit(5).toList(),
+                mapper.posts(r.from(), r.to(), r.device(), 5), key);
+    }
+
+    static KeyMetrics keyMetrics(List<PlanStat> plans, List<Visit> byRef, List<PageStat> pages) {
+        long search = byRef.stream().filter(v -> "SEARCH".equals(v.key())).mapToLong(Visit::sessions).sum();
+        long views = 0;
+        long prepaidViews = 0;
+        long outbounds = 0;
+        long prepaidOutbounds = 0;
+        for (PlanStat p : plans) {
+            views += p.views();
+            outbounds += p.outbounds();
+            if ("PREPAID".equals(p.planType())) {
+                prepaidViews += p.views();
+                prepaidOutbounds += p.outbounds();
+            }
+        }
+        long outPage = pages.stream().filter(p -> "OUT".equals(p.pageType())).mapToLong(PageStat::views).sum();
+        return new KeyMetrics(search, views, prepaidViews, outbounds, prepaidOutbounds, Math.max(0, outPage - outbounds));
+    }
+
+    static List<TypeStat> planTypes(List<PlanStat> plans) {
+        Map<String, long[]> sum = new LinkedHashMap<>();
+        for (PlanStat p : plans) {
+            long[] s = sum.computeIfAbsent(p.planType() == null ? "UNKNOWN" : p.planType(), k -> new long[2]);
+            s[0] += p.views();
+            s[1] += p.outbounds();
+        }
+        return sum.entrySet().stream().map(e -> new TypeStat(e.getKey(), e.getValue()[0], e.getValue()[1]))
+                .sorted((a, b) -> Long.compare(b.views(), a.views())).toList();
     }
 
     public InterestView interest(Range r) {
@@ -145,12 +204,12 @@ public class DashboardService {
         return mapper.daily(r.from(), r.to(), r.device());
     }
 
-    private Totals totals(Range r) {
+    private Totals totals(Range r, List<PlanStat> plans) {
         Visit v = mapper.visitTotal(r.from(), r.to(), r.device());
         long views = 0;
         long clicks = 0;
         long outbounds = 0;
-        for (PlanStat p : mapper.plans(r.from(), r.to(), r.device(), null)) {
+        for (PlanStat p : plans) {
             views += p.views();
             clicks += p.clicks();
             outbounds += p.outbounds();

@@ -81,6 +81,17 @@ class AnalyticsServiceTest {
     }
 
     @Test
+    void acceptsServiceLandingPagesAndSearchEngine() {
+        List<Event> rows = AnalyticsService.toRows(batch(
+                new In("page_view", "/prepaid", "PREPAID", null, null, null, Map.of("engine", "naver")),
+                new In("page_view", "/postpaid", "POSTPAID", null, null, null, null),
+                new In("page_view", "/internet", "INTERNET", null, null, null, null)), DAY);
+
+        assertThat(rows).extracting(Event::pageType).containsExactly("PREPAID", "POSTPAID", "INTERNET");
+        assertThat(rows.get(0).propsJson()).isEqualTo("{\"engine\":\"naver\"}");
+    }
+
+    @Test
     void detectsBotsAndMissingUserAgent() {
         assertThat(AnalyticsService.isBot("Mozilla/5.0 (compatible; Googlebot/2.1)")).isTrue();
         assertThat(AnalyticsService.isBot("Yeti/1.1 (NHN Corp.; crawler)")).isTrue();

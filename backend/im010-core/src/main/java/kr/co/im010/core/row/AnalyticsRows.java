@@ -20,8 +20,8 @@ public final class AnalyticsRows {
     public record Visit(String key, long visitors, long newVisitors, long sessions, long pageViews) {
     }
 
-    /** 일별 추이 */
-    public record Daily(LocalDate day, long visitors, long pageViews, long planViews, long outbounds) {
+    /** 일별 추이 (searchSessions = 검색 유입 세션) */
+    public record Daily(LocalDate day, long visitors, long pageViews, long planViews, long outbounds, long searchSessions) {
     }
 
     /** 요금제별 조회 · 클릭 · 개통하기 */

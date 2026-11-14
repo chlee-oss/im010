@@ -70,6 +70,8 @@
         CLICK_POS                              클릭한 위치 (HERO · MONTHLY · PARTNER · PREPAID · SIMILAR · AI_POST …)
         VIEW_NETWORK · VIEW_GEN · VIEW_TYPE · VIEW_PARTNER · VIEW_DATA · VIEW_PRICE   본 요금제의 조건
         INTERNET_CARRIER · INTERNET_TYPE       인터넷 상담 신청 이동 (/out, kind=internet)
+        SEARCH_ENGINE                          검색 유입 세션의 검색엔진 (naver · google · daum · bing · other, 모름 = unknown)
+        SEARCH_LANDING                         검색 유입 세션이 처음 본 화면 (page_type)
     -->
     <insert id="aggregateInterest">
         INSERT INTO stat_daily_interest (day, device, dim, value, cnt)
@@ -118,6 +120,20 @@
             CROSS JOIN LATERAL (VALUES ('INTERNET_CARRIER', ip.carrier), ('INTERNET_TYPE', ip.product_type)) AS d(dim, value)
             WHERE x.name = 'page_view' AND x.page_type = 'OUT' AND x.props->>'kind' = 'internet'
               AND x.props->>'id' ~ '^[0-9]{1,18}$'
+            UNION ALL
+            SELECT s.device, 'SEARCH_ENGINE', s.engine
+            FROM (
+                SELECT min(device) AS device, COALESCE(max(props->>'engine'), 'unknown') AS engine
+                FROM e WHERE ref_type = 'SEARCH' AND name = 'page_view'
+                GROUP BY session_id
+            ) s
+            UNION ALL
+            SELECT f.device, 'SEARCH_LANDING', f.page_type
+            FROM (
+                SELECT DISTINCT ON (session_id) device, page_type
+                FROM e WHERE ref_type = 'SEARCH' AND name = 'page_view'
+                ORDER BY session_id, occurred_at, id
+            ) f
         )
         SELECT #{day}, COALESCE(device, 'ALL'), dim, left(value, 50), count(*)
         FROM base
@@ -179,9 +195,11 @@
                COALESCE(v.visitors, 0)::BIGINT AS visitors,
                COALESCE(v.page_views, 0)::BIGINT AS page_views,
                COALESCE(p.views, 0)::BIGINT AS plan_views,
-               COALESCE(p.outbounds, 0)::BIGINT AS outbounds
+               COALESCE(p.outbounds, 0)::BIGINT AS outbounds,
+               COALESCE(s.sessions, 0)::BIGINT AS search_sessions
         FROM generate_series(#{from}::DATE, #{to}::DATE, INTERVAL '1 day') AS d
         LEFT JOIN stat_daily_visit v ON v.day = d::DATE AND v.device = #{device} AND v.ref_type = 'ALL'
+        LEFT JOIN stat_daily_visit s ON s.day = d::DATE AND s.device = #{device} AND s.ref_type = 'SEARCH'
         LEFT JOIN (
             SELECT day, sum(views) AS views, sum(outbounds) AS outbounds
             FROM stat_daily_plan

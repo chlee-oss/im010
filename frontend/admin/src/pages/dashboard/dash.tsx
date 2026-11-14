@@ -242,6 +242,11 @@ export const REF: Record<string, string> = { SEARCH: '검색', SOCIAL: '소셜 �
 export const DEVICE: Record<string, string> = { PC: 'PC', MO: '모바일' }
 export const PAGE: Record<string, string> = {
   HOME: '메인',
+  WEEKLY: '금주의 요금 추천 (/weekly)',
+  FIND: '요금제 직접 찾기 (/find)',
+  POSTPAID: '제휴사 후불 요금제 (/postpaid)',
+  PREPAID: '선불요금제 (/prepaid)',
+  INTERNET: '인터넷 (/internet)',
   PLAN: '요금제 상세',
   AI_LIST: '알뜰AI 목록',
   AI_POST: '알뜰AI 글',
