@@ -33,6 +33,7 @@ function AiList() {
   // 카테고리 이름을 받는 동안(null)은 미리 렌더링한 제목을 그대로 둔다
   usePageTitle(current ? `${current.name} · 알뜰AI` : category ? (categories.data ? '알뜰AI' : null) : 'im010 - 나는 알뜰한 통신경험을 원해!', {
     raw: !category,
+    page: category ? undefined : 'ai',
   })
 
   const first = useApi(

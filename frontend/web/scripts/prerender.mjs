@@ -308,10 +308,23 @@ const { categories } = data
   ])
 }
 
+/**
+ * 검색엔진설정(ST-08) 페이지별 제목 · 설명. 비어 있으면 자동 문구.
+ * 설명의 {개수} · {제휴사수} 는 게시 중인 수로 바꾼다.
+ */
+const pageMeta = (key, auto, vars = {}) => {
+  const m = data.siteMeta.pages?.[key] ?? {}
+  const description = m.description
+    ? oneLine(m.description.replaceAll('{개수}', String(vars.count ?? '')).replaceAll('{제휴사수}', String(vars.partners ?? '')))
+    : auto.description
+  return { title: m.title || auto.title, description }
+}
+
 // 서비스별 랜딩 (/postpaid · /prepaid · /internet) — /ai 는 아래 알뜰AI 목록
 {
-  const servicePage = (key, intro, sections, description) => {
+  const servicePage = (key, intro, sections, autoDescription, vars) => {
     const s = SERVICES[key]
+    const { title, description } = pageMeta(key, { title: s.title, description: autoDescription }, vars)
     const main = `
 <section class="pre-page"><div class="wrap">
   <nav class="breadcrumb" aria-label="현재 위치"><a href="/">홈</a> › ${esc(s.h1)}</nav>
@@ -320,7 +333,7 @@ const { categories } = data
   <nav aria-label="서비스">${SERVICE_LINKS}</nav>
   ${sections}
 </div></section>`
-    files.push([`${s.path.slice(1)}/index.html`, page({ path: s.path, title: s.title, description, body: layout(main, categories) })])
+    files.push([`${s.path.slice(1)}/index.html`, page({ path: s.path, title, description, body: layout(main, categories) })])
   }
   const n = (arr) => arr.length.toLocaleString('ko-KR')
   const postpaidPartners = new Set(data.postpaid.map((p) => p.partnerCode)).size
@@ -336,6 +349,7 @@ const { categories } = data
     data.postpaid.length
       ? `${postpaidPartners}개 제휴사 후불 알뜰폰 요금제 ${n(data.postpaid)}개를 월 요금 · 데이터 · 통신망별로 비교해 보세요.`
       : '제휴사 후불 알뜰폰 요금제를 월 요금 · 데이터 · 통신망별로 비교해 보세요.',
+    { count: n(data.postpaid), partners: postpaidPartners },
   )
   servicePage(
     'prepaid',
@@ -344,6 +358,7 @@ const { categories } = data
     data.prepaid.length
       ? `${prepaidPartners}개 제휴사 선불 알뜰폰 요금제 ${n(data.prepaid)}개를 충전 금액 · 사용 기간 · 데이터별로 비교해 보세요.`
       : '제휴사 선불 알뜰폰 요금제를 충전 금액 · 사용 기간 · 데이터별로 비교해 보세요.',
+    { count: n(data.prepaid), partners: prepaidPartners },
   )
   const single = data.internet.filter((i) => i.productType === 'SINGLE')
   const bundle = data.internet.filter((i) => i.productType === 'BUNDLE')
@@ -358,6 +373,7 @@ const { categories } = data
     data.internet.length
       ? `인터넷 단독 · 인터넷 + TV 결합 상품 ${n(data.internet)}개의 월 요금과 혜택을 통신사별로 비교해 보세요.`
       : '인터넷 단독 · 인터넷 + TV 결합 상품의 월 요금과 혜택을 통신사별로 비교해 보세요.',
+    { count: n(data.internet), partners: new Set(data.internet.map((i) => i.carrierLabel)).size },
   )
 }
 
@@ -372,8 +388,10 @@ const { categories } = data
     'faq/index.html',
     page({
       path: '/faq',
-      title: '자주 묻는 질문 | im010',
-      description: '알뜰폰 개통 · 요금제 · 선불폰 이용에 대해 자주 묻는 질문과 답변을 모았어요.',
+      ...pageMeta('faq', {
+        title: '자주 묻는 질문 | im010',
+        description: '알뜰폰 개통 · 요금제 · 선불폰 이용에 대해 자주 묻는 질문과 답변을 모았어요.',
+      }, { count: data.faqs.length }),
       body: layout(main, categories),
       jsonLd: data.faqs.length
         ? [{
@@ -398,16 +416,20 @@ for (const cat of [null, ...categories]) {
   <nav aria-label="카테고리"><a href="/ai">전체</a> · ${categories.map((c) => `<a href="/ai/${esc(c.slug)}">${esc(c.name)}</a>`).join(' · ')}</nav>
   ${list.length ? `<ul>${list.map(cardItem).join('')}</ul>` : '<p>아직 게시된 글이 없어요.</p>'}
 </div></section>`
+  const auto = {
+    // 전체 목록(/ai)은 서비스 랜딩 제목 그대로
+    title: cat ? `${name} | im010` : SERVICES.ai.title,
+    description: fit([
+      cat ? `${cat.name} 소식을 1분 안에 읽을 수 있게 정리했어요.` : '알뜰폰 · 인터넷 요금과 혜택 소식을 1분 안에 읽을 수 있게 정리했어요.',
+      list.length ? ` 최신 글: ${list[0].title}` : '',
+    ]),
+  }
   files.push([
     `${path.slice(1)}/index.html`,
     page({
       path,
-      // 전체 목록(/ai)은 서비스 랜딩 제목 그대로
-      title: cat ? `${name} | im010` : SERVICES.ai.title,
-      description: fit([
-        cat ? `${cat.name} 소식을 1분 안에 읽을 수 있게 정리했어요.` : '알뜰폰 · 인터넷 요금과 혜택 소식을 1분 안에 읽을 수 있게 정리했어요.',
-        list.length ? ` 최신 글: ${list[0].title}` : '',
-      ]),
+      // 검색엔진설정의 알뜰AI 제목 · 설명은 전체 목록(/ai)에만 쓴다 (카테고리 목록은 자동)
+      ...(cat ? auto : pageMeta('ai', auto, { count: list.length })),
       body: layout(main, categories),
     }),
   ])

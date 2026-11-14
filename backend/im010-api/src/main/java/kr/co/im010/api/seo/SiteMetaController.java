@@ -1,6 +1,8 @@
 package kr.co.im010.api.seo;
 
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.http.CacheControl;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import kr.co.im010.api.seo.SiteMetaService.Page;
+import kr.co.im010.core.content.PageMeta;
 import kr.co.im010.core.content.SiteMeta;
 
 /**
@@ -24,12 +27,21 @@ public class SiteMetaController {
     private static final MediaType HTML_UTF8 = new MediaType("text", "html", StandardCharsets.UTF_8);
     private static final CacheControl META_CACHE = CacheControl.maxAge(1, TimeUnit.MINUTES).cachePublic();
 
-    /** 화면 · 미리 렌더링에 그대로 쓰는 값 (OG 는 비어 있으면 사이트 제목 · 설명으로 채운 값) */
-    public record SiteMetaView(String title, String description, String ogTitle, String ogDescription) {
+    /**
+     * 화면 · 미리 렌더링에 그대로 쓰는 값 (OG 는 비어 있으면 사이트 제목 · 설명으로 채운 값).
+     * pages = 페이지별 제목 · 설명 (postpaid · prepaid · internet · ai · faq). 빈 문자열이면 자동 문구
+     */
+    public record SiteMetaView(String title, String description, String ogTitle, String ogDescription,
+                               Map<String, PageView> pages) {
 
-        static SiteMetaView of(SiteMeta m) {
-            return new SiteMetaView(m.title(), m.description(), m.effectiveOgTitle(), m.effectiveOgDescription());
+        static SiteMetaView of(SiteMeta m, Map<String, PageMeta> pages) {
+            Map<String, PageView> p = new LinkedHashMap<>();
+            pages.forEach((k, v) -> p.put(k, new PageView(v.title(), v.description())));
+            return new SiteMetaView(m.title(), m.description(), m.effectiveOgTitle(), m.effectiveOgDescription(), p);
         }
+    }
+
+    public record PageView(String title, String description) {
     }
 
     private final SiteMetaService service;
@@ -40,7 +52,7 @@ public class SiteMetaController {
 
     @GetMapping("/api/site-meta")
     public ResponseEntity<SiteMetaView> meta() {
-        return ResponseEntity.ok().cacheControl(META_CACHE).body(SiteMetaView.of(service.current()));
+        return ResponseEntity.ok().cacheControl(META_CACHE).body(SiteMetaView.of(service.current(), service.pages()));
     }
 
     @GetMapping("/api/site-html/{page}")

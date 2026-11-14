@@ -624,6 +624,25 @@ export interface DashContent {
 
 // ---------- 환경설정 > 검색엔진설정 (ST-08) ----------
 
+/** 페이지별 제목 · 설명 (빈 문자열 = 자동 문구) */
+export interface SeoPage {
+  key: string
+  path: string
+  name: string
+  title: string
+  description: string
+  defaultTitle: string
+  /** {개수} · {제휴사수} 는 미리 렌더링 때 게시 중인 수로 바뀐다 */
+  defaultDescription: string
+}
+
+export interface SeoPages {
+  pages: SeoPage[]
+  limits: { titleMax: number; descriptionMax: number }
+  updatedBy: string | null
+  updatedAt: string | null
+}
+
 export interface SeoSettings {
   title: string
   description: string

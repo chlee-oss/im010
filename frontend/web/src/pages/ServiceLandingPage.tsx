@@ -34,7 +34,7 @@ const SERVICE_PAGES: Record<ServiceKey, { path: string; title: string; h1: strin
 
 export default function ServiceLandingPage({ service }: { service: ServiceKey }) {
   const page = SERVICE_PAGES[service]
-  usePageTitle(page.title, { raw: true })
+  usePageTitle(page.title, { raw: true, page: service })
   const { hash } = useLocation()
 
   // /postpaid#partners 처럼 섹션 주소로 들어오면 그 섹션으로 (메인과 같은 방식)

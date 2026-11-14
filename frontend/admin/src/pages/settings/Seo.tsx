@@ -4,7 +4,7 @@ import { get, put } from '../../lib/api'
 import { fullDateTime } from '../../lib/format'
 import { useMe } from '../../lib/me'
 import { useRun } from '../../lib/notice'
-import type { SeoSettings } from '../../lib/types'
+import type { SeoPage, SeoPages, SeoSettings } from '../../lib/types'
 import { useLoad } from '../../lib/useLoad'
 
 type Form = Pick<SeoSettings, 'title' | 'description' | 'ogTitle' | 'ogDescription'>
@@ -108,7 +108,7 @@ export default function Seo() {
       <p className="note">
         메인 화면(www.im010.co.kr)의 검색 결과 · 공유 미리보기 문구입니다. 저장하면 <b>1분 안에</b> 메인 화면에 반영되고, 매일 05:00 화면을 다시 만들 때도 이 값을 씁니다.
         <br />
-        요금제 상세 · 알뜰AI 글 · 서비스 화면(/postpaid 등)은 각자의 제목 · 설명을 씁니다. 검색엔진에는 다음 수집 때(보통 며칠) 반영되고, 카카오톡은 미리보기를 캐시하므로{' '}
+        서비스 화면(/postpaid 등) · FAQ · 알뜰AI 목록은 아래 <b>페이지별 제목 · 설명</b>에서, 요금제 상세 · 알뜰AI 글은 각자의 제목 · 설명을 씁니다. 검색엔진에는 다음 수집 때(보통 며칠) 반영되고, 카카오톡은 미리보기를 캐시하므로{' '}
         <a href="https://developers.kakao.com/tool/debugger/sharing" target="_blank" rel="noreferrer">
           카카오 공유 디버거
         </a>
@@ -198,6 +198,102 @@ export default function Seo() {
           </div>
         </section>
       </div>
+      <SeoPagesPanel canEdit={can('ST-08', 'EDIT')} />
     </>
+  )
+}
+
+type PageForm = Record<string, { title: string; description: string }>
+
+/**
+ * 페이지별 제목 · 설명 (/postpaid · /prepaid · /internet · /ai · /faq).
+ * 비워 두면 자동 문구. 저장한 값은 매일 05:00 화면을 다시 만들 때(또는 배포 때) 반영된다.
+ */
+function SeoPagesPanel({ canEdit }: { canEdit: boolean }) {
+  const { run, busy } = useRun()
+  const { data, error, setData } = useLoad(() => get<SeoPages>('/settings/seo/pages'), [])
+  const [form, setForm] = useState<PageForm | null>(null)
+
+  if (!data) return <Loading error={error} />
+  const { titleMax, descriptionMax } = data.limits
+  const value = (p: SeoPage) => form?.[p.key] ?? { title: p.title, description: p.description }
+  const set = (key: string, patch: Partial<{ title: string; description: string }>) =>
+    form && setForm({ ...form, [key]: { ...form[key], ...patch } })
+  const invalid =
+    !!form &&
+    Object.values(form).some(
+      (f) => count(f.title) > titleMax || count(f.description) > descriptionMax || /[<>]/.test(f.title + f.description),
+    )
+
+  const edit = () => setForm(Object.fromEntries(data.pages.map((p) => [p.key, { title: p.title, description: p.description }])))
+  const save = () =>
+    run(
+      () => put<SeoPages>('/settings/seo/pages', Object.entries(form ?? {}).map(([key, f]) => ({ key, ...f }))),
+      () => '저장했습니다 — 매일 05:00 화면을 다시 만들 때 반영됩니다',
+    ).then((r) => {
+      if (r) {
+        setData(r)
+        setForm(null)
+      }
+    })
+
+  return (
+    <section className="panel seo-pages">
+      <div className="seo-pages-head">
+        <h2>페이지별 제목 · 설명</h2>
+        {canEdit && !form && <button onClick={edit}>수정</button>}
+      </div>
+      <p className="note">
+        메뉴 페이지마다 검색 결과에 보일 제목 · 설명입니다. <b>비워 두면 자동 문구</b>(회색 글씨)를 씁니다. 설명에 <code>{'{개수}'}</code> ·{' '}
+        <code>{'{제휴사수}'}</code> 를 넣으면 게시 중인 요금제(상품) 수 · 제휴사 수로 바뀝니다.
+        <br />
+        저장한 값은 <b>매일 05:00</b> 화면을 다시 만들 때 반영되고, 검색엔진에는 다음 수집 때(보통 며칠) 바뀝니다.
+      </p>
+      {data.pages.map((p) => {
+        const v = value(p)
+        return (
+          <div key={p.key} className="seo-page-row">
+            <div className="seo-page-name">
+              <b>{p.name}</b>
+              <a href={`https://www.im010.co.kr${p.path}`} target="_blank" rel="noreferrer" className="muted">
+                {p.path}
+              </a>
+            </div>
+            <Field
+              label="제목"
+              hint="검색 결과 제목 (<title>)"
+              value={v.title}
+              max={titleMax}
+              recommend={40}
+              disabled={!form}
+              placeholder={p.defaultTitle}
+              onChange={(t) => set(p.key, { title: t })}
+            />
+            <Field
+              label="설명"
+              hint="검색 결과 제목 아래 설명 (meta description)"
+              value={v.description}
+              max={descriptionMax}
+              recommend={descriptionMax}
+              multiline
+              disabled={!form}
+              placeholder={p.defaultDescription}
+              onChange={(t) => set(p.key, { description: t })}
+            />
+          </div>
+        )
+      })}
+      {form && (
+        <div className="actions">
+          <button onClick={() => setForm(null)}>취소</button>
+          <button className="primary" disabled={busy || invalid} onClick={() => void save()}>
+            저장
+          </button>
+        </div>
+      )}
+      <p className="muted seo-updated">
+        마지막 저장 {data.updatedAt ? `${fullDateTime(data.updatedAt)} · ${data.updatedBy}` : '없음 (모두 자동 문구)'} · 변경 내용은 접속이력관리에 남습니다
+      </p>
+    </section>
   )
 }
