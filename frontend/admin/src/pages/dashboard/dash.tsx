@@ -242,6 +242,9 @@ export const REF: Record<string, string> = { SEARCH: '검색', SOCIAL: '소셜 �
 export const DEVICE: Record<string, string> = { PC: 'PC', MO: '모바일' }
 export const PAGE: Record<string, string> = {
   HOME: '메인',
+  POSTPAID: '후불 요금제 (/postpaid)',
+  PREPAID: '선불 요금제 (/prepaid)',
+  INTERNET: '인터넷 (/internet)',
   PLAN: '요금제 상세',
   AI_LIST: '알뜰AI 목록',
   AI_POST: '알뜰AI 글',

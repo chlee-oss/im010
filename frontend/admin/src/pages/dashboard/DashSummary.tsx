@@ -7,7 +7,92 @@ import type { DashSummary as Data } from '../../lib/types'
 import { useLoad } from '../../lib/useLoad'
 import { BarList, Card, CollectBar, DashFilter, DEVICE, Kpi, LineChart, PAGE, REF, n, pct, seconds, useDashQuery } from './dash'
 
-/** DS-01 대시보드 요약: 방문 · 요금제 조회 · 개통하기 · 유입 · 기기 · 화면 · 인기 요금제 · 인기 글 */
+const ENGINE: Record<string, string> = {
+  naver: '네이버',
+  google: '구글',
+  daum: '다음',
+  bing: 'Bing',
+  other: '기타 검색',
+  unknown: '구분 전 수집분',
+}
+const PLAN_TYPE: Record<string, string> = { PREPAID: '선불', POSTPAID: '후불', UNKNOWN: '(알 수 없음)' }
+
+const share = (part: number, whole: number) => (whole ? (part * 100) / whole : 0)
+
+/** 핵심 지표: 검색 유입 · 제휴사 이동 · 선불 비중 (직전 같은 기간과 비교) */
+function KeySection({ data }: { data: Data }) {
+  const { current: c, previous: p, searchEngines, searchLandings, partners, planTypes } = data.key
+  return (
+    <div className="dash-grid">
+      <Card title="핵심 지표" note="검색 유입 · 제휴사 이동 · 선불 비중" wide>
+        <div className="kpi-row">
+          <Kpi label="검색 유입" value={c.searchSessions} prev={p.searchSessions} hint="구글 · 네이버 등 검색으로 들어온 세션" />
+          <Kpi
+            label="제휴사 이동"
+            value={c.planOutbounds + c.internetOutbounds}
+            prev={p.planOutbounds + p.internetOutbounds}
+            hint="요금제 개통하기 + 인터넷 상담 신청 → 이동 안내 화면까지 간 횟수"
+          />
+          <Kpi label="요금제 개통하기" value={c.planOutbounds} prev={p.planOutbounds} />
+          <Kpi label="인터넷 상담 신청" value={c.internetOutbounds} prev={p.internetOutbounds} />
+          <Kpi
+            label="선불 조회 비중"
+            value={share(c.prepaidViews, c.planViews)}
+            prev={share(p.prepaidViews, p.planViews)}
+            suffix="%"
+            hint="선불 요금제 상세 조회 ÷ 전체 요금제 상세 조회"
+          />
+          <Kpi
+            label="선불 개통 비중"
+            value={share(c.prepaidOutbounds, c.planOutbounds)}
+            prev={share(p.prepaidOutbounds, p.planOutbounds)}
+            suffix="%"
+            hint="선불 요금제 개통하기 ÷ 전체 요금제 개통하기"
+          />
+        </div>
+      </Card>
+      <Card title="검색엔진별 유입" note="세션 기준">
+        <BarList rows={searchEngines.map((r) => ({ label: ENGINE[r.value] ?? r.value, value: r.cnt }))} />
+      </Card>
+      <Card title="검색으로 처음 본 화면" note="세션 기준">
+        <BarList rows={searchLandings.map((r) => ({ label: PAGE[r.value] ?? r.value, value: r.cnt }))} />
+      </Card>
+      <Card title="제휴사별 이동" note="요금제 개통하기 기준">
+        <BarList
+          rows={partners.map((r) => ({ label: r.partnerName, value: r.outbounds, sub: `조회 ${n(r.views)} · 전환 ${pct(r.outbounds, r.views)}` }))}
+        />
+      </Card>
+      <Card title="선불 · 후불" note="요금제 조회 · 개통하기">
+        {planTypes.length === 0 ? (
+          <div className="dash-empty">아직 데이터가 없습니다</div>
+        ) : (
+          <table className="grid">
+            <thead>
+              <tr>
+                <th>구분</th>
+                <th className="num">조회</th>
+                <th className="num">개통하기</th>
+                <th className="num">전환율</th>
+              </tr>
+            </thead>
+            <tbody>
+              {planTypes.map((t) => (
+                <tr key={t.planType}>
+                  <td>{PLAN_TYPE[t.planType] ?? t.planType}</td>
+                  <td className="num">{n(t.views)}</td>
+                  <td className="num">{n(t.outbounds)}</td>
+                  <td className="num">{pct(t.outbounds, t.views)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Card>
+    </div>
+  )
+}
+
+/** DS-01 대시보드 요약: 핵심 지표 · 방문 · 요금제 조회 · 개통하기 · 유입 · 기기 · 화면 · 인기 요금제 · 인기 글 */
 export default function DashSummary() {
   const { can } = useMe()
   const { q, setQ, params } = useDashQuery()
@@ -22,7 +107,8 @@ export default function DashSummary() {
       ) : (
         <>
           <CollectBar settings={data.settings} onChange={(s) => setData({ ...data, settings: s })} />
-          <div className="kpi-row">
+          <KeySection data={data} />
+          <div className="kpi-row" style={{ marginTop: 14 }}>
             <Kpi label="방문자" value={data.current.visitors} prev={data.previous.visitors} hint="날마다 센 순방문자의 합" />
             <Kpi label="신규 방문자" value={data.current.newVisitors} prev={data.previous.newVisitors} />
             <Kpi label="페이지뷰" value={data.current.pageViews} prev={data.previous.pageViews} />
@@ -46,6 +132,12 @@ export default function DashSummary() {
                   { label: '방문자', values: data.daily.map((d) => d.visitors), tone: 'navy' },
                   { label: '개통하기', values: data.daily.map((d) => d.outbounds), tone: 'coral' },
                 ]}
+              />
+            </Card>
+            <Card title="검색 유입 추이" note="검색으로 들어온 세션" wide>
+              <LineChart
+                days={data.daily.map((d) => d.day)}
+                series={[{ label: '검색 유입', values: data.daily.map((d) => d.searchSessions), tone: 'navy' }]}
               />
             </Card>
             <Card title="유입 경로" note="세션 기준">

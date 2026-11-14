@@ -46,10 +46,12 @@ public class AnalyticsService {
             "bot|crawl|spider|slurp|headless|lighthouse|preview|scrap|facebookexternalhit|curl|wget|python|java/|okhttp|go-http",
             Pattern.CASE_INSENSITIVE);
     private static final Set<String> NAMES = Set.of("page_view", "engage", "click", "calc", "filter", "read_complete");
-    private static final Set<String> PAGE_TYPES = Set.of("HOME", "PLAN", "AI_LIST", "AI_POST", "FAQ", "TERMS", "OUT", "NOT_FOUND");
+    private static final Set<String> PAGE_TYPES = Set.of("HOME", "POSTPAID", "PREPAID", "INTERNET", "PLAN", "AI_LIST", "AI_POST",
+            "FAQ", "TERMS", "OUT", "NOT_FOUND");
     private static final Set<String> REFS = Set.of("SEARCH", "SOCIAL", "DIRECT", "OTHER");
     private static final Set<String> DEVICES = Set.of("PC", "MO");
-    private static final Set<String> PROP_KEYS = Set.of("gb", "network", "found", "dim", "value", "pos", "target", "kind", "id");
+    private static final Set<String> PROP_KEYS = Set.of("gb", "network", "found", "dim", "value", "pos", "target", "kind", "id",
+            "engine");
 
     /** 한 번에 보내는 묶음 */
     public record Batch(String vid, String sid, Boolean newVisitor, String ref, String device, List<In> events) {

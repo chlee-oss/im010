@@ -550,6 +550,28 @@ export interface DashDaily {
   pageViews: number
   planViews: number
   outbounds: number
+  /** 검색 유입 세션 */
+  searchSessions: number
+}
+
+/** 핵심 지표 (검색 유입 · 제휴사 이동 · 선불 비중) */
+export interface DashKeyMetrics {
+  searchSessions: number
+  planViews: number
+  prepaidViews: number
+  planOutbounds: number
+  prepaidOutbounds: number
+  /** 인터넷 상담 신청 이동 */
+  internetOutbounds: number
+}
+
+export interface DashKeyView {
+  current: DashKeyMetrics
+  previous: DashKeyMetrics
+  searchEngines: DashInterestRow[]
+  searchLandings: DashInterestRow[]
+  partners: { partnerCode: string; partnerName: string; views: number; clicks: number; outbounds: number }[]
+  planTypes: { planType: string; views: number; outbounds: number }[]
 }
 
 export interface DashPage {
@@ -604,6 +626,7 @@ export interface DashSummary {
   pages: DashPage[]
   topPlans: DashPlan[]
   topPosts: DashPost[]
+  key: DashKeyView
 }
 
 export interface DashInterest {

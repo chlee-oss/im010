@@ -94,9 +94,9 @@ public class DashboardController {
         var rows = service.daily(r);
         String name = fileName("대시보드_요약", r);
         audit.action(DashboardService.SUMMARY, "DOWNLOAD", name, rows.size() + "일");
-        Csv.write(response, name, List.of("날짜", "기기", "방문자", "페이지뷰", "요금제 조회", "개통하기"),
-                rows.stream().map(d -> List.<Object>of(d.day().toString(), DEVICE.get(r.device()), d.visitors(), d.pageViews(),
-                        d.planViews(), d.outbounds())).toList());
+        Csv.write(response, name, List.of("날짜", "기기", "방문자", "검색 유입(세션)", "페이지뷰", "요금제 조회", "개통하기"),
+                rows.stream().map(d -> List.<Object>of(d.day().toString(), DEVICE.get(r.device()), d.visitors(),
+                        d.searchSessions(), d.pageViews(), d.planViews(), d.outbounds())).toList());
     }
 
     /** 관심사: 요금제별 조회 · 클릭 · 개통하기 */

@@ -4,7 +4,18 @@
 // - 서버(/api/events/config)가 수집을 꺼 두면 아무것도 보내지 않는다 (세션마다 한 번 확인).
 // - 이벤트는 모아 두었다가 5초마다, 그리고 화면을 떠날 때 sendBeacon 으로 보낸다. 실패해도 화면 동작에는 영향이 없다.
 
-export type PageType = 'HOME' | 'PLAN' | 'AI_LIST' | 'AI_POST' | 'FAQ' | 'TERMS' | 'OUT' | 'NOT_FOUND'
+export type PageType =
+  | 'HOME'
+  | 'POSTPAID'
+  | 'PREPAID'
+  | 'INTERNET'
+  | 'PLAN'
+  | 'AI_LIST'
+  | 'AI_POST'
+  | 'FAQ'
+  | 'TERMS'
+  | 'OUT'
+  | 'NOT_FOUND'
 type Name = 'page_view' | 'engage' | 'click' | 'calc' | 'filter' | 'read_complete'
 type Props = Record<string, string | number | boolean>
 
@@ -27,6 +38,8 @@ const FLUSH_MS = 5000
 interface Session {
   sid: string
   ref: 'SEARCH' | 'SOCIAL' | 'DIRECT' | 'OTHER'
+  /** 검색 유입일 때 검색엔진 (naver · google · daum · bing · other) */
+  engine?: string
   newVisitor: boolean
   last: number
 }
@@ -84,6 +97,20 @@ function refType(): Session['ref'] {
   return 'OTHER'
 }
 
+/** 검색 유입의 검색엔진 — utm_source 또는 이전 사이트 주소로 */
+function searchEngine(): string {
+  let src = new URLSearchParams(location.search).get('utm_source')?.toLowerCase() ?? ''
+  if (!src) {
+    try {
+      src = document.referrer ? new URL(document.referrer).hostname.toLowerCase() : ''
+    } catch {
+      src = ''
+    }
+  }
+  for (const e of ['naver', 'google', 'daum', 'bing']) if (src.includes(e)) return e
+  return 'other'
+}
+
 /** 30분 넘게 움직임이 없으면 새 세션 */
 function session(): Session {
   const now = Date.now()
@@ -100,7 +127,8 @@ function session(): Session {
       vid = uuid()
       store.set(localStorage, VID, vid)
     }
-    s = { sid: uuid(), ref: refType(), newVisitor, last: now }
+    const ref = refType()
+    s = { sid: uuid(), ref, engine: ref === 'SEARCH' ? searchEngine() : undefined, newVisitor, last: now }
   }
   s.last = now
   store.set(sessionStorage, SESSION, JSON.stringify(s))
@@ -112,6 +140,9 @@ const device = (): 'PC' | 'MO' =>
 
 export function pageType(pathname: string): PageType {
   if (pathname === '/') return 'HOME'
+  if (/^\/postpaid\/?$/.test(pathname)) return 'POSTPAID'
+  if (/^\/prepaid\/?$/.test(pathname)) return 'PREPAID'
+  if (/^\/internet\/?$/.test(pathname)) return 'INTERNET'
   if (/^\/plans\/\d+\/?$/.test(pathname)) return 'PLAN'
   if (/^\/ai\/posts\/\d+/.test(pathname)) return 'AI_POST'
   if (pathname === '/ai' || /^\/ai\/[^/]+\/?$/.test(pathname)) return 'AI_LIST'
@@ -233,6 +264,9 @@ export function trackPageView(pathname: string, search: string) {
     ids.props = { kind, id: q.get('id') ?? '' }
     if (kind === 'plan' && id > 0) ids.planId = id
   }
+  // 검색으로 들어온 세션은 화면마다 검색엔진을 붙인다 (대시보드: 검색엔진별 · 검색 유입 첫 화면)
+  const s = session()
+  if (s.ref === 'SEARCH' && s.engine) ids.props = { ...ids.props, engine: s.engine }
   current = { path: pathname, pageType: type, planId: ids.planId, postId: ids.postId }
   visibleMs = 0
   visibleSince = document.visibilityState === 'visible' ? Date.now() : 0
