@@ -8,6 +8,7 @@ import { InternetBanner, InternetProducts } from '../components/Internet'
 import { PartnerPlans, PrepaidPlans } from '../components/PlanSections'
 import { WeeklyTabs } from '../components/WeeklyTabs'
 import { usePartners } from '../lib/partners'
+import { useHashScroll } from '../lib/scrollHold'
 import { useApi } from '../lib/useApi'
 import { usePageTitle } from '../lib/usePageTitle'
 import { useToast } from '../lib/toast'
@@ -28,11 +29,10 @@ export default function HomePage() {
     if (new URLSearchParams(location.search).get('forward') === 'unavailable') {
       toast('신청 페이지를 준비 중이에요. 잠시 후 다시 시도해 주세요')
     }
-    // 다른 페이지에서 /#section 으로 들어온 경우 해당 섹션으로 이동
-    if (location.hash) {
-      requestAnimationFrame(() => document.getElementById(location.hash.slice(1))?.scrollIntoView())
-    }
-  }, [location.search, location.hash, toast])
+  }, [location.search, toast])
+
+  // /#section 으로 들어온 경우 해당 섹션으로 이동 (위쪽 목록이 채워지는 동안 위치를 다시 맞춘다)
+  useHashScroll()
 
   return (
     <>

@@ -7,9 +7,15 @@ const PartnerContext = createContext<Map<string, Partner>>(new Map())
 
 /** 제휴사 목록(브랜드명 · 칩 색상)을 한 번만 불러와 화면 전체에서 쓴다. */
 export function PartnerProvider({ children }: { children: ReactNode }) {
-  const { data } = useApi((signal) => api.partners(signal), [])
+  const { data, loading } = useApi((signal) => api.partners(signal), [])
   const map = new Map((data ?? []).map((p) => [p.code, p]))
-  return <PartnerContext.Provider value={map}>{children}</PartnerContext.Provider>
+  return (
+    <PartnerContext.Provider value={map}>
+      {/* 제휴사가 늦게 오면 메인 소개 줄 · 탭이 나중에 생겨 높이가 바뀐다 — 섹션 주소 이동(lib/scrollHold)이 기다리도록 표시 (화면엔 안 보임) */}
+      {loading && <span hidden aria-busy="true" />}
+      {children}
+    </PartnerContext.Provider>
+  )
 }
 
 export function usePartners(): Map<string, Partner> {

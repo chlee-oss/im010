@@ -1,13 +1,9 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 import { useLocation, useNavigationType } from 'react-router-dom'
+import { holdScroll } from '../lib/scrollHold'
 
 /** 방문 기록(history 항목)마다 마지막 스크롤 위치 */
 const positions = new Map<string, number>()
-/** 뒤로 가기 위치 복원: 목록이 API 로 늦게 채워지므로 내용 높이가 안정될 때까지(최대 3초) 위치를 붙잡아 둔다 */
-const RESTORE_MAX_MS = 3000
-const RESTORE_TICK_MS = 100
-/** 높이가 이만큼 연속으로 그대로면 다 채워진 것으로 본다 */
-const STABLE_TICKS = 4
 
 /**
  * 화면만 바꾸는 이동(SPA)은 앞 화면의 스크롤 위치가 남는다 — 홈 아래쪽에서 요금제를 누르면 상세의 아래쪽부터 보이는 문제.
@@ -48,33 +44,7 @@ export default function ScrollToTop() {
       return
     }
     const target = positions.get(key) ?? 0
-    const started = Date.now()
-    let timer = 0
-    let stopped = false
-    let lastHeight = -1
-    let stable = 0
-    const stop = () => {
-      stopped = true
-    }
-    const hold = () => {
-      if (stopped) return
-      window.scrollTo({ top: target, left: 0, behavior: 'instant' })
-      const height = document.documentElement.scrollHeight
-      stable = height === lastHeight ? stable + 1 : 0
-      lastHeight = height
-      const settled = stable >= STABLE_TICKS && Math.abs(window.scrollY - target) <= 2
-      if (!settled && Date.now() - started < RESTORE_MAX_MS) timer = window.setTimeout(hold, RESTORE_TICK_MS)
-    }
-    window.addEventListener('wheel', stop, { passive: true })
-    window.addEventListener('touchstart', stop, { passive: true })
-    window.addEventListener('keydown', stop)
-    hold()
-    return () => {
-      window.clearTimeout(timer)
-      window.removeEventListener('wheel', stop)
-      window.removeEventListener('touchstart', stop)
-      window.removeEventListener('keydown', stop)
-    }
+    return holdScroll(() => target)
   }, [key, pathname, search, hash, type])
 
   return null
