@@ -46,7 +46,7 @@ public class AnalyticsService {
             "bot|crawl|spider|slurp|headless|lighthouse|preview|scrap|facebookexternalhit|curl|wget|python|java/|okhttp|go-http",
             Pattern.CASE_INSENSITIVE);
     private static final Set<String> NAMES = Set.of("page_view", "engage", "click", "calc", "filter", "read_complete");
-    private static final Set<String> PAGE_TYPES = Set.of("HOME", "POSTPAID", "PREPAID", "INTERNET", "PLAN", "AI_LIST", "AI_POST",
+    private static final Set<String> PAGE_TYPES = Set.of("HOME", "WEEKLY", "FIND", "POSTPAID", "PREPAID", "INTERNET", "PLAN", "AI_LIST", "AI_POST",
             "FAQ", "TERMS", "OUT", "NOT_FOUND");
     private static final Set<String> REFS = Set.of("SEARCH", "SOCIAL", "DIRECT", "OTHER");
     private static final Set<String> DEVICES = Set.of("PC", "MO");

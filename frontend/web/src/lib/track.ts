@@ -6,6 +6,8 @@
 
 export type PageType =
   | 'HOME'
+  | 'WEEKLY'
+  | 'FIND'
   | 'POSTPAID'
   | 'PREPAID'
   | 'INTERNET'
@@ -140,6 +142,8 @@ const device = (): 'PC' | 'MO' =>
 
 export function pageType(pathname: string): PageType {
   if (pathname === '/') return 'HOME'
+  if (/^\/weekly\/?$/.test(pathname)) return 'WEEKLY'
+  if (/^\/find\/?$/.test(pathname)) return 'FIND'
   if (/^\/postpaid\/?$/.test(pathname)) return 'POSTPAID'
   if (/^\/prepaid\/?$/.test(pathname)) return 'PREPAID'
   if (/^\/internet\/?$/.test(pathname)) return 'INTERNET'
