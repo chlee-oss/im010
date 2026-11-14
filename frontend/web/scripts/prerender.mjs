@@ -30,7 +30,7 @@ const WEEKLY_TABS = await access(join(HERE, 'weeklyTabs.js')).then(
   () => join(HERE, 'weeklyTabs.js'),
   () => join(HERE, '..', 'src', 'lib', 'weeklyTabs.js'),
 )
-const { pickWeeklyTabs } = await import(pathToFileURL(WEEKLY_TABS).href)
+const { pickWeeklyTabs, pickFindPresets } = await import(pathToFileURL(WEEKLY_TABS).href)
 
 const SITE = 'https://www.im010.co.kr'
 const API = (process.env.PRERENDER_API || SITE).replace(/\/$/, '')
@@ -171,9 +171,11 @@ function page({ path, title, description, body, noindex = false, type = 'website
  * 화면 쪽 문구: src/pages/ServiceLandingPage.tsx (SERVICE_PAGES) · AiListPage(/ai)
  */
 const SERVICES = {
-  postpaid: { path: '/postpaid', title: 'im010 - 나는 알뜰한 요금제', h1: '나는 알뜰한 요금제', label: '후불 요금제' },
-  prepaid: { path: '/prepaid', title: 'im010 - 나는 선불요금제', h1: '나는 선불요금제', label: '선불요금제' },
-  internet: { path: '/internet', title: 'im010 - 나는 알뜰한 인터넷', h1: '나는 알뜰한 인터넷', label: '인터넷' },
+  weekly: { path: '/weekly', title: 'im010 - 금주의 요금, 이렇게 추천해요', h1: 'im010 금주의 요금, 이렇게 추천해요', label: '금주의 요금, 이렇게 추천해요' },
+  find: { path: '/find', title: 'im010 - 내가 찾는 요금제를 직접 찾아요', h1: '내가 찾는 요금제를 직접 찾아요', label: '내가 찾는 요금제를 직접 찾아요' },
+  postpaid: { path: '/postpaid', title: 'im010 - 입점한 제휴사에서 소개해요', h1: '입점한 제휴사에서 소개해요', label: '입점한 제휴사에서 소개해요' },
+  prepaid: { path: '/prepaid', title: 'im010 - 선불요금제를 알려 드릴게요', h1: '선불요금제를 알려 드릴게요', label: '선불요금제를 알려 드릴게요' },
+  internet: { path: '/internet', title: 'im010 - 인터넷도 im010에서 한 번에', h1: '인터넷도 im010에서 한 번에', label: '인터넷도 im010에서 한 번에' },
   ai: { path: '/ai', title: 'im010 - 나는 알뜰한 통신경험을 원해!', h1: '나는 알뜰한 통신경험을 원해!', label: '알뜰AI' },
 }
 const SERVICE_LINKS = Object.values(SERVICES)
@@ -184,7 +186,7 @@ function layout(main, categories = []) {
   const cats = categories.map((c) => `<a href="/ai/${esc(c.slug)}">${esc(c.name)}</a>`).join(' · ')
   return `
 <header class="pre-header"><div class="wrap"><a href="/"><strong>im010</strong></a>
-  <nav aria-label="주요 메뉴"><a href="/#month">금주의 요금을 추천해요</a> · ${SERVICE_LINKS} · <a href="/faq">자주 묻는 질문</a></nav>
+  <nav aria-label="주요 메뉴">${SERVICE_LINKS} · <a href="/faq">자주 묻는 질문</a></nav>
 </div></header>
 <main>${main}</main>
 <footer class="pre-footer"><div class="wrap">
@@ -287,10 +289,13 @@ const { categories } = data
   <h1>합리적인 알뜰한 통신생활! 알뜰폰과 인터넷은 im010이 추천해 드릴게요.</h1>
   <p>데이터 사용량과 원하는 통신망만 알려주세요. ${esc(partnerNames || '7개 제휴사')} 알뜰폰 요금제 중 조건에 맞는 최저가 요금제를 바로 찾아 드려요.</p>
   <nav aria-label="서비스">${SERVICE_LINKS}</nav>
-  ${data.weekly.length ? `<h2 id="month">im010 금주의 요금을 추천해요</h2>${data.weekly.map((t) => `<h3>${esc(t.label)}</h3><p>${esc(t.desc)}</p><ul>${t.plans.map(planItem).join('')}</ul>`).join('')}` : ''}
-  ${data.prepaid.length ? `<h2 id="prepaid">선불 알뜰폰 요금제</h2><ul>${data.prepaid.map(planItem).join('')}</ul><p><a href="/prepaid">선불요금제 전체 보기</a></p>` : ''}
-  ${data.postpaid.length ? `<h2 id="partners">후불 알뜰폰 요금제</h2><ul>${data.postpaid.map(planItem).join('')}</ul><p><a href="/postpaid">후불 요금제 전체 보기</a></p>` : ''}
-  ${data.internet.length ? `<h2 id="internet-compare">인터넷 · 결합 상품</h2><ul>${data.internet.map(internetItem).join('')}</ul><p><a href="/internet">인터넷 상품 전체 보기</a></p>` : ''}
+  ${data.weekly.length ? `<h2 id="month">im010 금주의 요금, 이렇게 추천해요</h2>${data.weekly.map((t) => `<h3>${esc(t.label)}</h3><p>${esc(t.desc)}</p><ul>${t.plans.map(planItem).join('')}</ul>`).join('')}<p><a href="/weekly">금주의 요금 추천 전체 보기</a></p>` : ''}
+  <h2 id="calc-section">내가 찾는 요금제를 직접 찾아요</h2>
+  <p>데이터 사용량과 원하는 통신망을 고르면 조건에 맞는 최저가 요금제를 찾아 드려요. <a href="/find">조건별 요금제 보기</a></p>
+  ${data.postpaid.length ? `<h2 id="partners">입점한 제휴사에서 소개해요</h2><ul>${data.postpaid.map(planItem).join('')}</ul><p><a href="/postpaid">제휴사별 후불 요금제 전체 보기</a></p>` : ''}
+  ${data.prepaid.length ? `<h2 id="prepaid">선불요금제를 알려 드릴게요</h2><ul>${data.prepaid.map(planItem).join('')}</ul><p><a href="/prepaid">선불요금제 전체 보기</a></p>` : ''}
+  <h2 id="internet">인터넷도 im010에서 한 번에</h2>
+  ${data.internet.length ? `<h3 id="internet-compare">인터넷 상품 비교를 해 보세요</h3><ul>${data.internet.map(internetItem).join('')}</ul><p><a href="/internet">인터넷 상품 전체 보기</a></p>` : ''}
   ${latest.length ? `<h2>알뜰AI 최신 글</h2><ul>${latest.map(cardItem).join('')}</ul><p><a href="/ai">알뜰AI 전체 보기</a></p>` : ''}
 </div></section>`
   files.push([
@@ -308,10 +313,23 @@ const { categories } = data
   ])
 }
 
+/**
+ * 검색엔진설정(ST-08) 페이지별 제목 · 설명. 비어 있으면 자동 문구.
+ * 설명의 {개수} · {제휴사수} 는 게시 중인 수로 바꾼다.
+ */
+const pageMeta = (key, auto, vars = {}) => {
+  const m = data.siteMeta.pages?.[key] ?? {}
+  const description = m.description
+    ? oneLine(m.description.replaceAll('{개수}', String(vars.count ?? '')).replaceAll('{제휴사수}', String(vars.partners ?? '')))
+    : auto.description
+  return { title: m.title || auto.title, description }
+}
+
 // 서비스별 랜딩 (/postpaid · /prepaid · /internet) — /ai 는 아래 알뜰AI 목록
 {
-  const servicePage = (key, intro, sections, description) => {
+  const servicePage = (key, intro, sections, autoDescription, vars) => {
     const s = SERVICES[key]
+    const { title, description } = pageMeta(key, { title: s.title, description: autoDescription }, vars)
     const main = `
 <section class="pre-page"><div class="wrap">
   <nav class="breadcrumb" aria-label="현재 위치"><a href="/">홈</a> › ${esc(s.h1)}</nav>
@@ -320,30 +338,54 @@ const { categories } = data
   <nav aria-label="서비스">${SERVICE_LINKS}</nav>
   ${sections}
 </div></section>`
-    files.push([`${s.path.slice(1)}/index.html`, page({ path: s.path, title: s.title, description, body: layout(main, categories) })])
+    files.push([`${s.path.slice(1)}/index.html`, page({ path: s.path, title, description, body: layout(main, categories) })])
   }
   const n = (arr) => arr.length.toLocaleString('ko-KR')
   const postpaidPartners = new Set(data.postpaid.map((p) => p.partnerCode)).size
   const prepaidPartners = new Set(data.prepaid.map((p) => p.partnerCode)).size
 
+  const weeklyPartners = new Set(data.weekly.flatMap((t) => t.plans.map((p) => p.partnerCode))).size
+  servicePage(
+    'weekly',
+    '영상 · 데이터 · 통화 · 가격 기준별로 이번 주 제휴사 요금제를 하나씩 골라 추천해요.',
+    data.weekly.length
+      ? `<h2 id="month">이번 주 추천 기준</h2>${data.weekly.map((t) => `<h3>${esc(t.label)}</h3><p>${esc(t.desc)}</p><ul>${t.plans.map(planItem).join('')}</ul>`).join('')}`
+      : '<p>이번 주 추천할 요금제가 없어요.</p>',
+    data.weekly.length
+      ? `영상 · 데이터 · 통화 · 가격 기준별로 이번 주 제휴사 ${weeklyPartners}곳 요금제를 하나씩 골라 추천해요.`
+      : '영상 · 데이터 · 통화 · 가격 기준별로 이번 주 제휴사 요금제를 하나씩 골라 추천해요.',
+    { count: data.weekly.reduce((s, t) => s + t.plans.length, 0), partners: weeklyPartners },
+  )
+  const find = pickFindPresets(data.postpaid)
+  servicePage(
+    'find',
+    '데이터 사용량과 통신망을 고르거나, 조건별로 모아 둔 요금제에서 바로 찾아보세요.',
+    [
+      '<h2 id="calc-section">조건으로 최저가 찾기</h2><p>데이터 사용량과 원하는 통신망만 알려 주세요. 제휴사 요금제 중 조건에 맞는 최저가를 바로 찾아 드려요.</p>',
+      find.length
+        ? `<h2 id="find-presets">조건별로 골라 봤어요</h2><nav aria-label="조건 바로가기">${find.map((g) => `<a href="#find-${g.key}">${esc(g.label)}</a>`).join(' · ')}</nav>${find.map((g) => `<h3 id="find-${g.key}">${esc(g.label)} — ${esc(g.desc)}</h3><ul>${g.plans.map(planItem).join('')}</ul>`).join('')}`
+        : '',
+    ].join('\n  '),
+    '데이터 · 통신망을 골라 최저가를 찾고, 무제한 · 1만원 이하 등 조건별 요금제를 바로 확인하세요.',
+    { count: find.reduce((s, g) => s + g.plans.length, 0), partners: postpaidPartners },
+  )
   servicePage(
     'postpaid',
-    '제휴사 후불 알뜰폰 요금제를 월 요금 · 데이터 · 통신망별로 비교해 보세요.',
-    [
-      data.weekly.length ? `<h2 id="month">im010 금주의 요금을 추천해요</h2>${data.weekly.map((t) => `<h3>${esc(t.label)}</h3><ul>${t.plans.map(planItem).join('')}</ul>`).join('')}` : '',
-      data.postpaid.length ? `<h2 id="partners">제휴사별 후불 요금제 (${n(data.postpaid)}개)</h2><ul>${data.postpaid.map(planItem).join('')}</ul>` : '<p>게시 중인 후불 요금제가 없어요.</p>',
-    ].join('\n  '),
+    '제휴사별 후불 알뜰폰 요금제를 월 요금 · 데이터 · 통신망별로 비교해 보세요.',
+    data.postpaid.length ? `<h2 id="partners">제휴사별 후불 요금제 (${n(data.postpaid)}개)</h2><ul>${data.postpaid.map(planItem).join('')}</ul>` : '<p>게시 중인 후불 요금제가 없어요.</p>',
     data.postpaid.length
       ? `${postpaidPartners}개 제휴사 후불 알뜰폰 요금제 ${n(data.postpaid)}개를 월 요금 · 데이터 · 통신망별로 비교해 보세요.`
       : '제휴사 후불 알뜰폰 요금제를 월 요금 · 데이터 · 통신망별로 비교해 보세요.',
+    { count: n(data.postpaid), partners: postpaidPartners },
   )
   servicePage(
     'prepaid',
-    '제휴사 선불 알뜰폰 요금제를 충전 금액 · 사용 기간 · 데이터별로 비교해 보세요.',
+    '약정 없이 쓰는 선불 알뜰폰 요금제를 충전 금액 · 사용 기간 · 데이터별로 비교해 보세요.',
     data.prepaid.length ? `<h2 id="prepaid">선불요금제 (${n(data.prepaid)}개)</h2><ul>${data.prepaid.map(planItem).join('')}</ul>` : '<p>게시 중인 선불 요금제가 없어요.</p>',
     data.prepaid.length
       ? `${prepaidPartners}개 제휴사 선불 알뜰폰 요금제 ${n(data.prepaid)}개를 충전 금액 · 사용 기간 · 데이터별로 비교해 보세요.`
       : '제휴사 선불 알뜰폰 요금제를 충전 금액 · 사용 기간 · 데이터별로 비교해 보세요.',
+    { count: n(data.prepaid), partners: prepaidPartners },
   )
   const single = data.internet.filter((i) => i.productType === 'SINGLE')
   const bundle = data.internet.filter((i) => i.productType === 'BUNDLE')
@@ -351,13 +393,15 @@ const { categories } = data
     'internet',
     '인터넷 단독 · 인터넷 + TV 결합 상품의 월 요금과 혜택을 통신사별로 비교해 보세요.',
     [
-      single.length ? `<h2 id="internet-compare">인터넷 단독 (${n(single)}개)</h2><ul>${single.map(internetItem).join('')}</ul>` : '',
-      bundle.length ? `<h2>인터넷 + TV 결합 (${n(bundle)}개)</h2><ul>${bundle.map(internetItem).join('')}</ul>` : '',
+      data.internet.length ? '<h2 id="internet-compare">인터넷 상품 비교를 해 보세요</h2>' : '',
+      single.length ? `<h3>인터넷 단독 (${n(single)}개)</h3><ul>${single.map(internetItem).join('')}</ul>` : '',
+      bundle.length ? `<h3>인터넷 + TV 결합 (${n(bundle)}개)</h3><ul>${bundle.map(internetItem).join('')}</ul>` : '',
       data.internet.length ? '' : '<p>게시 중인 인터넷 상품이 없어요.</p>',
     ].join('\n  '),
     data.internet.length
-      ? `인터넷 단독 · 인터넷 + TV 결합 상품 ${n(data.internet)}개의 월 요금과 혜택을 통신사별로 비교해 보세요.`
+      ? `인터넷 단독 · 인터넷 + TV 결합 상품 ${n(data.internet)}개를 비교해 보세요. 통신사별 월 요금과 혜택을 한눈에.`
       : '인터넷 단독 · 인터넷 + TV 결합 상품의 월 요금과 혜택을 통신사별로 비교해 보세요.',
+    { count: n(data.internet), partners: new Set(data.internet.map((i) => i.carrierLabel)).size },
   )
 }
 
@@ -372,8 +416,10 @@ const { categories } = data
     'faq/index.html',
     page({
       path: '/faq',
-      title: '자주 묻는 질문 | im010',
-      description: '알뜰폰 개통 · 요금제 · 선불폰 이용에 대해 자주 묻는 질문과 답변을 모았어요.',
+      ...pageMeta('faq', {
+        title: '자주 묻는 질문 | im010',
+        description: '알뜰폰 개통 · 요금제 · 선불폰 이용에 대해 자주 묻는 질문과 답변을 모았어요.',
+      }, { count: data.faqs.length }),
       body: layout(main, categories),
       jsonLd: data.faqs.length
         ? [{
@@ -398,16 +444,20 @@ for (const cat of [null, ...categories]) {
   <nav aria-label="카테고리"><a href="/ai">전체</a> · ${categories.map((c) => `<a href="/ai/${esc(c.slug)}">${esc(c.name)}</a>`).join(' · ')}</nav>
   ${list.length ? `<ul>${list.map(cardItem).join('')}</ul>` : '<p>아직 게시된 글이 없어요.</p>'}
 </div></section>`
+  const auto = {
+    // 전체 목록(/ai)은 서비스 랜딩 제목 그대로
+    title: cat ? `${name} | im010` : SERVICES.ai.title,
+    description: fit([
+      cat ? `${cat.name} 소식을 1분 안에 읽을 수 있게 정리했어요.` : '알뜰폰 · 인터넷 요금과 혜택 소식을 1분 안에 읽을 수 있게 정리했어요.',
+      list.length ? ` 최신 글: ${list[0].title}` : '',
+    ]),
+  }
   files.push([
     `${path.slice(1)}/index.html`,
     page({
       path,
-      // 전체 목록(/ai)은 서비스 랜딩 제목 그대로
-      title: cat ? `${name} | im010` : SERVICES.ai.title,
-      description: fit([
-        cat ? `${cat.name} 소식을 1분 안에 읽을 수 있게 정리했어요.` : '알뜰폰 · 인터넷 요금과 혜택 소식을 1분 안에 읽을 수 있게 정리했어요.',
-        list.length ? ` 최신 글: ${list[0].title}` : '',
-      ]),
+      // 검색엔진설정의 알뜰AI 제목 · 설명은 전체 목록(/ai)에만 쓴다 (카테고리 목록은 자동)
+      ...(cat ? auto : pageMeta('ai', auto, { count: list.length })),
       body: layout(main, categories),
     }),
   ])

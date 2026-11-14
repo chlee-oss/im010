@@ -29,10 +29,10 @@ export function aiCompareLink(
   if (post.categorySlug === 'mobile') {
     const prepaid =
       post.tags.includes('선불') || (relatedPlans.length > 0 && relatedPlans.every((r) => r.planType === 'PREPAID'))
-    return prepaid ? { href: '/#prepaid', label: '선불요금제' } : { href: '/#month', label: '금주의 요금을 추천해요' }
+    return prepaid ? { href: '/prepaid', label: '선불요금제를 알려 드릴게요' } : { href: '/weekly', label: '금주의 요금, 이렇게 추천해요' }
   }
-  if (post.categorySlug === 'internet') return { href: '/#internet-compare', label: '인터넷 상품 비교' }
-  return { href: '/#partners', label: '제휴사별 요금제' }
+  if (post.categorySlug === 'internet') return { href: '/internet#internet-compare', label: '인터넷 상품 비교를 해 보세요' }
+  return { href: '/postpaid', label: '입점한 제휴사에서 소개해요' }
 }
 
 export const aiPostPath =(c: { id: number; slug: string }) => `/ai/posts/${c.id}/${encodeURIComponent(c.slug)}`

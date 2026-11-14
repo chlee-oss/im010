@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import kr.co.im010.core.content.PageMeta;
 import kr.co.im010.core.content.SiteMeta;
 import kr.co.im010.core.mapper.SettingsMapper;
 
@@ -52,12 +53,16 @@ public class SiteMetaService {
     private record CachedHtml(String html, SiteMeta meta, long modified, Instant at) {
     }
 
-    private static final Pattern TITLE = Pattern.compile("<title>[\\s\\S]*?</title>");
+    private record CachedPages(Map<String, PageMeta> pages, Instant at) {
+    }
+
+    private static final Pattern TITLE =Pattern.compile("<title>[\\s\\S]*?</title>");
 
     private final SettingsMapper settings;
     private final Path webDir;
     private final Clock clock;
     private volatile CachedMeta meta;
+    private volatile CachedPages pages;
     private final Map<Page, CachedHtml> html = new ConcurrentHashMap<>();
 
     @Autowired
@@ -86,6 +91,25 @@ public class SiteMetaService {
             log.warn("검색엔진설정을 읽지 못했습니다 — {}: {}", c == null ? "기본값" : "직전 값", e.toString());
             SiteMeta fallback = c == null ? SiteMeta.defaults() : c.meta();
             meta = new CachedMeta(fallback, now);
+            return fallback;
+        }
+    }
+
+    /** 페이지별 제목 · 설명 (1분 캐시). DB 를 읽지 못하면 직전 값, 그것도 없으면 전부 자동(빈 값) */
+    public Map<String, PageMeta> pages() {
+        CachedPages c = pages;
+        Instant now = clock.instant();
+        if (c != null && now.isBefore(c.at().plus(TTL))) {
+            return c.pages();
+        }
+        try {
+            Map<String, PageMeta> p = PageMeta.load(settings);
+            pages = new CachedPages(p, now);
+            return p;
+        } catch (RuntimeException e) {
+            log.warn("페이지별 검색엔진설정을 읽지 못했습니다: {}", e.toString());
+            Map<String, PageMeta> fallback = c == null ? Map.of() : c.pages();
+            pages = new CachedPages(fallback, now);
             return fallback;
         }
     }

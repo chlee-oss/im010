@@ -5,8 +5,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.Test;
 
+import kr.co.im010.admin.settings.SeoSettingsService.PageRequest;
 import kr.co.im010.admin.settings.SeoSettingsService.SeoRequest;
 import kr.co.im010.admin.web.ApiException;
+import kr.co.im010.core.content.PageMeta;
 import kr.co.im010.core.content.SiteMeta;
 
 class SeoSettingsServiceTest {
@@ -38,6 +40,31 @@ class SeoSettingsServiceTest {
                 .isInstanceOf(ApiException.class).hasMessageContaining("80자");
         assertThatThrownBy(() -> SeoSettingsService.validate(new SeoRequest("제목", "설명", "가".repeat(61), "")))
                 .isInstanceOf(ApiException.class).hasMessageContaining("Open Graph 제목");
+    }
+
+    @Test
+    void pageMetaMayBeBlankForAutoText() {
+        PageMeta m = SeoSettingsService.validatePage(new PageRequest("prepaid", " ", "  선불 {개수}개\n비교 "));
+
+        assertThat(m.title()).isEmpty();
+        assertThat(m.description()).isEqualTo("선불 {개수}개 비교");
+    }
+
+    @Test
+    void pageMetaChecksLengthAndBrackets() {
+        assertThatThrownBy(() -> SeoSettingsService.validatePage(new PageRequest("faq", "가".repeat(61), "")))
+                .isInstanceOf(ApiException.class).hasMessageContaining("60자");
+        assertThatThrownBy(() -> SeoSettingsService.validatePage(new PageRequest("faq", "", "<b>")))
+                .isInstanceOf(ApiException.class).hasMessageContaining("< >");
+    }
+
+    @Test
+    void pageKeysAreKnownServicePages() {
+        assertThat(PageMeta.PAGES).extracting(PageMeta.Page::path)
+                .containsExactly("/weekly", "/find", "/postpaid", "/prepaid", "/internet", "/ai", "/faq");
+        assertThat(PageMeta.known("prepaid")).isTrue();
+        assertThat(PageMeta.known("plans")).isFalse();
+        assertThat(PageMeta.keys()).contains("seo_page_prepaid_title", "seo_page_faq_description").hasSize(14);
     }
 
     @Test

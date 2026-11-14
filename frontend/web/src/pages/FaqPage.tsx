@@ -6,7 +6,7 @@ import { usePageTitle } from '../lib/usePageTitle'
 
 /** S7 자주 묻는 질문 (백오피스 ST-07 [FAQ]) */
 export default function FaqPage() {
-  usePageTitle('자주 묻는 질문')
+  usePageTitle('자주 묻는 질문', { page: 'faq' })
   const { data, loading, error } = useApi((signal) => api.faqs(signal), [])
   const [category, setCategory] = useState<string | null>(null)
   const categories = [...new Set((data ?? []).map((f) => f.category))]
