@@ -25,7 +25,8 @@ const WEEKLY_ICON: Record<string, string> = {
  * 카드는 가운데를 강조하는 캐러셀: 화살표 · 점 · 옆 카드 누르기 · 손가락 밀기 · 6초 자동 넘김(마우스를 올리면 멈춤).
  * 섹션 주소는 예전 이달의 요금제와 같은 #month (머리말 메뉴 · 바깥 링크 · 클릭 위치 통계 MONTHLY 유지).
  */
-export function WeeklyTabs() {
+/** heading: 섹션 제목을 바꿀 때 (/weekly 는 큰 제목과 겹치지 않게 "이번 주 추천 기준") */
+export function WeeklyTabs({ heading }: { heading?: string } = {}) {
   const postpaid = useApi((signal) => api.plans('POSTPAID', undefined, signal), [])
   const prepaid = useApi((signal) => api.plans('PREPAID', undefined, signal), [])
   const tabs = useMemo(
@@ -40,7 +41,11 @@ export function WeeklyTabs() {
       <div className="wrap">
         <div className="weekly-head">
           <h2>
-            <span className="brand">im010</span> 금주의 요금, 이렇게 추천해요
+            {heading ?? (
+              <>
+                <span className="brand">im010</span> 금주의 요금, 이렇게 추천해요
+              </>
+            )}
           </h2>
         </div>
         <StateMessage

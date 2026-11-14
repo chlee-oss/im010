@@ -81,7 +81,7 @@ export default function ServiceLandingPage({ service }: { service: ServiceKey })
           </nav>
         </div>
       </section>
-      {service === 'weekly' && <WeeklyTabs />}
+      {service === 'weekly' && <WeeklyTabs heading="이번 주 추천 기준" />}
       {service === 'find' && (
         <>
           <section id="calc-section" aria-label="조건으로 최저가 찾기">
