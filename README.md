@@ -236,7 +236,7 @@ im010/
   - `_gone/plans/<id>/index.html`: 판매 종료 요금제(번호를 차례로 조회해 찾음) → nginx가 **410** + 종료 안내 · 비슷한 요금제 링크(noindex)
   - `404.html`: 없는 경로 → nginx가 **404** (noindex, SPA가 떠서 404 화면이 보임)
   - `_shell.html`: 기본 메타만 있는 SPA 틀. **빌드 뒤에 새로 게시된 요금제 · 알뜰AI 글**은 미리 만든 HTML이 없어 이 틀로 200 응답 (Google은 JS를 실행해 읽는다)
-  - `robots.txt`(`public/`): `/go/` · `/out` · `/api/` 제외 + Sitemap 위치
+  - `robots.txt`(`public/`): 네이버 로봇 `Yeti` 그룹을 따로 명시(서치어드바이저 권장) + 모든 로봇 `*`. 둘 다 `/go/` · `/out` · `/api/` 만 제외, Sitemap 위치. 화면 배포 없이 바꿀 때: 서버에 올린 뒤 `sudo install -m 644 <파일> /opt/im010/web/robots.txt && sudo restorecon /opt/im010/web/robots.txt` (05시 배치는 robots.txt 를 건드리지 않음)
   - 기본 공유 이미지 `public/og-default.png`(1200x630, 시안 B-1: 파랑 · IBM Plex Sans KR · 메인 문구 "합리적인 알뜰한 통신생활!"). 글에 썸네일이 있으면 그 이미지
 - **데이터 출처 = 운영 API**. 두 곳에서 만든다
   - 빌드할 때 (`npm run build`, `PRERENDER_API` 기본 `https://www.im010.co.kr`). API를 못 받으면 빌드가 멈춘다. 인터넷 없이 확인만 할 때 `PRERENDER_OFFLINE=1 npm run build` (데이터 없는 화면 — **운영 배포 금지**), 로컬 API로: `PRERENDER_API=http://localhost:8080 npm run build`
