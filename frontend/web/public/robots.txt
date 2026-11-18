@@ -1,5 +1,16 @@
 # im010 — https://www.im010.co.kr
+# 사이트 전체 수집 허용. 제휴사 이동(/go/ · /out)과 API(/api/)만 제외한다.
+
+# 네이버 검색 로봇 (네이버 서치어드바이저 권장: Yeti 명시)
+# 로봇 이름을 따로 적은 그룹이 있으면 그 로봇은 * 그룹을 보지 않으므로 제외 경로를 여기에도 같이 둔다
+User-agent: Yeti
+Allow: /
+Disallow: /go/
+Disallow: /out
+Disallow: /api/
+
 User-agent: *
+Allow: /
 Disallow: /go/
 Disallow: /out
 Disallow: /api/
