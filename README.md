@@ -236,23 +236,26 @@ im010/
   - `_gone/plans/<id>/index.html`: 판매 종료 요금제(번호를 차례로 조회해 찾음) → nginx가 **410** + 종료 안내 · 비슷한 요금제 링크(noindex)
   - `404.html`: 없는 경로 → nginx가 **404** (noindex, SPA가 떠서 404 화면이 보임)
   - `_shell.html`: 기본 메타만 있는 SPA 틀. **빌드 뒤에 새로 게시된 요금제 · 알뜰AI 글**은 미리 만든 HTML이 없어 이 틀로 200 응답 (Google은 JS를 실행해 읽는다)
-  - `robots.txt`(`public/`): 네이버 로봇 `Yeti` 그룹을 따로 명시(서치어드바이저 권장) + 모든 로봇 `*`. 둘 다 `/go/` · `/out` · `/api/` 만 제외, Sitemap 위치. 화면 배포 없이 바꿀 때: 서버에 올린 뒤 `sudo install -m 644 <파일> /opt/im010/web/robots.txt && sudo restorecon /opt/im010/web/robots.txt` (05시 배치는 robots.txt 를 건드리지 않음)
+  - `robots.txt`(`public/`): 네이버 로봇 `Yeti` 그룹을 따로 명시(서치어드바이저 권장) + 모든 로봇 `*`. 둘 다 `/go/` · `/out` · `/api/` 만 제외, Sitemap 위치. **콘텐츠 변경(요금제 종료 · 글 숨김 등)은 robots.txt 에 넣지 않는다** — robots 로 막으면 검색엔진이 410 · noindex 를 못 보고 검색 결과에 더 오래 남는다. 종료 · 숨김은 410 · 404 · sitemap 이 자동으로 처리한다. robots.txt 는 새 비공개 경로가 생길 때만(코드 변경과 함께) 고친다. 화면 배포 없이 바꿀 때: 서버에 올린 뒤 `sudo install -m 644 <파일> /opt/im010/web/robots.txt && sudo restorecon /opt/im010/web/robots.txt` (05시 배치는 robots.txt 를 건드리지 않음)
   - 기본 공유 이미지 `public/og-default.png`(1200x630, 시안 B-1: 파랑 · IBM Plex Sans KR · 메인 문구 "합리적인 알뜰한 통신생활!"). 글에 썸네일이 있으면 그 이미지
 - **데이터 출처 = 운영 API**. 두 곳에서 만든다
   - 빌드할 때 (`npm run build`, `PRERENDER_API` 기본 `https://www.im010.co.kr`). API를 못 받으면 빌드가 멈춘다. 인터넷 없이 확인만 할 때 `PRERENDER_OFFLINE=1 npm run build` (데이터 없는 화면 — **운영 배포 금지**), 로컬 API로: `PRERENDER_API=http://localhost:8080 npm run build`
-  - **운영 서버에서 매일 05:00** 다시 만든다 (아래 "매일 미리 렌더링") — 전날 게시된 알뜰AI 글 · 새 요금제 · 판매 종료(410)가 다음 날 아침 반영된다
-  - 그 사이(게시 ~ 다음 05:00): 새 요금제 · 글은 SPA 틀(200), 판매 종료된 요금제는 예전 "게시 중" HTML(200). 급하면 수동 1회 실행. sitemap 은 api 가 바로 반영
-  - 화면 코드를 바꿨을 때만 고객 화면을 빌드해 올린다: `npm run build` → `dist/` 를 서버에 올림 → `sudo bash deploy-web.sh <폴더>` ([`deploy-web.sh`](deploy/scripts/deploy-web.sh), 이전 화면 백업 · 상태 코드 확인)
+  - **운영 서버에서 데이터가 바뀌면 자동으로** 다시 만든다 (아래 "자동 미리 렌더링") — 요금제 게시 · 판매 종료(410), 알뜰AI 글 게시(예약 시각) · 수정, FAQ · 약관 · Footer · 검색엔진설정 변경이 **10분 안에** 반영된다
+  - sitemap 은 api 가 요청마다 바로 반영, robots.txt 는 콘텐츠와 무관(아래)
+  - 화면 코드를 바꿨을 때만 고객 화면을 빌드해 올린다: `npm run build` → `dist/` 를 서버에 올림 → `sudo bash deploy-web.sh <폴더>` ([`deploy-web.sh`](deploy/scripts/deploy-web.sh), 이전 화면 백업 · 상태 코드 확인). 배포 스크립트가 데이터 지문을 지워 다음 10분 점검에서 지금 데이터로 다시 만든다
 
-### 매일 미리 렌더링 (운영 서버, 05:00)
+### 자동 미리 렌더링 (운영 서버, 10분마다 · 바뀌었을 때만)
 
-[`im010-prerender.timer`](deploy/systemd/im010-prerender.timer) → [`im010-prerender.sh`](deploy/prerender/im010-prerender.sh). jar 재시작 · vite 빌드 없이 **배포된 화면의 틀(`web/_shell.html`) + 서버 안 api(`127.0.0.1:8080`)** 로 `prerender.mjs` 만 돌린다.
+[`im010-prerender.timer`](deploy/systemd/im010-prerender.timer)(10분마다) → [`im010-prerender.sh`](deploy/prerender/im010-prerender.sh). jar 재시작 · vite 빌드 없이 **배포된 화면의 틀(`web/_shell.html`) + 서버 안 api(`127.0.0.1:8080`)** 로 `prerender.mjs` 만 돌린다.
+- **바뀐 게 있을 때만**: api `GET /api/internal/content-version`([`ContentVersionMapper.xml`](backend/im010-core/src/main/resources/mapper/ContentVersionMapper.xml)) = 제휴사 · 게시 요금제(게시 버전 · 판매 종료) · 이달의 요금제 · 인터넷 상품 · FAQ · 약관 · Footer · 알뜰AI 카테고리 · 고객에게 보이는 글 · 검색엔진설정(`seo_*`) · 오늘 날짜(한국)의 md5. `/opt/im010/prerender/last-version` 과 같으면 바로 끝 (조회 수처럼 화면에 안 나오는 값은 빼서 쓸데없이 다시 만들지 않음). 날짜가 들어 있어 자정이 지나면 한 번은 다시 만든다(금주의 요금 · 새 글 표시)
+  - 이 주소는 서버 안에서만: nginx `location /api/internal/ { return 404; }` + api 도 서버 자신(loopback)이 아니면 404
+  - 검사에 걸린 지문은 `failed-version` 에 적어 두고 같은 지문으로는 되풀이하지 않는다 (내용이 다시 바뀌거나 `PRERENDER_FORCE=1` 이면 다시)
 - node 는 `im010` 계정 권한으로 빈 작업 폴더(`/opt/im010/prerender/work`)에만 쓴다. Node.js 22 는 Rocky AppStream 모듈 (npm 패키지 설치 없음)
 - **바꾸지 않고 끝내는 경우** (기존 화면 유지 · 서비스 failed): api 오류 · 메인 미생성 · 게시 중 요금제 0개 · 요금제나 알뜰AI 글이 직전 화면보다 50% 밑으로 줄었을 때 (`PRERENDER_MIN_RATIO`)
 - 교체: 지금 화면을 복사한 새 폴더에서 미리 렌더링 결과만 갈아 끼우고 `renameat2(RENAME_EXCHANGE)`로 `/opt/im010/web` 과 **한 번에 맞바꾼다**. 이전 화면은 `/opt/im010/web.prev`. 바꾼 뒤 `/` · `/faq` 가 200 이 아니면 즉시 되돌린다
 - 화면 배포(`deploy-web.sh` · `deploy-app.sh`)와는 `/run/lock/im010-web.lock` 으로 겹치지 않는다
 - 설치 · `prerender.mjs` 갱신: `sudo bash deploy/scripts/setup-prerender.sh <올린 폴더>` ([`setup-prerender.sh`](deploy/scripts/setup-prerender.sh) — 폴더에 `prerender/` · `systemd/` · `scripts/`)
-- 수동 1회: `sudo systemctl start im010-prerender.service` · 로그: `journalctl -u im010-prerender -n 50 --no-pager` · 다음 실행: `systemctl list-timers im010-prerender.timer`
+- 수동 1회(지문이 같아도 다시 만들려면 `PRERENDER_FORCE=1`): `sudo systemctl start im010-prerender.service` · 로그: `journalctl -u im010-prerender -n 50 --no-pager` · 다음 실행: `systemctl list-timers im010-prerender.timer`
 - 감소 검사를 건너뛰고 강제로: `sudo PRERENDER_FORCE=1 /opt/im010/prerender/im010-prerender.sh` (요금제를 대량 종료한 날 등) · 되돌리기: `/opt/im010/web.prev` 를 `deploy-web.sh` 로 다시 배포
 - **`sitemap.xml` = im010-api 가 요청마다 DB 기준으로 만든다** ([`SitemapController`](backend/im010-api/src/main/java/kr/co/im010/api/seo/SitemapController.java), nginx 가 `/sitemap.xml` 만 api 로 넘김). 게시 · 판매 종료 · 글 게시가 **빌드 없이 즉시** 반영된다 (응답 캐시 10분)
   - 담는 주소: 메인 · FAQ · 알뜰AI 목록 · 노출 카테고리 · 고객에게 보이는 글(게시 · 예약 시각 지남 · 노출 카테고리) · 게시 중 요금제(후불 · 선불) · **최근 30일 안에 판매 종료된 요금제**(lastmod = 종료일 `plan.ended_on`, 검색엔진이 다시 와서 410 을 빨리 확인하게 — 30일이 지나면 빠짐). 숨김 · 게시 전 요금제, 게시 전 글은 넣지 않는다

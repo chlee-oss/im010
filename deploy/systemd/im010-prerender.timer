@@ -1,12 +1,13 @@
-# 매일 05:00(KST) 고객 화면 미리 렌더링 — /etc/systemd/system/im010-prerender.timer
+# 고객 화면 미리 렌더링 — /etc/systemd/system/im010-prerender.timer
+# 10분마다 api 데이터 지문을 확인해 바뀌었을 때만 다시 만든다 (바뀐 게 없으면 바로 끝). 날짜가 바뀌면(자정) 한 번 다시 만든다.
 # 다음 실행 확인: systemctl list-timers im010-prerender.timer
 [Unit]
-Description=Daily im010 web prerender at 05:00
+Description=im010 web prerender check every 10 minutes
 
 [Timer]
-OnCalendar=*-*-* 05:00:00 Asia/Seoul
+OnCalendar=*-*-* *:00/10:00 Asia/Seoul
+AccuracySec=30s
 Persistent=true
-RandomizedDelaySec=0
 
 [Install]
 WantedBy=timers.target
