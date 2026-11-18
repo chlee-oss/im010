@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.im010.core.mapper.ContentVersionMapper">
+
+    <!-- 표마다 행을 글자로 이어 md5, 다시 전체를 md5. 행 순서는 글자 순으로 고정 -->
+    <sql id="rowsMd5">md5(COALESCE(string_agg(x::text, ',' ORDER BY x::text), ''))</sql>
+
+    <select id="contentVersion" resultType="string">
+        SELECT md5(concat_ws('|',
+            (SELECT <include refid="rowsMd5"/> FROM (
+                SELECT code, name, chip_bg, chip_fg, homepage_url, exposed, sort_order, logo_url, deleted_at FROM partner) x),
+            (SELECT <include refid="rowsMd5"/> FROM (
+                SELECT id, partner_code, plan_type, status, published_version_id, activation_url, ended_on, main_pick FROM plan) x),
+            (SELECT <include refid="rowsMd5"/> FROM (
+                SELECT v.* FROM plan_version v JOIN plan p ON p.published_version_id = v.id) x),
+            (SELECT <include refid="rowsMd5"/> FROM (SELECT * FROM monthly_pick) x),
+            (SELECT <include refid="rowsMd5"/> FROM (SELECT * FROM internet_partner) x),
+            (SELECT <include refid="rowsMd5"/> FROM (SELECT * FROM internet_product) x),
+            (SELECT <include refid="rowsMd5"/> FROM (SELECT * FROM faq) x),
+            (SELECT <include refid="rowsMd5"/> FROM (
+                SELECT id, terms_type, version, body, effective_on, status, published_at FROM terms) x),
+            (SELECT <include refid="rowsMd5"/> FROM (SELECT * FROM footer_version) x),
+            (SELECT <include refid="rowsMd5"/> FROM (SELECT * FROM ai_category) x),
+            (SELECT <include refid="rowsMd5"/> FROM (
+                SELECT id, category_code, title, slug, card_summary, thumbnail_url, body_html, ai_summary, tags,
+                       sources_json, related_plan_ids, related_internet_ids, sponsored, pinned, seo_title,
+                       seo_description, read_minutes, author_name, publish_at, content_updated_at, updated_at
+                FROM ai_post WHERE status = 'PUBLISHED' AND publish_at &lt;= now()) x),
+            (SELECT <include refid="rowsMd5"/> FROM (
+                SELECT key, value FROM admin_setting WHERE key LIKE 'seo\_%') x),
+            to_char(now() AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD')
+        ))
+    </select>
+</mapper>

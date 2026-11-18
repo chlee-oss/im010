@@ -65,6 +65,8 @@ for d in web admin-web; do
     rm -rf "/opt/im010/$d.old"
 done
 restorecon -R /opt/im010/web /opt/im010/admin-web
+# 새 화면의 미리 렌더링은 빌드 시점 데이터 — 다음 10분 점검(im010-prerender)에서 지금 데이터로 다시 만들게 지문을 지운다
+rm -f /opt/im010/prerender/last-version /opt/im010/prerender/failed-version
 
 echo "== 3-1. 알뜰AI 이미지 폴더 /opt/im010/uploads (앱이 쓰고 nginx 가 읽는다)"
 install -d -o im010 -g im010 -m 755 /opt/im010/uploads
