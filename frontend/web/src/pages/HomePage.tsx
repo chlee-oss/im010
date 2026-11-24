@@ -2,10 +2,10 @@ import { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { api } from '../api/client'
 import { AiCard } from '../components/AiCard'
-import Calculator from '../components/Calculator'
 import { Analysis } from '../components/Insights'
 import { InternetBanner, InternetProducts } from '../components/Internet'
-import { PartnerPlans, PrepaidPlans } from '../components/PlanSections'
+import { PrepaidPlans } from '../components/PlanSections'
+import { PlanFinder } from '../components/PlanFinder'
 import { WeeklyTabs } from '../components/WeeklyTabs'
 import { usePartners } from '../lib/partners'
 import { useHashScroll } from '../lib/scrollHold'
@@ -15,8 +15,8 @@ import { useToast } from '../lib/toast'
 import Icon from '../components/Icon'
 
 /**
- * 메인 (시안 B-1): 서비스 소개 → im010 금주의 요금을 추천해요 → 내 조건으로 직접 찾기 →
- * 제휴사별 요금제 → 선불요금제 → 인터넷 → 요금제분석 → 알뜰AI
+ * 메인 (시안 B-1): 서비스 소개 → im010 금주의 요금을 추천해요 → 조건으로 찾고, 제휴사별로 비교해요
+ * (예전 직접 찾기 + 제휴사별 요금제를 합침) → 선불요금제 → 인터넷 → 요금제분석 → 알뜰AI
  */
 export default function HomePage() {
   usePageTitle()
@@ -59,8 +59,7 @@ export default function HomePage() {
           {/* 섹션별 독립 주소 — 검색엔진이 메뉴 구조를 알 수 있게 일반 링크로 (서비스 랜딩) */}
           <nav className="home-jump" aria-label="바로가기">
             <Link to="/weekly">금주의 요금, 이렇게 추천해요</Link>
-            <Link to="/find">내가 찾는 요금제를 직접 찾아요</Link>
-            <Link to="/postpaid">입점한 제휴사에서 소개해요</Link>
+            <Link to="/postpaid">조건으로 찾고, 제휴사별로 비교해요</Link>
             <Link to="/prepaid">선불요금제를 알려 드릴게요</Link>
             <Link to="/internet">인터넷도 im010에서 한 번에</Link>
           </nav>
@@ -69,44 +68,13 @@ export default function HomePage() {
 
       <WeeklyTabs />
 
-      <section id="calc-section" aria-label="내가 찾는 요금제를 직접 찾아요">
-        <div className="wrap">
-          <div className="calc-band">
-            <div className="calc-copy">
-              <h2>내가 찾는 요금제를 직접 찾아요</h2>
-              <p>데이터 사용량과 원하는 통신망만 알려 주세요. 제휴사 요금제 중 조건에 맞는 최저가를 바로 찾아 드려요.</p>
-              <Calculator />
-            </div>
-            <FamilyArt />
-          </div>
-        </div>
-      </section>
-
-      <PartnerPlans />
+      <PlanFinder />
       <PrepaidPlans />
       <InternetBanner />
       <InternetProducts />
       <Analysis />
       <AiLatest />
     </>
-  )
-}
-
-/** 가족 일러스트: 서로 겹친 두 원 위의 세 사람 (시안 B "함께 · 상생"). 장식 */
-function FamilyArt() {
-  return (
-    <div className="family-art" aria-hidden="true">
-      <svg viewBox="0 0 360 230">
-        <circle cx="130" cy="115" r="92" fill="#E6EFFF" />
-        <circle cx="230" cy="115" r="92" fill="#D6E6FF" fillOpacity="0.85" />
-        <circle cx="104" cy="97" r="22" fill="var(--primary)" />
-        <rect x="80" y="125" width="48" height="56" rx="24" fill="var(--primary)" />
-        <circle cx="180" cy="109" r="16" fill="#4D8DF7" />
-        <rect x="162" y="131" width="36" height="44" rx="18" fill="#4D8DF7" />
-        <circle cx="254" cy="97" r="22" fill="#7FB0FF" />
-        <rect x="230" y="125" width="48" height="56" rx="24" fill="#7FB0FF" />
-      </svg>
-    </div>
   )
 }
 

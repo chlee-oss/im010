@@ -188,7 +188,7 @@ function page({ path, title, description, body, noindex = false, type = 'website
 const SERVICES = {
   weekly: { path: '/weekly', title: 'im010 - 금주의 요금, 이렇게 추천해요', h1: 'im010 금주의 요금, 이렇게 추천해요', label: '금주의 요금, 이렇게 추천해요' },
   find: { path: '/find', title: 'im010 - 내가 찾는 요금제를 직접 찾아요', h1: '내가 찾는 요금제를 직접 찾아요', label: '내가 찾는 요금제를 직접 찾아요' },
-  postpaid: { path: '/postpaid', title: 'im010 - 입점한 제휴사에서 소개해요', h1: '입점한 제휴사에서 소개해요', label: '입점한 제휴사에서 소개해요' },
+  postpaid: { path: '/postpaid', title: 'im010 - 조건으로 찾고, 제휴사별로 비교해요', h1: '조건으로 찾고, 제휴사별로 비교해요', label: '조건으로 찾고, 제휴사별로 비교해요' },
   prepaid: { path: '/prepaid', title: 'im010 - 선불요금제를 알려 드릴게요', h1: '선불요금제를 알려 드릴게요', label: '선불요금제를 알려 드릴게요' },
   internet: { path: '/internet', title: 'im010 - 인터넷도 im010에서 한 번에', h1: '인터넷도 im010에서 한 번에', label: '인터넷도 im010에서 한 번에' },
   ai: { path: '/ai', title: 'im010 - 나는 알뜰한 통신경험을 원해!', h1: '나는 알뜰한 통신경험을 원해!', label: '알뜰AI' },
@@ -306,9 +306,9 @@ const { categories } = data
   <p>데이터 사용량과 원하는 통신망만 알려주세요. ${esc(partnerNames || '7개 제휴사')} 알뜰폰 요금제 중 조건에 맞는 최저가 요금제를 바로 찾아 드려요.</p>
   <nav aria-label="서비스">${SERVICE_LINKS}</nav>
   ${data.weekly.length ? `<h2 id="month">im010 금주의 요금, 이렇게 추천해요</h2>${data.weekly.map((t) => `<h3>${esc(t.label)}</h3><p>${esc(t.desc)}</p><ul>${t.plans.map(planItem).join('')}</ul>`).join('')}<p><a href="/weekly">금주의 요금 추천 전체 보기</a></p>` : ''}
-  <h2 id="calc-section">내가 찾는 요금제를 직접 찾아요</h2>
-  <p>데이터 사용량과 원하는 통신망을 고르면 조건에 맞는 최저가 요금제를 찾아 드려요. <a href="/find">조건별 요금제 보기</a></p>
-  ${data.postpaid.length ? `<h2 id="partners">입점한 제휴사에서 소개해요</h2><ul>${data.postpaid.map(planItem).join('')}</ul><p><a href="/postpaid">제휴사별 후불 요금제 전체 보기</a></p>` : ''}
+  <h2 id="partners">조건으로 찾고, 제휴사별로 비교해요</h2>
+  <p>통신망 · 데이터 · QoS · 음성 · 할인기간 · 월 요금 조건으로 제휴사 후불 요금제를 찾고, 이 조건의 최저가를 바로 보여 드려요. <a href="/find">조건별 요금제 보기</a></p>
+  ${data.postpaid.length ? `<ul>${data.postpaid.map(planItem).join('')}</ul><p><a href="/postpaid">제휴사별 후불 요금제 전체 보기</a></p>` : ''}
   ${data.prepaid.length ? `<h2 id="prepaid">선불요금제를 알려 드릴게요</h2><ul>${data.prepaid.map(planItem).join('')}</ul><p><a href="/prepaid">선불요금제 전체 보기</a></p>` : ''}
   <h2 id="internet">인터넷도 im010에서 한 번에</h2>
   ${data.internet.length ? `<h3 id="internet-compare">인터넷 상품 비교를 해 보세요</h3><ul>${data.internet.map(internetItem).join('')}</ul><p><a href="/internet">인터넷 상품 전체 보기</a></p>` : ''}
@@ -387,7 +387,7 @@ const pageMeta = (key, auto, vars = {}) => {
   )
   servicePage(
     'postpaid',
-    '제휴사별 후불 알뜰폰 요금제를 월 요금 · 데이터 · 통신망별로 비교해 보세요.',
+    '입점 제휴사 후불 알뜰폰 요금제를 통신망 · 데이터 · QoS · 음성 · 할인기간 · 월 요금 조건으로 찾고 비교해 보세요.',
     data.postpaid.length ? `<h2 id="partners">제휴사별 후불 요금제 (${n(data.postpaid)}개)</h2><ul>${data.postpaid.map(planItem).join('')}</ul>` : '<p>게시 중인 후불 요금제가 없어요.</p>',
     data.postpaid.length
       ? `${postpaidPartners}개 제휴사 후불 알뜰폰 요금제 ${n(data.postpaid)}개를 월 요금 · 데이터 · 통신망별로 비교해 보세요.`
