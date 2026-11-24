@@ -29,6 +29,8 @@ find /opt/im010/web.new -type d -exec chmod 755 {} + -o -type f -exec chmod 644 
 mv /opt/im010/web.new /opt/im010/web
 rm -rf /opt/im010/web.old
 restorecon -R /opt/im010/web
+# 새 화면의 미리 렌더링은 빌드 시점 데이터 — 다음 10분 점검에서 지금 데이터로 다시 만들게 지문을 지운다
+rm -f /opt/im010/prerender/last-version /opt/im010/prerender/failed-version
 
 for p in / /faq /sitemap.xml /robots.txt /no-such-page; do
     curl -s -o /dev/null -w "   $p → %{http_code} %{content_type}\n" --resolve www.im010.co.kr:443:127.0.0.1 "https://www.im010.co.kr$p"
