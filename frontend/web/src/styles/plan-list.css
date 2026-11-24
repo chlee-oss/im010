@@ -40,3 +40,109 @@
   .lp-foot { padding: 12px 18px 14px; }
   .lp-foot::before { left: 14px; right: 14px; }
 }
+
+/* ── 조건으로 찾고, 제휴사별로 비교해요 (PlanFinder) ── */
+.pf-band { background: var(--primary-soft); margin-top: 64px; padding: 56px 0; position: relative; }
+.pf-anchor { position: absolute; top: 0; }
+.pf-band .sec-head { margin-bottom: 20px; }
+.pf-n { font-size: 12px; font-weight: 500; color: var(--gray-500); margin-left: 4px; }
+
+/* 1줄: 제휴사 */
+.pf-partners { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.pf-partners button { padding: 8px 16px; border-radius: 999px; background: #fff; font: inherit; font-size: 14px; font-weight: 500; color: var(--gray-700); cursor: pointer; border: 1px solid var(--gray-200); }
+.pf-partners button.active { background: var(--ink); border-color: var(--ink); color: #fff; font-weight: 600; }
+.pf-partners button.active .pf-n { color: #A9B8D6; }
+.pf-partners button:disabled { opacity: .4; border-style: dashed; cursor: not-allowed; }
+
+/* 2줄: 조건 버튼 */
+.pf-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; background: #fff; border-radius: 18px; padding: 10px; box-shadow: 0 2px 10px rgba(31, 36, 48, 0.05); }
+.pf-drop { position: relative; }
+.pf-btn { display: inline-flex; align-items: center; gap: 2px; padding: 8px 10px 8px 14px; border-radius: 12px; border: 1px solid var(--gray-200); background: #fff; font: inherit; font-size: 14px; color: var(--ink); cursor: pointer; white-space: nowrap; }
+.pf-btn .msi { font-size: 18px; color: var(--gray-500); transition: transform .15s; }
+.pf-btn:hover { border-color: var(--primary); }
+.pf-btn.open .msi { transform: rotate(180deg); }
+.pf-btn.set { background: var(--primary-tint); border-color: var(--primary-tint); color: var(--primary-dark); font-weight: 600; }
+.pf-btn.set .msi { color: var(--primary-dark); }
+.pf-all { display: none; padding-right: 14px; }
+.pf-reset { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; background: none; border: 0; font: inherit; font-size: 14px; color: var(--gray-700); cursor: pointer; padding: 8px 6px; }
+.pf-reset:hover { color: var(--primary-dark); }
+.pf-reset:disabled { color: var(--gray-200); cursor: default; }
+
+/* 조건 창 */
+.pf-pop { position: absolute; top: calc(100% + 8px); left: 0; z-index: 30; width: 340px; background: #fff; border-radius: 18px; box-shadow: 0 14px 40px rgba(15, 30, 58, 0.16); padding: 16px 18px; }
+.pf-pop-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }
+.pf-pop-head b { font-size: 17px; }
+.pf-pop-head span { font-size: 14px; color: var(--gray-500); }
+.pf-x { margin-left: auto; background: none; border: 0; cursor: pointer; color: var(--gray-500); padding: 0; }
+.pf-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.pf-chip { display: inline-flex; align-items: center; gap: 2px; padding: 7px 12px; border-radius: 999px; border: 1px solid var(--gray-200); background: #fff; font: inherit; font-size: 14px; color: var(--ink); cursor: pointer; }
+.pf-chip .msi { font-size: 16px; }
+.pf-chip.on { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 600; }
+.pf-chip.on .pf-n { color: #D6E4FF; }
+.pf-chip:disabled { opacity: .4; border-style: dashed; cursor: not-allowed; }
+.pf-pop-foot { display: flex; gap: 8px; margin-top: 16px; }
+.pf-pop-foot button { flex: 1; padding: 11px; border-radius: 12px; border: 1px solid var(--gray-200); background: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.pf-pop-foot button:disabled { color: var(--gray-200); cursor: default; }
+.pf-pop-foot .primary { flex: 1.6; background: var(--primary); border-color: var(--primary); color: #fff; }
+
+/* 자주 찾는 조건 */
+.pf-quick { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; font-size: 14px; }
+.pf-quick span { color: var(--gray-500); margin-right: 4px; }
+.pf-quick button { background: none; border: 0; padding: 4px 2px; font: inherit; font-size: 14px; color: var(--gray-700); cursor: pointer; }
+.pf-quick button::before { content: '#'; color: var(--sky-2); margin-right: 2px; }
+.pf-quick button:hover, .pf-quick button.on { color: var(--primary); font-weight: 600; }
+
+/* 결과 막대 */
+.pf-result { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 28px 0 14px; }
+.pf-count { font-size: 14px; font-weight: 600; color: var(--gray-700); white-space: nowrap; }
+.pf-count b { color: var(--primary-dark); font-size: 17px; }
+.pf-tags { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; min-width: 0; }
+.pf-tag { display: inline-flex; align-items: center; gap: 2px; padding: 4px 8px 4px 10px; border-radius: 999px; border: 0; background: var(--primary-tint); color: var(--primary-dark); font: inherit; font-size: 14px; cursor: pointer; }
+.pf-tag .msi { font-size: 15px; }
+.pf-tools { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+.pf-seg { display: inline-flex; background: #fff; border: 1px solid var(--gray-200); border-radius: 999px; padding: 2px; }
+.pf-seg button { border: 0; background: none; font: inherit; font-size: 14px; padding: 5px 12px; border-radius: 999px; color: var(--gray-700); cursor: pointer; }
+.pf-seg button.on { background: var(--ink); color: #fff; font-weight: 600; }
+.pf-tools select { font: inherit; font-size: 14px; border: 1px solid var(--gray-200); border-radius: 999px; padding: 6px 12px; background: #fff; color: var(--ink); }
+
+/* 이 조건 최저가 한 줄 */
+.pf-best { display: flex; align-items: center; gap: 14px; background: var(--ink); color: #fff; border-radius: 16px; padding: 14px 18px 14px 22px; margin-bottom: 16px; }
+.pf-best .k { font-size: 14px; color: #A9B8D6; white-space: nowrap; }
+.pf-best .nm { font-weight: 600; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pf-best .pr { font-weight: 700; white-space: nowrap; }
+.pf-best .pr small { font-weight: 400; font-size: 14px; color: #A9B8D6; }
+.pf-best .msi { color: #A9B8D6; }
+
+.pf-more { display: block; margin: 22px auto 0; padding: 11px 28px; border-radius: 999px; border: 1px solid var(--gray-200); background: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.pf-more span { color: var(--gray-500); font-weight: 400; }
+.pf-empty { background: #fff; border-radius: 18px; padding: 40px 20px; text-align: center; color: var(--gray-700); font-size: 14px; }
+.pf-empty button { margin-top: 12px; padding: 9px 22px; border-radius: 999px; border: 1px solid var(--gray-200); background: #fff; font: inherit; font-size: 14px; cursor: pointer; }
+
+.pf-dim, .pf-sheet { display: none; }
+
+@media (max-width: 760px) {
+  .pf-band { padding: 40px 0; margin-top: 40px; }
+  .pf-partners, .pf-bar, .pf-quick { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .pf-partners::-webkit-scrollbar, .pf-bar::-webkit-scrollbar, .pf-quick::-webkit-scrollbar { display: none; }
+  .pf-partners button, .pf-quick button, .pf-quick span { flex-shrink: 0; }
+  .pf-bar { background: none; box-shadow: none; padding: 0; }
+  .pf-drop { position: static; flex-shrink: 0; }
+  .pf-all { display: inline-flex; flex-shrink: 0; background: var(--ink); color: #fff; border-color: var(--ink); font-weight: 600; }
+  .pf-all .msi { color: #fff; }
+  .pf-all.set { background: var(--ink); color: #fff; }
+  .pf-reset { flex-shrink: 0; margin-left: 0; }
+  /* 조건 창 → 아래에서 올라오는 시트 */
+  .pf-pop, .pf-sheet { position: fixed; top: auto; left: 0; right: 0; bottom: 0; width: auto; z-index: 60; border-radius: 22px 22px 0 0; max-height: 80vh; overflow: auto; padding: 18px 18px 20px; background: #fff; box-shadow: 0 -10px 30px rgba(15, 30, 58, 0.18); }
+  .pf-sheet { display: block; }
+  .pf-dim { display: block; position: fixed; inset: 0; z-index: 59; background: rgba(15, 30, 58, 0.45); }
+  .pf-sheet-row { padding: 12px 0; border-top: 1px solid var(--line); }
+  .pf-sheet-row p { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+  .pf-sheet-row p span { font-weight: 400; color: var(--gray-500); }
+  .pf-sheet .pf-pop-foot { position: sticky; bottom: -20px; background: #fff; padding: 12px 0 4px; }
+  .pf-result { margin-top: 20px; }
+  .pf-tags { order: 3; flex-basis: 100%; }
+  .pf-best { flex-wrap: wrap; gap: 4px 10px; }
+  .pf-best .nm { flex-basis: 100%; order: 2; white-space: normal; }
+  .pf-best .pr { order: 3; }
+  .pf-best .msi { display: none; }
+}
