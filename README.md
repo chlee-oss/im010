@@ -221,6 +221,7 @@ im010/
   | 알뜰하게 | 후불 · 월 1,000원 미만 | 5G → 낮은 가격 |
   | 선불은어때 | 선불 | 랜덤 |
   - "N만원대" = N만원 이상 N+1만원 미만. 첫 화면 오른쪽은 계산기 (예전 선불 요금제 그림 카드는 없앰). 제휴사 수집 "이달의 요금제"는 고객 화면에 쓰지 않는다
+- **제휴사 노출 순서 = 날마다 한 칸씩 회전** ([`partnerOrder.js`](frontend/web/src/lib/partnerOrder.js) — 화면과 미리 렌더링이 같은 파일): 백오피스 `sort_order`(→ code) 순서를 기준으로, 날짜 번호 mod 제휴사 수만큼 앞에서 돌린다. 제휴사마다 맨 앞에 서는 날이 차례로 돌아오고 하루 동안은 같은 순서. 하루의 시작은 **한국 시간 05:00** (매일 05:00 미리 렌더링과 같은 날짜). 제휴사 탭 · 제휴사별 묶음 · 헤더 드롭다운 · 푸터 · 메인 소개 줄이 따른다 (가격순 목록 · 금주의 요금 규칙은 별개). 날짜별 확인: `npm run check:partner-order`
 - **서비스별 랜딩** (검색 결과에 서비스마다 따로 보이게 — 해시 주소 `/#prepaid` 등은 구글이 메인 한 페이지로 본다). 제목은 그대로(` | im010` 없음), 헤더 · 푸터 · 메인에서 일반 링크
   | 주소 | 제목 | 내용 |
   |---|---|---|
@@ -252,6 +253,7 @@ im010/
 - 교체: 지금 화면을 복사한 새 폴더에서 미리 렌더링 결과만 갈아 끼우고 `renameat2(RENAME_EXCHANGE)`로 `/opt/im010/web` 과 **한 번에 맞바꾼다**. 이전 화면은 `/opt/im010/web.prev`. 바꾼 뒤 `/` · `/faq` 가 200 이 아니면 즉시 되돌린다
 - 화면 배포(`deploy-web.sh` · `deploy-app.sh`)와는 `/run/lock/im010-web.lock` 으로 겹치지 않는다
 - 설치 · `prerender.mjs` 갱신: `sudo bash deploy/scripts/setup-prerender.sh <올린 폴더>` ([`setup-prerender.sh`](deploy/scripts/setup-prerender.sh) — 폴더에 `prerender/` · `systemd/` · `scripts/`)
+  - 올린 폴더의 `prerender/` 구성: `frontend/web/scripts/prerender.mjs` · `frontend/web/src/lib/weeklyTabs.js` · `frontend/web/src/lib/partnerOrder.js` · `deploy/prerender/im010-prerender.sh` (화면 쪽 파일은 같은 커밋의 사본). `partnerOrder.js` 가 없는 예전 패키지로 다시 설치해도 멈추지 않고, 그 경우 미리 렌더링은 제휴사를 기준 순서로 쓴다
 - 수동 1회: `sudo systemctl start im010-prerender.service` · 로그: `journalctl -u im010-prerender -n 50 --no-pager` · 다음 실행: `systemctl list-timers im010-prerender.timer`
 - 감소 검사를 건너뛰고 강제로: `sudo PRERENDER_FORCE=1 /opt/im010/prerender/im010-prerender.sh` (요금제를 대량 종료한 날 등) · 되돌리기: `/opt/im010/web.prev` 를 `deploy-web.sh` 로 다시 배포
 - **`sitemap.xml` = im010-api 가 요청마다 DB 기준으로 만든다** ([`SitemapController`](backend/im010-api/src/main/java/kr/co/im010/api/seo/SitemapController.java), nginx 가 `/sitemap.xml` 만 api 로 넘김). 게시 · 판매 종료 · 글 게시가 **빌드 없이 즉시** 반영된다 (응답 캐시 10분)

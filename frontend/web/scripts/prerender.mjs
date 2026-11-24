@@ -32,6 +32,21 @@ const WEEKLY_TABS = await access(join(HERE, 'weeklyTabs.js')).then(
 )
 const { pickWeeklyTabs, pickFindPresets } = await import(pathToFileURL(WEEKLY_TABS).href)
 
+// 제휴사 노출 순서(날마다 회전) — 화면(src/lib/partnerOrder.js)과 같은 파일. 운영 서버에 사본이 아직 없으면
+// (deploy/scripts/setup-prerender.sh 파일 목록 갱신 전) 재생성이 멈추지 않도록 기준 순서 그대로 쓴다
+const rotateByDay = await (async () => {
+  for (const p of [join(HERE, 'partnerOrder.js'), join(HERE, '..', 'src', 'lib', 'partnerOrder.js')]) {
+    try {
+      await access(p)
+      return (await import(pathToFileURL(p).href)).rotateByDay
+    } catch {
+      // 다음 후보
+    }
+  }
+  console.warn('[prerender] partnerOrder.js 가 없어 제휴사를 기준 순서(sort_order)로 씁니다')
+  return (list) => [...list]
+})()
+
 const SITE = 'https://www.im010.co.kr'
 const API = (process.env.PRERENDER_API || SITE).replace(/\/$/, '')
 const OFFLINE = process.env.PRERENDER_OFFLINE === '1'
@@ -282,7 +297,8 @@ const { categories } = data
 
 // 메인
 {
-  const partnerNames = data.partners.map((p) => p.name).join(' · ')
+  // 화면과 같은 그날 순서 (한국 시간 05:00 기준 — 매일 05:00 재생성과 같은 날짜)
+  const partnerNames = rotateByDay(data.partners).map((p) => p.name).join(' · ')
   const latest = data.cards.slice(0, 6)
   const main = `
 <section class="pre-page"><div class="wrap">
