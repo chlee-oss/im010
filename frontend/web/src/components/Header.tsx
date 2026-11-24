@@ -75,7 +75,7 @@ export default function Header() {
           </div>
         </nav>
         <div className="header-actions">
-          <a className="btn-primary" href="/find">
+          <a className="btn-primary" href="/postpaid">
             요금제 비교하기
           </a>
           <button

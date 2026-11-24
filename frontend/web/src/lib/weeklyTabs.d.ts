@@ -14,11 +14,3 @@ export function qosMbps(text: string | null | undefined): number | null
 export function pickWeeklyTabs(plans: PlanSummary[], random?: () => number): WeeklyTab[]
 export function headline(p: PlanSummary): string
 
-export interface FindGroup {
-  key: string
-  label: string
-  desc: string
-  plans: PlanSummary[]
-}
-
-export function pickFindPresets(plans: PlanSummary[], limit?: number): FindGroup[]

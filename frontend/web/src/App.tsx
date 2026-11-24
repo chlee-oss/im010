@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import Footer from './components/Footer'
 import Header from './components/Header'
 import PageTracker from './components/PageTracker'
@@ -26,7 +26,8 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/weekly" element={<ServiceLandingPage key="weekly" service="weekly" />} />
-            <Route path="/find" element={<ServiceLandingPage key="find" service="find" />} />
+            {/* 예전 "내가 찾는 요금제를 직접 찾아요" (2026-11 조건으로 찾고, 제휴사별로 비교해요로 합침) */}
+            <Route path="/find" element={<Navigate to="/postpaid" replace />} />
             <Route path="/postpaid" element={<ServiceLandingPage key="postpaid" service="postpaid" />} />
             <Route path="/prepaid" element={<ServiceLandingPage key="prepaid" service="prepaid" />} />
             <Route path="/internet" element={<ServiceLandingPage key="internet" service="internet" />} />
