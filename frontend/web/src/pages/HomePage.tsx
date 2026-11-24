@@ -8,6 +8,7 @@ import { PrepaidPlans } from '../components/PlanSections'
 import { PlanFinder } from '../components/PlanFinder'
 import { WeeklyTabs } from '../components/WeeklyTabs'
 import { usePartners } from '../lib/partners'
+import { SERVICE_MENU } from '../lib/serviceMenu'
 import { useHashScroll } from '../lib/scrollHold'
 import { useApi } from '../lib/useApi'
 import { usePageTitle } from '../lib/usePageTitle'
@@ -58,10 +59,12 @@ export default function HomePage() {
           )}
           {/* 섹션별 독립 주소 — 검색엔진이 메뉴 구조를 알 수 있게 일반 링크로 (서비스 랜딩) */}
           <nav className="home-jump" aria-label="바로가기">
-            <Link to="/weekly">금주의 요금, 이렇게 추천해요</Link>
-            <Link to="/postpaid">조건으로 찾고, 제휴사별로 비교해요</Link>
-            <Link to="/prepaid">선불요금제를 알려 드릴게요</Link>
-            <Link to="/internet">인터넷도 im010에서 한 번에</Link>
+            {/* 서비스 페이지 위 탭 · 미리 렌더링 메뉴와 같은 목록 (lib/serviceMenu.js) */}
+            {SERVICE_MENU.map((m) => (
+              <Link key={m.key} to={m.path}>
+                {m.label}
+              </Link>
+            ))}
           </nav>
         </div>
       </section>
