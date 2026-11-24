@@ -222,7 +222,7 @@ im010/
   | 선불은어때 | 선불 | 랜덤 |
   - "N만원대" = N만원 이상 N+1만원 미만. 첫 화면 오른쪽은 계산기 (예전 선불 요금제 그림 카드는 없앰). 제휴사 수집 "이달의 요금제"는 고객 화면에 쓰지 않는다
 - **제휴사 노출 순서 = 날마다 한 칸씩 회전** ([`partnerOrder.js`](frontend/web/src/lib/partnerOrder.js) — 화면과 미리 렌더링이 같은 파일): 백오피스 `sort_order`(→ code) 순서를 기준으로, 날짜 번호 mod 제휴사 수만큼 앞에서 돌린다. 제휴사마다 맨 앞에 서는 날이 차례로 돌아오고 하루 동안은 같은 순서. 하루의 시작은 **한국 시간 05:00** (매일 05:00 미리 렌더링과 같은 날짜). 제휴사 탭 · 제휴사별 묶음 · 헤더 드롭다운 · 푸터 · 메인 소개 줄이 따른다 (가격순 목록 · 금주의 요금 규칙은 별개). 날짜별 확인: `npm run check:partner-order`
-- **조건으로 찾고, 제휴사별로 비교해요** (메인 `#partners` · `/postpaid`, 예전 "내가 찾는 요금제를 직접 찾아요"(계산기) + "입점한 제휴사에서 소개해요"를 합침): [`PlanFinder.tsx`](frontend/web/src/components/PlanFinder.tsx) · 규칙 [`planFilters.ts`](frontend/web/src/lib/planFilters.ts)
+- **조건으로 찾고, 제휴사별로 비교해요** (메인 `#partners` · `/postpaid`, 예전 "내가 찾는 요금제를 직접 찾아요"(계산기) + "입점한 제휴사에서 소개해요"를 합침. 예전 `/find` 는 없애고 `/postpaid` 로 이동 — 화면 Navigate · 미리 렌더링 find/index.html(noindex + 바로 이동) · sitemap · 검색엔진설정 페이지 목록에서 뺌): [`PlanFinder.tsx`](frontend/web/src/components/PlanFinder.tsx) · 규칙 [`planFilters.ts`](frontend/web/src/lib/planFilters.ts)
   - 1줄 제휴사 탭(여러 곳) · 2줄 조건 버튼(통신망 · 데이터 · QoS · 음성 · 할인기간 · 월 요금) + 전체 초기화 · 자주 찾는 조건. PC는 버튼에 커서를 올리면 조건 창이 열리고 하나 고르면 닫힌다. 모바일은 [☰ 조건] 시트
   - 한 조건 안에서는 여러 개(하나라도 맞으면), 조건끼리는 모두 맞아야. 월 요금만 하나 (지금 월 요금 기준 "이하"). 칩 숫자 = 그 칩을 고르면 나오는 수, 0개는 흐리게
   - 데이터 ~10 · 10~50 · 50~100 · 100GB 초과(무제한 포함) / QoS 없음 · ~1 · ~3 · 3 초과 5 미만 · 5Mbps 이상 / 할인 없음 · 10개월 이하 · 11~24개월 · 24개월 초과(평생) / 음성 무제한 = 표기 "무제한" · "기본 제공"

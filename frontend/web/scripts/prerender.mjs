@@ -30,7 +30,7 @@ const WEEKLY_TABS = await access(join(HERE, 'weeklyTabs.js')).then(
   () => join(HERE, 'weeklyTabs.js'),
   () => join(HERE, '..', 'src', 'lib', 'weeklyTabs.js'),
 )
-const { pickWeeklyTabs, pickFindPresets } = await import(pathToFileURL(WEEKLY_TABS).href)
+const { pickWeeklyTabs } = await import(pathToFileURL(WEEKLY_TABS).href)
 
 // 제휴사 노출 순서(날마다 회전) — 화면(src/lib/partnerOrder.js)과 같은 파일. 운영 서버에 사본이 아직 없으면
 // (deploy/scripts/setup-prerender.sh 파일 목록 갱신 전) 재생성이 멈추지 않도록 기준 순서 그대로 쓴다
@@ -187,7 +187,6 @@ function page({ path, title, description, body, noindex = false, type = 'website
  */
 const SERVICES = {
   weekly: { path: '/weekly', title: 'im010 - 금주의 요금, 이렇게 추천해요', h1: 'im010 금주의 요금, 이렇게 추천해요', label: '금주의 요금, 이렇게 추천해요' },
-  find: { path: '/find', title: 'im010 - 내가 찾는 요금제를 직접 찾아요', h1: '내가 찾는 요금제를 직접 찾아요', label: '내가 찾는 요금제를 직접 찾아요' },
   postpaid: { path: '/postpaid', title: 'im010 - 조건으로 찾고, 제휴사별로 비교해요', h1: '조건으로 찾고, 제휴사별로 비교해요', label: '조건으로 찾고, 제휴사별로 비교해요' },
   prepaid: { path: '/prepaid', title: 'im010 - 선불요금제를 알려 드릴게요', h1: '선불요금제를 알려 드릴게요', label: '선불요금제를 알려 드릴게요' },
   internet: { path: '/internet', title: 'im010 - 인터넷도 im010에서 한 번에', h1: '인터넷도 im010에서 한 번에', label: '인터넷도 im010에서 한 번에' },
@@ -307,7 +306,7 @@ const { categories } = data
   <nav aria-label="서비스">${SERVICE_LINKS}</nav>
   ${data.weekly.length ? `<h2 id="month">im010 금주의 요금, 이렇게 추천해요</h2>${data.weekly.map((t) => `<h3>${esc(t.label)}</h3><p>${esc(t.desc)}</p><ul>${t.plans.map(planItem).join('')}</ul>`).join('')}<p><a href="/weekly">금주의 요금 추천 전체 보기</a></p>` : ''}
   <h2 id="partners">조건으로 찾고, 제휴사별로 비교해요</h2>
-  <p>통신망 · 데이터 · QoS · 음성 · 할인기간 · 월 요금 조건으로 제휴사 후불 요금제를 찾고, 이 조건의 최저가를 바로 보여 드려요. <a href="/find">조건별 요금제 보기</a></p>
+  <p>통신망 · 데이터 · QoS · 음성 · 할인기간 · 월 요금 조건으로 제휴사 후불 요금제를 찾고, 이 조건의 최저가를 바로 보여 드려요.</p>
   ${data.postpaid.length ? `<ul>${data.postpaid.map(planItem).join('')}</ul><p><a href="/postpaid">제휴사별 후불 요금제 전체 보기</a></p>` : ''}
   ${data.prepaid.length ? `<h2 id="prepaid">선불요금제를 알려 드릴게요</h2><ul>${data.prepaid.map(planItem).join('')}</ul><p><a href="/prepaid">선불요금제 전체 보기</a></p>` : ''}
   <h2 id="internet">인터넷도 im010에서 한 번에</h2>
@@ -371,19 +370,6 @@ const pageMeta = (key, auto, vars = {}) => {
       ? `영상 · 데이터 · 통화 · 가격 기준별로 이번 주 제휴사 ${weeklyPartners}곳 요금제를 하나씩 골라 추천해요.`
       : '영상 · 데이터 · 통화 · 가격 기준별로 이번 주 제휴사 요금제를 하나씩 골라 추천해요.',
     { count: data.weekly.reduce((s, t) => s + t.plans.length, 0), partners: weeklyPartners },
-  )
-  const find = pickFindPresets(data.postpaid)
-  servicePage(
-    'find',
-    '데이터 사용량과 통신망을 고르거나, 조건별로 모아 둔 요금제에서 바로 찾아보세요.',
-    [
-      '<h2 id="calc-section">조건으로 최저가 찾기</h2><p>데이터 사용량과 원하는 통신망만 알려 주세요. 제휴사 요금제 중 조건에 맞는 최저가를 바로 찾아 드려요.</p>',
-      find.length
-        ? `<h2 id="find-presets">조건별로 골라 봤어요</h2><nav aria-label="조건 바로가기">${find.map((g) => `<a href="#find-${g.key}">${esc(g.label)}</a>`).join(' · ')}</nav>${find.map((g) => `<h3 id="find-${g.key}">${esc(g.label)} — ${esc(g.desc)}</h3><ul>${g.plans.map(planItem).join('')}</ul>`).join('')}`
-        : '',
-    ].join('\n  '),
-    '데이터 · 통신망을 골라 최저가를 찾고, 무제한 · 1만원 이하 등 조건별 요금제를 바로 확인하세요.',
-    { count: find.reduce((s, g) => s + g.plans.length, 0), partners: postpaidPartners },
   )
   servicePage(
     'postpaid',
@@ -603,6 +589,19 @@ for (const [slug, [, title]] of Object.entries(TERMS)) {
     }),
   ])
 }
+
+// 예전 /find (내가 찾는 요금제를 직접 찾아요) → /postpaid 로 바로 이동 (검색 제외, 화면은 App.tsx 의 Navigate)
+files.push([
+  'find/index.html',
+  page({
+    path: null,
+    title: '조건으로 찾고, 제휴사별로 비교해요 | im010',
+    description: '이 페이지는 조건으로 찾고, 제휴사별로 비교해요(으)로 옮겼어요.',
+    noindex: true,
+    extraHead: '<meta http-equiv="refresh" content="0; url=/postpaid" />',
+    body: '<p><a href="/postpaid">조건으로 찾고, 제휴사별로 비교해요</a>(으)로 이동합니다.</p>',
+  }),
+])
 
 // 제휴사 이동 안내 (/out) — 검색 제외
 files.push([

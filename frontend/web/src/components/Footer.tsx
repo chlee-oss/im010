@@ -31,8 +31,7 @@ export default function Footer() {
           <div className="footer-col">
             <h5>서비스</h5>
             <a href="/weekly">금주의 요금을 추천해요</a>
-            <a href="/find">요금제 직접 찾기</a>
-            <a href="/postpaid">요금제</a>
+            <a href="/postpaid">조건으로 찾고, 제휴사별로 비교해요</a>
             <a href="/prepaid">선불요금제</a>
             <a href="/internet">인터넷</a>
             <a href="/ai">알뜰AI</a>

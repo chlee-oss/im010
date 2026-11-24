@@ -1,6 +1,4 @@
 import { Link } from 'react-router-dom'
-import Calculator from '../components/Calculator'
-import { FindPresets } from '../components/FindPresets'
 import { InternetBanner, InternetProducts } from '../components/Internet'
 import { PrepaidPlans } from '../components/PlanSections'
 import { PlanFinder } from '../components/PlanFinder'
@@ -11,14 +9,13 @@ import { usePageTitle } from '../lib/usePageTitle'
 /**
  * 서비스별 랜딩 — 메인(/)의 섹션을 검색 결과에 따로 보이도록 독립 주소로 보여 준다.
  *   /weekly   im010 금주의 요금, 이렇게 추천해요   (메인 #month)
- *   /find     내가 찾는 요금제를 직접 찾아요       (메인 #calc-section + 조건별 바로가기)
  *   /postpaid 조건으로 찾고, 제휴사별로 비교해요   (메인 #partners — 예전 직접 찾기 + 제휴사별 요금제)
  *   /prepaid  선불요금제를 알려 드릴게요           (메인 #prepaid)
  *   /internet 인터넷도 im010에서 한 번에           (메인 #internet + #internet-compare "인터넷 상품 비교를 해 보세요")
  * 제목은 "im010 - …" 그대로 (| im010 을 붙이지 않음). 백오피스 검색엔진설정(ST-08) 페이지별 제목이 있으면 그것을 쓴다.
  * 미리 렌더링(scripts/prerender.mjs)의 SERVICES · 백엔드 PageMeta.PAGES 와 문구를 맞춘다.
  */
-export type ServiceKey = 'weekly' | 'find' | 'postpaid' | 'prepaid' | 'internet'
+export type ServiceKey = 'weekly' | 'postpaid' | 'prepaid' | 'internet'
 
 const SERVICE_PAGES: Record<ServiceKey, { path: string; title: string; h1: string; lead: string }> = {
   weekly: {
@@ -26,12 +23,6 @@ const SERVICE_PAGES: Record<ServiceKey, { path: string; title: string; h1: strin
     title: 'im010 - 금주의 요금, 이렇게 추천해요',
     h1: 'im010 금주의 요금, 이렇게 추천해요',
     lead: '영상 · 데이터 · 통화 · 가격 기준별로 이번 주 제휴사 요금제를 하나씩 골라 추천해요.',
-  },
-  find: {
-    path: '/find',
-    title: 'im010 - 내가 찾는 요금제를 직접 찾아요',
-    h1: '내가 찾는 요금제를 직접 찾아요',
-    lead: '데이터 사용량과 통신망을 고르거나, 조건별로 모아 둔 요금제에서 바로 찾아보세요.',
   },
   postpaid: {
     path: '/postpaid',
@@ -80,22 +71,6 @@ export default function ServiceLandingPage({ service }: { service: ServiceKey })
         </div>
       </section>
       {service === 'weekly' && <WeeklyTabs heading="이번 주 추천 기준" />}
-      {service === 'find' && (
-        <>
-          <section id="calc-section" aria-label="조건으로 최저가 찾기">
-            <div className="wrap">
-              <div className="calc-band">
-                <div className="calc-copy">
-                  <h2>조건으로 최저가 찾기</h2>
-                  <p>데이터 사용량과 원하는 통신망만 알려 주세요. 제휴사 요금제 중 조건에 맞는 최저가를 바로 찾아 드려요.</p>
-                  <Calculator />
-                </div>
-              </div>
-            </div>
-          </section>
-          <FindPresets />
-        </>
-      )}
       {service === 'postpaid' && <PlanFinder heading="조건 고르기" />}
       {service === 'prepaid' && <PrepaidPlans />}
       {service === 'internet' && (
