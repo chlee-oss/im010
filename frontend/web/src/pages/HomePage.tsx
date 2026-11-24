@@ -17,7 +17,7 @@ import Icon from '../components/Icon'
 
 /**
  * 메인 (시안 B-1): 서비스 소개 → im010 금주의 요금을 추천해요 → 조건으로 찾고, 제휴사별로 비교해요
- * (예전 직접 찾기 + 제휴사별 요금제를 합침) → 선불요금제 → 인터넷 → 요금제분석 → 알뜰AI
+ * (예전 직접 찾기 + 제휴사별 요금제를 합침) → 선불요금제 → 인터넷 → 알뜰AI → 요금제분석
  */
 export default function HomePage() {
   usePageTitle()
@@ -75,8 +75,8 @@ export default function HomePage() {
       <PrepaidPlans />
       <InternetBanner />
       <InternetProducts />
-      <Analysis />
       <AiLatest />
+      <Analysis />
     </>
   )
 }

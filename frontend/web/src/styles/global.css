@@ -223,6 +223,8 @@ main > section:last-child{padding-bottom:64px;}
 
 /* 제휴사별 요금제 */
 .partner-band{background:var(--primary-soft); margin-top:64px; padding:56px 0;}
+/* 띠가 마지막 섹션이면(메인 요금제분석) 위아래 여백을 같게 — 푸터와의 간격은 footer margin-top 이 맡는다 */
+main > section.partner-band:last-child{padding-bottom:56px;}
 .partner-tabs{display:flex; gap:8px; margin-bottom:26px; flex-wrap:wrap;}
 .partner-tabs button{
   padding:8px 16px; border-radius:999px; background:#fff; font-weight:500; font-size:14px; font-family:inherit;
