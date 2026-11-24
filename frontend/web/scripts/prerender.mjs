@@ -31,6 +31,12 @@ const WEEKLY_TABS = await access(join(HERE, 'weeklyTabs.js')).then(
   () => join(HERE, '..', 'src', 'lib', 'weeklyTabs.js'),
 )
 const { pickWeeklyTabs } = await import(pathToFileURL(WEEKLY_TABS).href)
+// 서비스 메뉴 — 화면(src/lib/serviceMenu.js)과 같은 파일 (운영 서버는 이 스크립트 옆 사본)
+const SERVICE_MENU_FILE = await access(join(HERE, 'serviceMenu.js')).then(
+  () => join(HERE, 'serviceMenu.js'),
+  () => join(HERE, '..', 'src', 'lib', 'serviceMenu.js'),
+)
+const { SERVICE_MENU } = await import(pathToFileURL(SERVICE_MENU_FILE).href)
 
 // 제휴사 노출 순서(날마다 회전) — 화면(src/lib/partnerOrder.js)과 같은 파일. 운영 서버에 사본이 아직 없으면
 // (deploy/scripts/setup-prerender.sh 파일 목록 갱신 전) 재생성이 멈추지 않도록 기준 순서 그대로 쓴다
@@ -192,20 +198,20 @@ const SERVICES = {
   internet: { path: '/internet', title: 'im010 - 인터넷도 im010에서 한 번에', h1: '인터넷도 im010에서 한 번에', label: '인터넷도 im010에서 한 번에' },
   ai: { path: '/ai', title: 'im010 - 나는 알뜰한 통신경험을 원해!', h1: '나는 알뜰한 통신경험을 원해!', label: '알뜰AI' },
 }
-const SERVICE_LINKS = Object.values(SERVICES)
-  .map((s) => `<a href="${s.path}">${esc(s.label)}</a>`)
-  .join(' · ')
+// 메인 · 서비스 페이지 메뉴 (화면과 같은 4개, 알뜰AI 없음). 위아래 공통 메뉴에는 알뜰AI 를 따로 붙인다 (화면 헤더 · 푸터처럼)
+const SERVICE_LINKS = SERVICE_MENU.map((s) => `<a href="${s.path}">${esc(s.label)}</a>`).join(' · ')
+const SITE_LINKS = `${SERVICE_LINKS} · <a href="/ai">알뜰AI</a>`
 
 function layout(main, categories = []) {
   const cats = categories.map((c) => `<a href="/ai/${esc(c.slug)}">${esc(c.name)}</a>`).join(' · ')
   return `
 <header class="pre-header"><div class="wrap"><a href="/"><strong>im010</strong></a>
-  <nav aria-label="주요 메뉴">${SERVICE_LINKS} · <a href="/faq">자주 묻는 질문</a></nav>
+  <nav aria-label="주요 메뉴">${SITE_LINKS} · <a href="/faq">자주 묻는 질문</a></nav>
 </div></header>
 <main>${main}</main>
 <footer class="pre-footer"><div class="wrap">
   ${cats ? `<p>알뜰AI: ${cats}</p>` : ''}
-  <p>${SERVICE_LINKS}</p>
+  <p>${SITE_LINKS}</p>
   <p><a href="/terms/service">이용약관</a> · <a href="/terms/privacy">개인정보처리방침</a> · <a href="/faq">자주 묻는 질문</a></p>
   <p>© im010 — 알뜰폰 요금비교</p>
 </div></footer>

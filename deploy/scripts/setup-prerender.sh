@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # im010 운영 서버: 고객 화면 미리 렌더링 매일 재생성(05:00) 설치 — Node.js 22 · /opt/im010/prerender · systemd timer
 #   사용: sudo bash setup-prerender.sh [올린 폴더, 기본 = 이 스크립트 옆 ..]
-#   올린 폴더 구성: prerender/prerender.mjs · prerender/weeklyTabs.js · prerender/partnerOrder.js · prerender/im010-prerender.sh · systemd/im010-prerender.service|timer
-#     (prerender.mjs · weeklyTabs.js · partnerOrder.js 는 frontend/web 의 scripts/ · src/lib/ 에서 같은 커밋 사본을 넣는다)
+#   올린 폴더 구성: prerender/prerender.mjs · prerender/weeklyTabs.js · prerender/serviceMenu.js · prerender/partnerOrder.js · prerender/im010-prerender.sh · systemd/im010-prerender.service|timer
+#     (prerender.mjs · weeklyTabs.js · serviceMenu.js · partnerOrder.js 는 frontend/web 의 scripts/ · src/lib/ 에서 같은 커밋 사본을 넣는다)
 # 여러 번 실행해도 된다. prerender.mjs 가 바뀐 릴리스를 배포할 때도 다시 실행해 파일을 갈아 끼운다.
 set -euo pipefail
 
 [[ $EUID -eq 0 ]] || { echo "root 권한이 필요합니다: sudo bash $0" >&2; exit 1; }
 SRC=${1:-"$(cd "$(dirname "$0")/.." && pwd)"}
-for f in prerender/prerender.mjs prerender/weeklyTabs.js prerender/im010-prerender.sh systemd/im010-prerender.service systemd/im010-prerender.timer; do
+for f in prerender/prerender.mjs prerender/weeklyTabs.js prerender/serviceMenu.js prerender/im010-prerender.sh systemd/im010-prerender.service systemd/im010-prerender.timer; do
     [[ -f "$SRC/$f" ]] || { echo "파일이 없습니다: $SRC/$f" >&2; exit 1; }
 done
 
@@ -27,6 +27,8 @@ install -d -o root -g root -m 755 /opt/im010/prerender
 install -o root -g root -m 644 "$SRC/prerender/prerender.mjs" /opt/im010/prerender/prerender.mjs
 # 금주의 요금을 추천해요 규칙 (frontend/web/src/lib/weeklyTabs.js — 화면과 같은 파일)
 install -o root -g root -m 644 "$SRC/prerender/weeklyTabs.js" /opt/im010/prerender/weeklyTabs.js
+# 서비스 메뉴 (frontend/web/src/lib/serviceMenu.js — 화면과 같은 파일)
+install -o root -g root -m 644 "$SRC/prerender/serviceMenu.js" /opt/im010/prerender/serviceMenu.js
 # 제휴사 노출 순서 날마다 회전 (frontend/web/src/lib/partnerOrder.js — 화면과 같은 파일).
 # 없는 예전 패키지로 다시 설치해도 멈추지 않는다 — prerender.mjs 가 없으면 기준 순서(sort_order)로 쓴다
 if [[ -f "$SRC/prerender/partnerOrder.js" ]]; then

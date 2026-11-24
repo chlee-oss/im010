@@ -4,6 +4,7 @@ import { PrepaidPlans } from '../components/PlanSections'
 import { PlanFinder } from '../components/PlanFinder'
 import { WeeklyTabs } from '../components/WeeklyTabs'
 import { useHashScroll } from '../lib/scrollHold'
+import { SERVICE_MENU, type ServiceKey } from '../lib/serviceMenu'
 import { usePageTitle } from '../lib/usePageTitle'
 
 /**
@@ -15,7 +16,6 @@ import { usePageTitle } from '../lib/usePageTitle'
  * 제목은 "im010 - …" 그대로 (| im010 을 붙이지 않음). 백오피스 검색엔진설정(ST-08) 페이지별 제목이 있으면 그것을 쓴다.
  * 미리 렌더링(scripts/prerender.mjs)의 SERVICES · 백엔드 PageMeta.PAGES 와 문구를 맞춘다.
  */
-export type ServiceKey = 'weekly' | 'postpaid' | 'prepaid' | 'internet'
 
 const SERVICE_PAGES: Record<ServiceKey, { path: string; title: string; h1: string; lead: string }> = {
   weekly: {
@@ -61,12 +61,12 @@ export default function ServiceLandingPage({ service }: { service: ServiceKey })
           <h1>{page.h1}</h1>
           <p>{page.lead}</p>
           <nav className="service-tabs" aria-label="서비스">
-            {(Object.keys(SERVICE_PAGES) as ServiceKey[]).map((k) => (
-              <Link key={k} to={SERVICE_PAGES[k].path} className={k === service ? 'on' : ''} aria-current={k === service ? 'page' : undefined}>
-                {SERVICE_PAGES[k].h1}
+            {/* 메인 소개 아래 바로가기와 같은 목록 (lib/serviceMenu.js) */}
+            {SERVICE_MENU.map((m) => (
+              <Link key={m.key} to={m.path} className={m.key === service ? 'on' : ''} aria-current={m.key === service ? 'page' : undefined}>
+                {m.label}
               </Link>
             ))}
-            <Link to="/ai">나는 알뜰한 통신경험을 원해!</Link>
           </nav>
         </div>
       </section>
