@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # im010 운영 서버: 고객 화면 미리 렌더링 매일 재생성(05:00) 설치 — Node.js 22 · /opt/im010/prerender · systemd timer
 #   사용: sudo bash setup-prerender.sh [올린 폴더, 기본 = 이 스크립트 옆 ..]
-#   올린 폴더 구성: prerender/prerender.mjs · prerender/weeklyTabs.js · prerender/im010-prerender.sh · systemd/im010-prerender.service|timer
+#   올린 폴더 구성: prerender/prerender.mjs · prerender/weeklyTabs.js · prerender/partnerOrder.js · prerender/im010-prerender.sh · systemd/im010-prerender.service|timer
+#     (prerender.mjs · weeklyTabs.js · partnerOrder.js 는 frontend/web 의 scripts/ · src/lib/ 에서 같은 커밋 사본을 넣는다)
 # 여러 번 실행해도 된다. prerender.mjs 가 바뀐 릴리스를 배포할 때도 다시 실행해 파일을 갈아 끼운다.
 set -euo pipefail
 
@@ -26,6 +27,13 @@ install -d -o root -g root -m 755 /opt/im010/prerender
 install -o root -g root -m 644 "$SRC/prerender/prerender.mjs" /opt/im010/prerender/prerender.mjs
 # 금주의 요금을 추천해요 규칙 (frontend/web/src/lib/weeklyTabs.js — 화면과 같은 파일)
 install -o root -g root -m 644 "$SRC/prerender/weeklyTabs.js" /opt/im010/prerender/weeklyTabs.js
+# 제휴사 노출 순서 날마다 회전 (frontend/web/src/lib/partnerOrder.js — 화면과 같은 파일).
+# 없는 예전 패키지로 다시 설치해도 멈추지 않는다 — prerender.mjs 가 없으면 기준 순서(sort_order)로 쓴다
+if [[ -f "$SRC/prerender/partnerOrder.js" ]]; then
+    install -o root -g root -m 644 "$SRC/prerender/partnerOrder.js" /opt/im010/prerender/partnerOrder.js
+else
+    echo "참고: $SRC/prerender/partnerOrder.js 가 없어 제휴사 회전 없이 설치합니다 (미리 렌더링은 기준 순서)" >&2
+fi
 install -o root -g root -m 755 "$SRC/prerender/im010-prerender.sh" /opt/im010/prerender/im010-prerender.sh
 restorecon -R /opt/im010/prerender || true
 
