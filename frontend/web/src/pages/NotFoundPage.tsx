@@ -13,7 +13,7 @@ export default function NotFoundPage() {
           <Link className="btn-primary" to="/">
             메인으로
           </Link>
-          <a className="card-cta" href="/#calc">
+          <a className="card-cta" href="/postpaid">
             요금제 비교하기
           </a>
         </div>

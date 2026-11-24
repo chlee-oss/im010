@@ -32,7 +32,7 @@ export function aiCompareLink(
     return prepaid ? { href: '/prepaid', label: '선불요금제를 알려 드릴게요' } : { href: '/weekly', label: '금주의 요금, 이렇게 추천해요' }
   }
   if (post.categorySlug === 'internet') return { href: '/internet#internet-compare', label: '인터넷 상품 비교를 해 보세요' }
-  return { href: '/postpaid', label: '입점한 제휴사에서 소개해요' }
+  return { href: '/postpaid', label: '조건으로 찾고, 제휴사별로 비교해요' }
 }
 
 export const aiPostPath =(c: { id: number; slug: string }) => `/ai/posts/${c.id}/${encodeURIComponent(c.slug)}`

@@ -1,14 +1,19 @@
-import { createContext, useContext, type ReactNode } from 'react'
+import { createContext, useContext, useMemo, type ReactNode } from 'react'
 import { api } from '../api/client'
 import type { Partner } from '../api/types'
+import { rotateByDay } from './partnerOrder'
 import { useApi } from './useApi'
 
 const PartnerContext = createContext<Map<string, Partner>>(new Map())
 
-/** 제휴사 목록(브랜드명 · 칩 색상)을 한 번만 불러와 화면 전체에서 쓴다. */
+/**
+ * 제휴사 목록(브랜드명 · 칩 색상)을 한 번만 불러와 화면 전체에서 쓴다.
+ * 순서는 날마다 한 칸씩 돈다(lib/partnerOrder — 백오피스 sort_order 는 회전의 기준 순서). 제휴사 탭 · 제휴사별 묶음 ·
+ * 헤더 드롭다운 · 푸터 · 메인 소개 줄이 모두 이 순서를 따른다. 불러올 때 한 번 정해 화면을 보는 동안에는 바뀌지 않는다.
+ */
 export function PartnerProvider({ children }: { children: ReactNode }) {
   const { data, loading } = useApi((signal) => api.partners(signal), [])
-  const map = new Map((data ?? []).map((p) => [p.code, p]))
+  const map = useMemo(() => new Map(rotateByDay(data ?? []).map((p) => [p.code, p])), [data])
   return (
     <PartnerContext.Provider value={map}>
       {/* 제휴사가 늦게 오면 메인 소개 줄 · 탭이 나중에 생겨 높이가 바뀐다 — 섹션 주소 이동(lib/scrollHold)이 기다리도록 표시 (화면엔 안 보임) */}

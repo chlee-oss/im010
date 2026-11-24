@@ -243,7 +243,7 @@ export const DEVICE: Record<string, string> = { PC: 'PC', MO: '모바일' }
 export const PAGE: Record<string, string> = {
   HOME: '메인',
   WEEKLY: '금주의 요금 추천 (/weekly)',
-  FIND: '요금제 직접 찾기 (/find)',
+  FIND: '요금제 직접 찾기 (/find, 11-25 없앰)',
   POSTPAID: '제휴사 후불 요금제 (/postpaid)',
   PREPAID: '선불요금제 (/prepaid)',
   INTERNET: '인터넷 (/internet)',
